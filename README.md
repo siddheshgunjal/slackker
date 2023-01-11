@@ -31,7 +31,7 @@ x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, train_size=0
 
 # Build keras model
 model = Sequential()
-model.add(Dense(8,activation='relu',input_shape = (4,)))
+model.add(Dense(8,activation='relu',input_shape = (IMG_WIDTH, IMG_HEIGHT, DEPTH)))
 model.add(Dense(3,activation='softmax'))
 model.compile(optimizer = 'rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -41,6 +41,15 @@ slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-
     modelName='SampleModel',
     export='png',
     sendPlot=True)
+
+# Call Slackker object in model.fit() callbacks
+history = model.fit(x_train, 
+                    y_train,
+                    epochs = 3,
+                    batch_size = 16,
+                    verbose=1,
+                    validation_data=(x_val,y_val),
+                    callbacks=[slack_update])
 ```
 
 
@@ -54,9 +63,6 @@ Please cite slackker in your publications if this is useful for your research. H
   howpublished={\url{https://github.com/siddheshgunjal/slackker}},
 }
 ```
-
-#### References
-* https://github.com/siddheshgunjal/slackker
 
 ### Maintainer
 * Siddhesh Gunjal, github: [siddheshgunjal](https://github.com/siddheshgunjal)
