@@ -51,7 +51,7 @@ checkpoints = ModelCheckpoint('checkpoints/epoch_{epoch:02d}_loss{val_loss:.3f}.
 slack_update = SLKerasUpdate(token="xoxb-4615231545733-4603743143687-P0ngiBAuMsp512V5DafGBajT",
     channel="C04JAK77KHQ",
     modelName='SampleModel',
-    export='png')
+    export='jpg')
 
 history = model.fit(x_train, 
                     y_train,
