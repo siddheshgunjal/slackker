@@ -9,7 +9,7 @@
 
 ### Installation
 * Install slackker from PyPI (recommended). slackker is compatible with Python 3.6+ and runs on Linux, MacOS X and Windows. 
-* A new environment can be created as following:
+* Usage as given below:
 
 ```bash
 pip install slackker
@@ -17,7 +17,7 @@ pip install slackker
 
 #### Import slackker package for keras
 ```python
-ffrom slackker import SLKerasUpdate
+from slackker import SLKerasUpdate
 ```
 
 #### Example:
@@ -39,7 +39,8 @@ model.compile(optimizer = 'rmsprop', loss='categorical_crossentropy', metrics=['
 slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-adedce74748c3844747aed48499bb",
     channel="A04AAB77ABC",
     modelName='SampleModel',
-    export='png')
+    export='png',
+    sendPlot=True)
 ```
 
 
