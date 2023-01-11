@@ -47,15 +47,15 @@ checkpoints = ModelCheckpoint('checkpoints/epoch_{epoch:02d}_loss{val_loss:.3f}.
     save_best_only=True,
     save_weights_only=True)
 
-
-# Reduce Learning rate when no improvement for 5 epochs
-reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=3, min_delta=0.001, min_lr=0.000000001)
-
-slack_update = SLKerasUpdate(modelName='SampleModel')
+# Slackker Checkpoint
+slack_update = SLKerasUpdate(token="xoxb-4615231545733-4603743143687-P0ngiBAuMsp512V5DafGBajT",
+    channel="C04JAK77KHQ",
+    modelName='SampleModel',
+    export='png')
 
 history = model.fit(x_train, 
                     y_train,
-                    epochs = 20,
+                    epochs = 3,
                     batch_size = 16,
                     verbose=1,
                     validation_data=(x_val,y_val),
