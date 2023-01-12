@@ -15,12 +15,12 @@
 pip install slackker
 ```
 
-#### Import slackker package for keras
+### Import slackker package for keras
 ```python
 from slackker import SLKerasUpdate
 ```
 
-#### Example:
+### Example:
 ```python
 # Import library for keras
 from slackker import SLKerasUpdate
@@ -53,7 +53,7 @@ history = model.fit(x_train,
 ```
 
 
-#### Citation
+### Citation
 Please cite slackker in your publications if this is useful for your research. Here is an example BibTeX entry:
 ```BibTeX
 @misc{siddheshgunjalslackker,
