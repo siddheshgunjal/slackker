@@ -3,8 +3,8 @@ from keras.callbacks import Callback
 from slack_sdk import WebClient
 from datetime import datetime
 import argparse
-import utils.chekker as checkker
-import utils.funckker as funckker
+import slackker.utils.checkker as checkker
+import slackker.utils.funckker as funckker
 
 
 class SLKerasUpdate(Callback):
