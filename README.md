@@ -1,6 +1,6 @@
 # Introducing slackker! :fire:
 
-``slackker`` is Python package for reporting your ML training status in real-time on slack channel.
+`slackker` is a python package for monitoring your ML training status in real-time on slack channel. It can send you update for your ML model training progress and send final report with graphs when the training finishes. So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move.
 
 
 ### Star this repo if this has been useful in your ML training workflows! :star2:
@@ -24,7 +24,7 @@
 ## Requirements :clipboard:
 
 * `slackker` utilises [slack_sdk][slack-sdk]`>=3.19.0` for communicating with slack API.
-* To use the `slackker.callbacks.SLKerasUpdate` method in keras.callbackss [keras][keras]`>=2.0.0` is required.
+* To use the `slackker.callbacks` method in keras.callbackss [keras][keras]`>=2.0.0` is required.
 
 
 ## Installation :arrow_down:
@@ -61,7 +61,8 @@ slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-
     channel="A04AAB77ABC",
     modelName='SampleModel',
     export='png',
-    sendPlot=True)
+    sendPlot=True,
+    verbose=0)
 ```
 `SLKerasUpdate` takes following arguments:
 * `token`: *(string)* Slack app token
@@ -72,8 +73,8 @@ slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-
 * `verbose`: *(int)* default `0`: You can sent the verbose level up to 3.
   * `verbose = 0` No logging
   * `verbose = 1` Basic/minimal logging
-  * `verbose = 2`Info logging
-  * `verbose = 3`Debug/In-depth logging
+  * `verbose = 2` Info logging
+  * `verbose = 3` Debug/In-depth logging
 
 ### Call slackker object into callbacks during model fit
 
