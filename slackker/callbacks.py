@@ -10,7 +10,7 @@ import slackker.utils.funckker as funckker
 class SLKerasUpdate(Callback):
     """Custom Keras callback that posts to Slack while training a neural network"""
 
-    def __init__(self, token, channel, modelName, export=None, sendPlot=True, verbose=0):
+    def __init__(self, token, channel, modelName, export="png", sendPlot=True, verbose=0):
 
         if token is None:
             raise Exception('[slackker] Please enter Valid Slack API Token.')
