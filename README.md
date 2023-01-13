@@ -23,8 +23,7 @@
 
 ## Requirements :clipboard:
 
-* `slackker` utilises [slack_sdk][slack-sdk]`>=3.0.0` for communicating with slack API.
-* `slackker` uses [matplotlib][matplot-lib]`>= 2.2.5` for generating graphs at the end of training and send them to configured slack channel.
+* `slackker` utilises [slack_sdk][slack-sdk]`>=3.19.0` for communicating with slack API.
 * To use the `slackker.callbacks.SLKerasUpdate` method in keras.callbackss [keras][keras]`>=2.0.0` is required.
 
 
