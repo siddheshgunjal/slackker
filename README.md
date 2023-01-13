@@ -2,27 +2,26 @@
 
 ``slackker`` is Python package for reporting your ML training status in real-time on slack channel.
 
-# 
-**Star this repo if this has been useful in you workflows! ⭐️**
-#
+
+**Star this repo if this has been useful in you workflows! :star2:**
+
 
 ## Table of contents :notebook:
 
-* [Requirements](#requirements-📋)
-* [Installation](#installation-⬇️)
-* [Getting started tutorial](#getting-started-tutorial)
-* [Basic Usage of the slackker callbacks](#basic-usage-of-the-slackker-callbacks)
+* [Requirements](#requirements)
+* [Installation](#installation)
+* [Getting started with slackker callbacks](#getting-started-with-slackker-callbacks)
   * [Setup Slack to work with slackker](#setup-slack-to-work-with-slackker)
-  * [Using slackker.callbacks with keras.callbacks](#using-slackker.callbacks-with-keras.callbacks)
+  * [Using slackker callbacks with keras callbacks](#using-slackker-callbacks-with-keras-callbacks-method)
   * [Create slackker object](#create-slackker-object)
   * [Call slackker object into callbacks during model.fit()](#call-slackker-object-into-callbacks-during-model.fit)
   * [Final code](#final-code)
-* [Support](#support-✨)
-* [Citation](#citation-📄)
-* [Maintainer](#maintainer-😎)
+* [Support](#support)
+* [Citation](#citation)
+* [Maintainer](#maintainer)
 
 
-### Requirements 📋
+### Requirements
 
 * `slackker` utilises [slack_sdk][slack-sdk]`>=3.0.0` for communicating with slack API.
 * `slackker` uses [matplotlib][matplot-lib]`>= 2.2.5` for generating graphs at the end of training and send them to configured slack channel.
@@ -30,7 +29,7 @@
 
 #
 
-### Installation ⬇️
+### Installation
 * Install slackker from [PyPi][py-pi] is recommended. slackker is compatible with `Python >= 3.6` and runs on Linux, MacOS X and Windows. 
 * Installing slackker in your environment is easy. Just use below pip command:
 
@@ -39,7 +38,7 @@ pip install slackker
 ```
 #
 
-### Basic Usage of the slackker callbacks
+### Getting started with slackker callbacks
 #### Setup Slack to work with slackker
 * First create an [slack app][slack-app] from scratch in your workspace.
 * we must give below mentioned permissions for `slackker` to be able to send status update and report to your channel:
@@ -53,7 +52,7 @@ pip install slackker
  ```
  * Now go to slack and add this slack app to the channel where you wish to receive al the update. Now we are ready to use `slackker` in your training flow!:smiling_imp:
 
-#### Using slackker.callbacks with keras.callbacks
+#### Using slackker callbacks with keras callbacks method
 Import `slackker.callbacks` with following line:
 ```python
 from slackker.callbacks import SLKerasUpdate
@@ -125,15 +124,16 @@ history = model.fit(x_train,
 ```
 #
 
-###  Support ✨
+###  Support
 If you get stuck, we’re here to help. The following are the best ways to get assistance working through your issue:
 
-Use our [Github Issue Tracker][gh-issues] for reporting bugs or requesting features.
-Contribution are the best way to keep slackker amazing. If you want to contribute please refer [Contributor's Guide][gh-contrib] for how to contribute in a helpful and collaborative way.
+* Use our [Github Issue Tracker][gh-issues] for reporting bugs or requesting features.
+Contribution are the best way to keep `slackker` amazing :muscle:
+* If you want to contribute please refer [Contributor's Guide][gh-contrib] for how to contribute in a helpful and collaborative way :innocent:
 
 #
 
-### Citation-📄
+### Citation
 Please cite slackker in your publications if this is useful for your research. Here is an example BibTeX entry:
 ```BibTeX
 @misc{siddheshgunjal2023slackker,
@@ -144,8 +144,8 @@ Please cite slackker in your publications if this is useful for your research. H
 }
 ```
 
-### Maintainer-😎
-* Siddhesh Gunjal
+### Maintainer
+* Siddhesh Gunjal :sunglasses:
   * GitHub: [Siddhesh Gunjal](https://github.com/siddheshgunjal)
   * LinkedIn: [LinkedIn](https://linkedin.com/in/siddheshgunjal)
 
@@ -158,3 +158,4 @@ Please cite slackker in your publications if this is useful for your research. H
 [slack-app]: https://api.slack.com/apps
 [gh-issues]: https://github.com/siddheshgunjal/slackker/issues
 [gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIB.md
+
