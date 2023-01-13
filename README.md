@@ -3,32 +3,32 @@
 ``slackker`` is Python package for reporting your ML training status in real-time on slack channel.
 
 
-**Star this repo if this has been useful in you workflows! :star2:**
+### Star this repo if this has been useful in your ML training workflows! :star2:
 
 
 ## Table of contents :notebook:
 
-* [Requirements](#requirements)
-* [Installation](#installation)
+* [Requirements](#requirements-clipboard)
+* [Installation](#installation-arrow_down)
 * [Getting started with slackker callbacks](#getting-started-with-slackker-callbacks)
   * [Setup Slack to work with slackker](#setup-slack-to-work-with-slackker)
   * [Using slackker callbacks with keras callbacks](#using-slackker-callbacks-with-keras-callbacks-method)
   * [Create slackker object](#create-slackker-object)
   * [Call slackker object into callbacks during model.fit()](#call-slackker-object-into-callbacks-during-model-fit)
   * [Final code](#final-code)
-* [Support](#support)
-* [Citation](#citation)
-* [Maintainer](#maintainer)
+* [Support](#support-sparkles)
+* [Citation](#citation-page_facing_up)
+* [Maintainer](#maintainer-sunglasses)
 
 
-## Requirements
+## Requirements :clipboard:
 
 * `slackker` utilises [slack_sdk][slack-sdk]`>=3.0.0` for communicating with slack API.
 * `slackker` uses [matplotlib][matplot-lib]`>= 2.2.5` for generating graphs at the end of training and send them to configured slack channel.
 * To use the `slackker.callbacks.SLKerasUpdate` method in keras.callbackss [keras][keras]`>=2.0.0` is required.
 
 
-## Installation
+## Installation :arrow_down:
 * Install slackker from [PyPi][py-pi] is recommended. slackker is compatible with `Python >= 3.6` and runs on Linux, MacOS X and Windows. 
 * Installing slackker in your environment is easy. Just use below pip command:
 
@@ -121,7 +121,7 @@ history = model.fit(x_train,
                     callbacks=[slack_update])
 ```
 
-##  Support
+##  Support :sparkles:
 If you get stuck, we’re here to help. The following are the best ways to get assistance working through your issue:
 
 * Use our [Github Issue Tracker][gh-issues] for reporting bugs or requesting features.
@@ -130,7 +130,7 @@ Contribution are the best way to keep `slackker` amazing :muscle:
 
 #
 
-## Citation
+## Citation :page_facing_up:
 Please cite slackker in your publications if this is useful for your research. Here is an example BibTeX entry:
 ```BibTeX
 @misc{siddheshgunjal2023slackker,
@@ -141,7 +141,7 @@ Please cite slackker in your publications if this is useful for your research. H
 }
 ```
 
-## Maintainer
+## Maintainer :sunglasses:
 * Siddhesh Gunjal :sunglasses:
   * GitHub: [Siddhesh Gunjal](https://github.com/siddheshgunjal)
   * LinkedIn: [LinkedIn](https://linkedin.com/in/siddheshgunjal)
