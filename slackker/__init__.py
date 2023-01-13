@@ -1,4 +1,4 @@
-from slackker import slackker
+from slackker import callbacks
 from slackker.utils import checkker
 from slackker.utils import funckker
 
