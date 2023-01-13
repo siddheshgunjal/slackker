@@ -14,32 +14,30 @@
   * [Setup Slack to work with slackker](#setup-slack-to-work-with-slackker)
   * [Using slackker callbacks with keras callbacks](#using-slackker-callbacks-with-keras-callbacks-method)
   * [Create slackker object](#create-slackker-object)
-  * [Call slackker object into callbacks during model.fit()](#call-slackker-object-into-callbacks-during-model.fit)
+  * [Call slackker object into callbacks during model.fit()](#call-slackker-object-into-callbacks-during-model-fit)
   * [Final code](#final-code)
 * [Support](#support)
 * [Citation](#citation)
 * [Maintainer](#maintainer)
 
 
-### Requirements
+## Requirements
 
 * `slackker` utilises [slack_sdk][slack-sdk]`>=3.0.0` for communicating with slack API.
 * `slackker` uses [matplotlib][matplot-lib]`>= 2.2.5` for generating graphs at the end of training and send them to configured slack channel.
 * To use the `slackker.callbacks.SLKerasUpdate` method in keras.callbackss [keras][keras]`>=2.0.0` is required.
 
-#
 
-### Installation
+## Installation
 * Install slackker from [PyPi][py-pi] is recommended. slackker is compatible with `Python >= 3.6` and runs on Linux, MacOS X and Windows. 
 * Installing slackker in your environment is easy. Just use below pip command:
 
 ```bash
 pip install slackker
 ```
-#
 
-### Getting started with slackker callbacks
-#### Setup Slack to work with slackker
+## Getting started with slackker callbacks
+### Setup Slack to work with slackker
 * First create an [slack app][slack-app] from scratch in your workspace.
 * we must give below mentioned permissions for `slackker` to be able to send status update and report to your channel:
   * `chat:write`
@@ -52,12 +50,12 @@ pip install slackker
  ```
  * Now go to slack and add this slack app to the channel where you wish to receive al the update. Now we are ready to use `slackker` in your training flow!:smiling_imp:
 
-#### Using slackker callbacks with keras callbacks method
+### Using slackker callbacks with keras callbacks method
 Import `slackker.callbacks` with following line:
 ```python
 from slackker.callbacks import SLKerasUpdate
 ```
-#### Create slackker object
+### Create slackker object
 create slackker object with `SLKerasUpdate`
 ```python
 slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-adedce74748c3844747aed48499bb",
@@ -76,9 +74,9 @@ slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-
   * `verbose = 0` No logging
   * `verbose = 1` Basic/minimal logging
   * `verbose = 2`Info logging
-  * `verbose = 3  `Debug/In-depth logging
+  * `verbose = 3`Debug/In-depth logging
 
-#### Call slackker object into callbacks during model.fit
+### Call slackker object into callbacks during model fit
 
 Now you can call slackker object into callbacks argument just like any other callbacks object.
 ```python
@@ -91,7 +89,7 @@ history = model.fit(x_train,
                     callbacks=[slack_update])
 ```
 
-#### Final code
+### Final code
 ```python
 # Import library for keras
 from slackker.callbacks import SLKerasUpdate
@@ -122,9 +120,8 @@ history = model.fit(x_train,
                     validation_data=(x_val,y_val),
                     callbacks=[slack_update])
 ```
-#
 
-###  Support
+##  Support
 If you get stuck, we’re here to help. The following are the best ways to get assistance working through your issue:
 
 * Use our [Github Issue Tracker][gh-issues] for reporting bugs or requesting features.
@@ -133,7 +130,7 @@ Contribution are the best way to keep `slackker` amazing :muscle:
 
 #
 
-### Citation
+## Citation
 Please cite slackker in your publications if this is useful for your research. Here is an example BibTeX entry:
 ```BibTeX
 @misc{siddheshgunjal2023slackker,
@@ -144,7 +141,7 @@ Please cite slackker in your publications if this is useful for your research. H
 }
 ```
 
-### Maintainer
+## Maintainer
 * Siddhesh Gunjal :sunglasses:
   * GitHub: [Siddhesh Gunjal](https://github.com/siddheshgunjal)
   * LinkedIn: [LinkedIn](https://linkedin.com/in/siddheshgunjal)
