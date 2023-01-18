@@ -21,7 +21,7 @@ setuptools.setup(
      python_requires='>=3',
      name='slackker',
      version=new_version,
-     license="MIT",
+     license="Apache-2.0",
      author="Siddhesh Gunjal",
      author_email="siddhu19@live.com",
      description="Python package for reporting your ML training status in realtime on slack channel.",
@@ -32,7 +32,7 @@ setuptools.setup(
      include_package_data=True, # Must be true to include files depicted in MANIFEST.in
      classifiers=[
          "Programming Language :: Python :: 3",
-         "License :: OSI Approved :: MIT License",
+         "License :: OSI Approved :: Apache Software License",
          "Operating System :: OS Independent",
          "Intended Audience :: Developers",
          "Intended Audience :: Information Technology",

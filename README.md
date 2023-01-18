@@ -1,5 +1,8 @@
 # Introducing slackker! :fire:
 
+![PyPI](https://img.shields.io/pypi/v/slackker?color=teal&label=pip) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/slackker?color=orange) ![PyPI - License](https://img.shields.io/pypi/l/slackker?color=gr) ![PyPI - Downloads](https://img.shields.io/pypi/dm/slackker?color=blue)
+
+
 `slackker` is a python package for monitoring your ML training status in real-time on slack channel. It can send you update for your ML model training progress and send final report with graphs when the training finishes. So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move.
 
 
