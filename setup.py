@@ -18,7 +18,7 @@ def read_file(file_name):
 
 setuptools.setup(
      install_requires=['slack_sdk>=3.19.0','numpy','matplotlib'],
-     python_requires='>=3',
+     python_requires='>=3.5',
      name='slackker',
      version=new_version,
      license="Apache-2.0",

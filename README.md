@@ -60,7 +60,7 @@ from slackker.callbacks import SLKerasUpdate
 ### Create slackker object
 create slackker object with `SLKerasUpdate`
 ```python
-slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-adedce74748c3844747aed48499bb",
+slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
     channel="A04AAB77ABC",
     modelName='SampleModel',
     export='png',
@@ -108,11 +108,12 @@ model.add(Dense(3,activation='softmax'))
 model.compile(optimizer = 'rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Create Slackker object
-slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-adedce74748c3844747aed48499bb",
+slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
     channel="A04AAB77ABC",
     modelName='SampleModel',
     export='png',
-    sendPlot=True)
+    sendPlot=True,
+    verbose=0)
 
 # Call Slackker object in model.fit() callbacks
 history = model.fit(x_train, 
@@ -145,7 +146,7 @@ Please cite slackker in your publications if this is useful for your research. H
 ```
 
 ## Maintainer :sunglasses:
-* Siddhesh Gunjal :sunglasses:
+* Siddhesh Gunjal
   * GitHub: [Siddhesh Gunjal](https://github.com/siddheshgunjal)
   * LinkedIn: [LinkedIn](https://linkedin.com/in/siddheshgunjal)
 
