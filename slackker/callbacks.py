@@ -5,7 +5,7 @@ from datetime import datetime
 import argparse
 import slackker.utils.checkker as checkker
 import slackker.utils.funckker as funckker
-
+from slackker.utils.ccolors import colors
 
 class SLKerasUpdate(Callback):
     """Custom Keras callback that posts to Slack while training a neural network"""
@@ -13,9 +13,9 @@ class SLKerasUpdate(Callback):
     def __init__(self, token, channel, modelName, export="png", sendPlot=True, verbose=0):
 
         if token is None:
-            raise Exception('[slackker] Please enter Valid Slack API Token.')
+            raise Exception(colors.fg.red, '[slackker] Please enter Valid Slack API Token.')
 
-        server = checkker.check_internet(verbose=verbose)
+        server, attempt = checkker.check_internet(verbose=verbose)
         api = checkker.slack_connect(token=token, verbose=verbose)
 
         if server and api:
@@ -29,7 +29,7 @@ class SLKerasUpdate(Callback):
             if export is not None:
                 pass
             else:
-                raise argparse.ArgumentTypeError("'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
+                raise argparse.ArgumentTypeError(colors.fg.red, "[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
     def on_train_begin(self, logs={}):
         funckker.report_stats(
@@ -59,11 +59,19 @@ class SLKerasUpdate(Callback):
 
         message = f'Epoch: {self.n_epochs}, Training Loss: {self.train_loss[-1]:.4f}, Validation Loss: {self.valid_loss[-1]:.4f}'
 
-        funckker.report_stats(
-            client=self.client,
-            channel=self.channel,
-            text=message,
-            verbose=self.verbose)
+        server, attempt = checkker.check_internet(verbose=verbose)
+
+        while server == False:
+            if counter > 3:
+                print(colors.fg.yellow, f'[slackker] Skipping report update to slack due to connection failure. {attempt} attempts made before skipping')
+                pass
+
+        if server == True:
+            funckker.report_stats(
+                client=self.client,
+                channel=self.channel,
+                text=message,
+                verbose=self.verbose)
 
     def on_train_end(self, logs={}):
 

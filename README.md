@@ -156,5 +156,5 @@ Please cite slackker in your publications if this is useful for your research. H
 [py-pi]: https://pypi.org/
 [slack-app]: https://api.slack.com/apps
 [gh-issues]: https://github.com/siddheshgunjal/slackker/issues
-[gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIB.md
+[gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIBUTING.md
 
