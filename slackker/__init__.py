@@ -12,7 +12,7 @@ slackker
 =====================================================================
 Description
 -----------
-slackker is a python package for monitoring your ML training status in real-time on slack channel.
+slackker is a python package for monitoring your Model training status in real-time on slack channel.
 
 References
 ----------
