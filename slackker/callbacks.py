@@ -9,13 +9,13 @@ from slackker.utils.ccolors import colors
 
 class SLKerasUpdate(Callback):
     """Custom Keras callback that posts to Slack while training a neural network"""
-
     def __init__(self, token, channel, modelName, export="png", sendPlot=True, verbose=0):
 
         if token is None:
-            raise Exception(colors.fg.red, '[slackker] Please enter Valid Slack API Token.')
+            colors.prRed('[slackker] Please enter Valid Slack API Token.')
+            return
 
-        server, attempt = checkker.check_internet(verbose=verbose)
+        server= checkker.check_internet(verbose=verbose)
         api = checkker.slack_connect(token=token, verbose=verbose)
 
         if server and api:
@@ -31,6 +31,7 @@ class SLKerasUpdate(Callback):
             else:
                 raise argparse.ArgumentTypeError(colors.fg.red, "[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
+    # Called when training starts
     def on_train_begin(self, logs={}):
         funckker.report_stats(
             client=self.client,
@@ -44,6 +45,7 @@ class SLKerasUpdate(Callback):
         self.valid_loss = []
         self.n_epochs = 0
 
+    # Called when epoch ends
     def on_epoch_end(self, batch, logs={}):
 
         custom_logs = []
@@ -59,20 +61,20 @@ class SLKerasUpdate(Callback):
 
         message = f'Epoch: {self.n_epochs}, Training Loss: {self.train_loss[-1]:.4f}, Validation Loss: {self.valid_loss[-1]:.4f}'
 
-        server, attempt = checkker.check_internet(verbose=verbose)
+        # Check internet before sending update on slacj
+        server, attempt = checkker.check_internet_epoch_end()
 
-        while server == False:
-            if counter > 3:
-                print(colors.fg.yellow, f'[slackker] Skipping report update to slack due to connection failure. {attempt} attempts made before skipping')
-                pass
-
+        # If internet working send message else skip sending message and continue training.
         if server == True:
             funckker.report_stats(
                 client=self.client,
                 channel=self.channel,
                 text=message,
                 verbose=self.verbose)
+        else:
+            pass
 
+    # Prepare and send report with graphs at the end of training.
     def on_train_end(self, logs={}):
 
         best_epoch = np.argmin(self.valid_loss)

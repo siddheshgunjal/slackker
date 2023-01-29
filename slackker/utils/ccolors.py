@@ -1,6 +1,10 @@
 class colors:
+'''Assign colors to logging statements'''
+	def prRed(sent):
+		print("\033[91m {}\033[00m" .format(sent))
 
-	class fg:
-		red = "\033[91m {}\033[00m"
-		cyan = "\033[96m {}\033[00m"
-		yellow = "\033[93m {}\033[00m"
+	def prCyan(sent):
+		print("\033[96m {}\033[00m" .format(sent))
+
+	def prYellow(sent):
+		print("\033[93m {}\033[00m" .format(sent))
