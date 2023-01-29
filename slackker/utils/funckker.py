@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from slack_sdk.errors import SlackApiError
+from slackker.utils.ccolors import colors
+# from ccolors import colors
 
 def report_stats(client, channel, text, verbose=1):
     """Report training stats"""
@@ -10,10 +12,11 @@ def report_stats(client, channel, text, verbose=1):
             channel=channel, 
             text=text
         )
-        if verbose>=1:print(f"[slackker] Posted message on {channel} channel")
+        if verbose>=1:
+            colors.prCyan(f"[slackker] Posted message on {channel} channel")
 
     except SlackApiError as e:
-        print(f"[slackker] Error posting message: {e}")
+        colors.prRed(f"[slackker] Error posting message: {e}")
         pass
 
 def upload_plot(name, client, channel, filepath, verbose=1):
@@ -24,10 +27,11 @@ def upload_plot(name, client, channel, filepath, verbose=1):
         file = filepath,
         initial_comment=f"{name} graph ::bar_chart::"
         )
-        if verbose>=1:print(f"[slackker] Uploaded graphs on {channel} channel")
+        if verbose>=1:
+            colors.prCyan(f"[slackker] Uploaded graphs on {channel} channel")
 
     except SlackApiError as e:
-        print(f"[slackker] Error uploading graphs: {e}")
+        colors.prRed(f"[slackker] Error uploading graphs: {e}")
         pass
 
 def keras_plot_history(modelName, export, client, channel, sendPlot, train_loss, val_loss, train_acc, val_acc, verbose=1):
@@ -35,7 +39,7 @@ def keras_plot_history(modelName, export, client, channel, sendPlot, train_loss,
     try:
         # Make sure training has began
         if len(train_loss) == 0:
-            print('[slackker] Loss is missing in history')
+            colors.prRed('[slackker] Loss is missing in history')
             return 
         
         # As loss always exists
@@ -57,7 +61,7 @@ def keras_plot_history(modelName, export, client, channel, sendPlot, train_loss,
             try:
                 upload_plot(name = f'{modelName}_Loss', client=client, channel=channel, filepath=f'{modelName}_Loss.{export}', verbose=verbose)
             except Exception as e:
-                print(f"[slackker] Invalid Argument: {e}")
+                colors.prRed(f"[slackker] Invalid Argument: {e}")
         else:
             pass
         
@@ -77,10 +81,10 @@ def keras_plot_history(modelName, export, client, channel, sendPlot, train_loss,
             try:
                 upload_plot(name = f'{modelName}_Accuracy', client=client, channel=channel, filepath=f'{modelName}_Accuracy.{export}', verbose=verbose)
             except Exception as e:
-                print(f"[slackker] Invalid Argument: {e}")
+                colors.prRed(f"[slackker] Invalid Argument: {e}")
         else:
             pass
 
     except Exception as e:
-        print(f'[slackker] Plotting Generation Failed: {e}')
+        colors.prRed(f'[slackker] Plotting Generation Failed: {e}')
         pass

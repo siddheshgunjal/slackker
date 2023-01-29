@@ -1,10 +1,9 @@
 # Introducing slackker! :fire:
 
-`slackker` is a python package for monitoring your ML training status in real-time on slack channel. It can send you update for your ML model training progress and send final report with graphs when the training finishes. So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move.
+![PyPI](https://img.shields.io/pypi/v/slackker?color=blue&label=pip) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/slackker?color=orange) ![PyPI - License](https://img.shields.io/pypi/l/slackker?color=gr)
 
 
-### Star this repo if this has been useful in your ML training workflows! :star2:
-
+`slackker` is a python package for monitoring your Keras training status in real-time on slack channel. It can send you update for your ML model training progress and send final report with graphs when the training finishes. So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move.
 
 ## Table of contents :notebook:
 
@@ -45,8 +44,9 @@ pip install slackker
   * `files:write`
 * Now install the app to your workspace and copy our apps **Bot & OAuth Token**. it should be in following format:
 ```
- xoxb-123234234235-123234234235-123234234235-adedce74748c3844747aed48499bb
+ xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb
  ```
+ * For detailed step by step guide visit this article: [How to setup slackker][setup-slack]
  * Now go to slack and add this slack app to the channel where you wish to receive al the update. Now we are ready to use `slackker` in your training flow!:smiling_imp:
 
 ### Using slackker callbacks with keras callbacks method
@@ -57,7 +57,7 @@ from slackker.callbacks import SLKerasUpdate
 ### Create slackker object
 create slackker object with `SLKerasUpdate`
 ```python
-slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-adedce74748c3844747aed48499bb",
+slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
     channel="A04AAB77ABC",
     modelName='SampleModel',
     export='png',
@@ -105,11 +105,12 @@ model.add(Dense(3,activation='softmax'))
 model.compile(optimizer = 'rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Create Slackker object
-slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-123234234235-adedce74748c3844747aed48499bb",
+slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
     channel="A04AAB77ABC",
     modelName='SampleModel',
     export='png',
-    sendPlot=True)
+    sendPlot=True,
+    verbose=0)
 
 # Call Slackker object in model.fit() callbacks
 history = model.fit(x_train, 
@@ -142,17 +143,18 @@ Please cite slackker in your publications if this is useful for your research. H
 ```
 
 ## Maintainer :sunglasses:
-* Siddhesh Gunjal :sunglasses:
+* Siddhesh Gunjal
   * GitHub: [Siddhesh Gunjal](https://github.com/siddheshgunjal)
   * LinkedIn: [LinkedIn](https://linkedin.com/in/siddheshgunjal)
 
 
 <!-- Markdown link -->
 [slack-sdk]: https://github.com/slackapi/python-slack-sdk
+[setup-slack]: https://medium.com/@siddheshgunjal82/how-to-setup-slackker-to-monitor-keras-model-training-status-on-slack-9f67265dfabd
 [matplot-lib]: https://github.com/matplotlib/matplotlib
 [keras]: https://github.com/keras-team/keras
 [py-pi]: https://pypi.org/
 [slack-app]: https://api.slack.com/apps
 [gh-issues]: https://github.com/siddheshgunjal/slackker/issues
-[gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIB.md
+[gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIBUTING.md
 
