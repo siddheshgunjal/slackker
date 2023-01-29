@@ -29,7 +29,7 @@ class SLKerasUpdate(Callback):
             if export is not None:
                 pass
             else:
-                raise argparse.ArgumentTypeError(colors.fg.red, "[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
+                raise argparse.ArgumentTypeError("[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
     # Called when training starts
     def on_train_begin(self, logs={}):
