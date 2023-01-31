@@ -9,7 +9,7 @@ def _now():
     return datetime.utcnow().replace(tzinfo=timezone.utc)
 
 # Check whether server is still alive.
-def check_internet(url="www.slack.com", verbose=3):
+def check_internet(url="www.slack.com", verbose=2):
     counter=1
     status=False
     sleepinsec=10

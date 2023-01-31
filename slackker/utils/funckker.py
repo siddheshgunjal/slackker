@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from slack_sdk.errors import SlackApiError
 from slackker.utils.ccolors import colors
-# from ccolors import colors
 
 def report_stats(client, channel, text, verbose=1):
     """Report training stats"""

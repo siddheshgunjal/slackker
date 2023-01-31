@@ -72,9 +72,8 @@ slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-adedce74748c3
 * `sendPlots`: *(Bool)* default `True`: If set to `True` it will export history of model, both training and validation, save it in the format given in `export` argument and send graphs to slack channel when training ends. If set to `False` it will not send exported graphs to slack channel. 
 * `verbose`: *(int)* default `0`: You can sent the verbose level up to 3.
   * `verbose = 0` No logging
-  * `verbose = 1` Basic/minimal logging
-  * `verbose = 2` Info logging
-  * `verbose = 3` Debug/In-depth logging
+  * `verbose = 1` Info logging
+  * `verbose = 2` Debug/In-depth logging
 
 ### Call slackker object into callbacks during model fit
 
