@@ -12,7 +12,7 @@ def _now():
 def check_internet(url="www.slack.com", verbose=2):
     counter=1
     status=False
-    sleepinsec=10
+    sleepinsec=60
 
     while status is False:
         conn = httplib.HTTPConnection(url, timeout=5)
@@ -24,7 +24,7 @@ def check_internet(url="www.slack.com", verbose=2):
                 colors.prCyan(f"[slackker] {_now().strftime('%d-%m-%Y %H:%M')} Connection to slack Server successful!")
         except:
             status=False
-            colors.prYellow(f"[slackker] ERROR: {_now().strftime('%d-%m-%Y %H:%M')} Connection to Slack server failed. Trying again in 10 sec..[attempt {counter}]")
+            colors.prYellow(f"[slackker] ERROR: {_now().strftime('%d-%m-%Y %H:%M')} Connection to Slack server failed. Trying again in 60 sec..[attempt {counter}]")
             time.sleep(sleepinsec)
             counter=counter+1
 
