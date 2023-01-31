@@ -76,8 +76,3 @@ def slack_connect(token, verbose=2):
 		colors.prRed(f"[slackker] ERROR: Invalid slack API token: {e}")
 
 	return status
-
-
-if __name__ == '__main__':
-    # slack_connect("xoxp-4615231545733-4603743143687-P0ngiBAuMsp512V5DafBdhd", verbose=2)
-    # check_internet(verbose=2)
