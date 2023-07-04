@@ -4,10 +4,10 @@ from slack_sdk import WebClient
 from datetime import datetime
 import argparse
 import slackker.utils.checkker as checkker
-import slackker.utils.funckker as funckker
+import slackker.utils.functions as functions
 from slackker.utils.ccolors import colors
 
-class SLKerasUpdate(Callback):
+class slackUpdate(Callback):
     """Custom Keras callback that posts to Slack while training a neural network"""
     def __init__(self, token, channel, modelName, export="png", sendPlot=True, verbose=0):
 
@@ -33,7 +33,7 @@ class SLKerasUpdate(Callback):
 
     # Called when training starts
     def on_train_begin(self, logs={}):
-        funckker.report_stats(
+        functions.slack.report_stats(
             client=self.client,
             channel=self.channel,
             text=f'Training on {self.modelName} started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
@@ -66,7 +66,7 @@ class SLKerasUpdate(Callback):
 
         # If internet working send message else skip sending message and continue training.
         if server == True:
-            funckker.report_stats(
+            functions.slack.report_stats(
                 client=self.client,
                 channel=self.channel,
                 text=message,
@@ -86,11 +86,11 @@ class SLKerasUpdate(Callback):
         message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch + 1}.'
         message2 = f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
 
-        funckker.report_stats(client=self.client, channel=self.channel, text=message1, verbose=self.verbose)
+        functions.slack.report_stats(client=self.client, channel=self.channel, text=message1, verbose=self.verbose)
 
-        funckker.report_stats(client=self.client, channel=self.channel, text=message2, verbose=self.verbose)
+        functions.slack.report_stats(client=self.client, channel=self.channel, text=message2, verbose=self.verbose)
 
-        funckker.keras_plot_history(modelName=self.modelName,
+        functions.slack.keras_plot_history(modelName=self.modelName,
             export=self.export,
             client=self.client,
             channel=self.channel,

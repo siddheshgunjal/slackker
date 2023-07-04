@@ -1,6 +1,6 @@
 from slackker import callbacks
 from slackker.utils import checkker
-from slackker.utils import funckker
+from slackker.utils import functions
 
 __author__ = 'Siddhesh Gunjal'
 __email__ = 'siddhu19@live.com'
