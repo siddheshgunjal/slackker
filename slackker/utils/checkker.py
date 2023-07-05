@@ -24,13 +24,13 @@ def check_internet(url, verbose=2):
                 colors.prCyan(f"[slackker] {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server successful!")
         except:
             status=False
-            colors.prYellow(f"[slackker] ERROR: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Trying again in 60 sec..[attempt {counter}]")
+            colors.prYellow(f"[slackker] ERROR: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Please check your internet. Trying again in 60 sec..[attempt {counter}]")
             time.sleep(sleepinsec)
             counter=counter+1
 
     if counter>1:
         if verbose>=2:
-        	colors.prCyan(f"[slackker] {_now().strftime('%d-%m-%Y %H:%M')} re-established connection to '{url}' server after {counter} attempts.")
+            colors.prCyan(f"[slackker] {_now().strftime('%d-%m-%Y %H:%M')} re-established connection to '{url}' server after {counter} attempts.")
 
     return status
 
@@ -62,17 +62,17 @@ def check_internet_epoch_end(url):
 
 def slack_connect(token, verbose=2):
 
-	status = False
+    status = False
 
-	try:
-		client = WebClient(token=token)
-		api_response = client.api_test()
-		status = True
-		if verbose >= 2:
-			colors.prCyan(f"[slackker] Connection to slack API successful! {api_response}")
+    try:
+        client = WebClient(token=token)
+        api_response = client.api_test()
+        status = True
+        if verbose >= 2:
+            colors.prCyan(f"[slackker] Connection to slack API successful! {api_response}")
 
-	except Exception as e:
-		status = False
-		colors.prRed(f"[slackker] ERROR: Invalid slack API token: {e}")
+    except Exception as e:
+        status = False
+        colors.prRed(f"[slackker] ERROR: Invalid slack API token: {e}")
 
-	return status
+    return status
