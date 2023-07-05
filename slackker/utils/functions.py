@@ -21,12 +21,12 @@ class slack():
             pass
 
     def upload_plot(name, client, channel, filepath, verbose=1):
-        """Report training stats"""
+        """Upload generated graphs"""
         try:
             # Call the chat.postMessage method using the WebClient
             response = client.files_upload_v2(channel=channel,
             file = filepath,
-            initial_comment=f"{name} graph ::bar_chart::"
+            initial_comment=f"{name} :bar_chart:"
             )
             if verbose>=1:
                 colors.prCyan(f"[slackker] Uploaded graphs on {channel} channel")
@@ -97,8 +97,8 @@ class telegram():
 
         """Report training stats"""
         try:
-            # Call the chat.postMessage method using the WebClient
-            response = requests.post(apiURL, json={'chat_id': channel, 'text': text})
+            # Call the requests.post method using API request
+            response = requests.post(apiURL, params={'chat_id': channel, 'text': text})
             if verbose>=1:
                 colors.prCyan(f"[slackker] Posted message on Telegram")
 
@@ -106,22 +106,22 @@ class telegram():
             colors.prRed(f"[slackker] Error posting message: {e}")
             pass
 
-    def upload_plot(name, client, channel, filepath, verbose=1):
-        """Report training stats"""
-        try:
-            # Call the chat.postMessage method using the WebClient
-            response = client.files_upload_v2(channel=channel,
-            file = filepath,
-            initial_comment=f"{name} graph ::bar_chart::"
-            )
-            if verbose>=1:
-                colors.prCyan(f"[slackker] Uploaded graphs on {channel} channel")
+    def upload_plot(name, token, channel, image, verbose=1):
+        # apiURL for send image
+        apiURL = f'https://api.telegram.org/bot{token}/sendPhoto'
 
-        except SlackApiError as e:
+        """Upload generated graphs"""
+        try:
+            # Call the requests.post method using API request
+            response = requests.post(apiURL, params={'chat_id': channel, 'caption': f"{name} \U0001F4CA"}, files={'photo': image})
+            if verbose>=1:
+                colors.prCyan(f"[slackker] Uploaded graphs on Telegram")
+
+        except Exception as e:
             colors.prRed(f"[slackker] Error uploading graphs: {e}")
             pass
 
-    def keras_plot_history(modelName, export, client, channel, sendPlot, train_loss, val_loss, train_acc, val_acc, verbose=1):
+    def keras_plot_history(modelName, export, token, channel, sendPlot, train_loss, val_loss, train_acc, val_acc, verbose=1):
         """Create Plot for train history"""
         try:
             # Make sure training has began
@@ -146,7 +146,7 @@ class telegram():
 
             if sendPlot == True:
                 try:
-                    slack.upload_plot(name = f'{modelName}_Loss', client=client, channel=channel, filepath=f'{modelName}_Loss.{export}', verbose=verbose)
+                    telegram.upload_plot(name=f'{modelName}_Loss', token=token, channel=channel, image=open(f'{modelName}_Loss.{export}', 'rb'), verbose=verbose)
                 except Exception as e:
                     colors.prRed(f"[slackker] Invalid Argument: {e}")
             else:
@@ -166,7 +166,7 @@ class telegram():
 
             if sendPlot == True:
                 try:
-                    slack.upload_plot(name = f'{modelName}_Accuracy', client=client, channel=channel, filepath=f'{modelName}_Accuracy.{export}', verbose=verbose)
+                    telegram.upload_plot(name=f'{modelName}_Accuracy',token=token, channel=channel, image=open(f'{modelName}_Accuracy.{export}', 'rb'), verbose=verbose)
                 except Exception as e:
                     colors.prRed(f"[slackker] Invalid Argument: {e}")
             else:

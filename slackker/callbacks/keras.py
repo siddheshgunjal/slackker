@@ -183,3 +183,14 @@ class telegramUpdate(Callback):
         functions.telegram.report_stats(token=self.token, channel=self.channel, text=message1, verbose=self.verbose)
 
         functions.telegram.report_stats(token=self.token, channel=self.channel, text=message2, verbose=self.verbose)
+
+        functions.telegram.keras_plot_history(modelName=self.modelName,
+            export=self.export,
+            token=self.token,
+            channel=self.channel,
+            sendPlot = self.sendPlot,
+            train_loss=self.train_loss,
+            val_loss=self.valid_loss,
+            train_acc=self.train_acc,
+            val_acc=self.valid_acc,
+            verbose=self.verbose)
