@@ -16,7 +16,7 @@ class slackUpdate(Callback):
             colors.prRed('[slackker] Please enter Valid Slack API Token.')
             return
 
-        server= checkker.check_internet(url="www.slack.com", verbose=verbose)
+        server = checkker.check_internet(url="www.slack.com", verbose=verbose)
         api = checkker.slack_connect(token=token, verbose=verbose)
 
         if server and api:
@@ -104,15 +104,16 @@ class slackUpdate(Callback):
 
 class telegramUpdate(Callback):
     """Custom Keras callback that posts to Slack while training a neural network"""
-    def __init__(self, token, channel, modelName, export="png", sendPlot=True, verbose=0):
+    def __init__(self, token, modelName, export="png", sendPlot=True, verbose=0):
 
         if token is None:
             colors.prRed('[slackker] Please enter Valid Telegram API Token.')
             return
 
-        server= checkker.check_internet(url="www.telegram.org", verbose=verbose)
+        server = checkker.check_internet(url="www.telegram.org", verbose=verbose)
+        channel = checkker.get_telegram_chat_id(token=token, verbose=verbose)
 
-        if server:
+        if server and channel:
             self.token = token
             self.channel = channel
             self.modelName = modelName

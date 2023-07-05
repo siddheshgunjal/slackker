@@ -1,5 +1,6 @@
 import sys
 import time
+import requests
 import http.client as httplib
 from slack_sdk import WebClient
 from datetime import datetime, timezone
@@ -61,7 +62,6 @@ def check_internet_epoch_end(url):
 
 
 def slack_connect(token, verbose=2):
-
     status = False
 
     try:
@@ -70,9 +70,25 @@ def slack_connect(token, verbose=2):
         status = True
         if verbose >= 2:
             colors.prCyan(f"[slackker] Connection to slack API successful! {api_response}")
-
     except Exception as e:
         status = False
         colors.prRed(f"[slackker] ERROR: Invalid slack API token: {e}")
 
     return status
+
+def get_telegram_chat_id(token, verbose=2):
+    chat_id = False
+    url = f"https://api.telegram.org/bot{token}/getUpdates"
+
+    try:
+        firstMsg = requests.get(url).json()
+        chat_id = str(firstMsg["result"][0]["message"]["chat"]["id"])
+        if verbose >= 2:
+            colors.prCyan(f"[slackker] Connection to telegram API successful!")
+            colors.prCyan(f"[slackker] Found chat with 'chat_id'={chat_id}")
+    except Exception as e:
+        chat_id = False
+        colors.prRed(f"[slackker] ERROR: Could not connect to Telegram API: {e}")
+        colors.prYellow(f"[slackker] SUGGESTION: Please send 'Hello' once to your bot to make it discoverable to slackker")
+
+    return chat_id
