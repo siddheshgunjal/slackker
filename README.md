@@ -24,7 +24,7 @@
 ## Requirements :clipboard:
 
 * `slackker` utilises [slack_sdk][slack-sdk]`>=3.19.0` for communicating with slack API.
-* To use the `slackker.callbacks` method in keras.callbackss [keras][keras]`>=2.0.0` is required.
+* To use the `slackker.callbacks.keras` [keras][keras]`>=2.0.0` is required.
 
 
 ## Installation :arrow_down:
@@ -95,7 +95,7 @@ telegram_update = telegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5
     sendPlot=True,
     verbose=0)
 ```
-`slackUpdate` takes following arguments:
+`telegramUpdate` takes following arguments:
 * `token`: *(string)* Telegram bot token
 * `modelName`: *(string)* Name for your model. This same name will be used in future for title of the generated plots.
 * `export`: *(string)* default `"png"`: Format for plots to be exported. *(supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)*
