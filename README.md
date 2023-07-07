@@ -3,7 +3,7 @@
 ![PyPI](https://img.shields.io/pypi/v/slackker?color=blue&label=pip) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/slackker?color=orange) ![PyPI - License](https://img.shields.io/pypi/l/slackker?color=gr)
 
 
-`slackker` is a python package for monitoring your Keras training status in real-time on slack channel. It can send you update for your ML model training progress and send final report with graphs when the training finishes. So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move.
+`slackker` is a python package for monitoring your Keras training status in real-time on Slack & Telegram. It can send you update for your ML model training progress and send final report with graphs when the training finishes. So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move without loosing your peace of mind.
 
 ## Table of contents :notebook:
 
@@ -11,6 +11,7 @@
 * [Installation](#installation-arrow_down)
 * [Getting started with slackker callbacks](#getting-started-with-slackker-callbacks)
   * [Setup Slack to work with slackker](#setup-slack-to-work-with-slackker)
+  * [Setup Telegram to work with slackker](#setup-slack-to-work-with-slackker)
   * [Using slackker callbacks with keras callbacks](#using-slackker-callbacks-with-keras-callbacks-method)
   * [Create slackker object](#create-slackker-object)
   * [Call slackker object into callbacks during model.fit()](#call-slackker-object-into-callbacks-during-model-fit)
@@ -42,31 +43,60 @@ pip install slackker
   * `chat:write.public`
   * `files:read`
   * `files:write`
-* Now install the app to your workspace and copy our apps **Bot & OAuth Token**. it should be in following format:
+* Now install the app to your workspace and copy our apps **Bot & OAuth Token**. It should be in following format:
 ```
  xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb
- ```
- * For detailed step by step guide visit this article: [How to setup slackker][setup-slack]
- * Now go to slack and add this slack app to the channel where you wish to receive al the update. Now we are ready to use `slackker` in your training flow!:smiling_imp:
+```
+* For detailed step by step guide, visit this article: [How to setup Slackker with Slack][setup-slack]
+* Now go to slack and add this slack app to the channel where you wish to receive al the update. Now we are ready to use `slackker` in your training flow!:smiling_imp:
+
+### Setup Telegram to work with slackker
+* Open your telegram app and search for BotFather. (A built-in Telegram bot that helps users create custom Telegram bots)
+* Type `/newbot` to create a new bot
+* Give your bot a name & a username
+* Copy your new Telegram bot’s token. It should be in following format:
+```
+1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG
+```
+* For detailed step by step guide, visit this article: [How to setup Slackker with Telegram][setup-telegram]
 
 ### Using slackker callbacks with keras callbacks method
 Import `slackker.callbacks` with following line:
 ```python
-from slackker.callbacks import SLKerasUpdate
+from slackker.callbacks.keras import slackUpdate, telegramUpdate
 ```
-### Create slackker object
-create slackker object with `SLKerasUpdate`
+### Create slackker object for Slack
+create slackker object with `slackUpdate`
 ```python
-slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
+slack_update = slackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
     channel="A04AAB77ABC",
-    modelName='SampleModel',
+    modelName='Simple_NN',
     export='png',
     sendPlot=True,
     verbose=0)
 ```
-`SLKerasUpdate` takes following arguments:
+`slackUpdate` takes following arguments:
 * `token`: *(string)* Slack app token
 * `channel`: *(string)* Slack channel where you want to receive updates *(make sure you have added slack app to this same channel)*
+* `modelName`: *(string)* Name for your model. This same name will be used in future for title of the generated plots.
+* `export`: *(string)* default `"png"`: Format for plots to be exported. *(supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)*
+* `sendPlots`: *(Bool)* default `True`: If set to `True` it will export history of model, both training and validation, save it in the format given in `export` argument and send graphs to slack channel when training ends. If set to `False` it will not send exported graphs to slack channel. 
+* `verbose`: *(int)* default `0`: You can sent the verbose level up to 3.
+  * `verbose = 0` No logging
+  * `verbose = 1` Info logging
+  * `verbose = 2` Debug/In-depth logging
+
+### Create slackker object for Telegram
+create slackker object with `telegramUpdate`
+```python
+telegram_update = telegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
+    modelName='Simple_NN',
+    export='png',
+    sendPlot=True,
+    verbose=0)
+```
+`slackUpdate` takes following arguments:
+* `token`: *(string)* Telegram bot token
 * `modelName`: *(string)* Name for your model. This same name will be used in future for title of the generated plots.
 * `export`: *(string)* default `"png"`: Format for plots to be exported. *(supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)*
 * `sendPlots`: *(Bool)* default `True`: If set to `True` it will export history of model, both training and validation, save it in the format given in `export` argument and send graphs to slack channel when training ends. If set to `False` it will not send exported graphs to slack channel. 
@@ -88,10 +118,10 @@ history = model.fit(x_train,
                     callbacks=[slack_update])
 ```
 
-### Final code
+### Final code (with slack integration)
 ```python
 # Import library for keras
-from slackker.callbacks import SLKerasUpdate
+from slackker.callbacks import slackUpdate
 
 # Train-Test split for your keras model
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8)
@@ -104,7 +134,7 @@ model.add(Dense(3,activation='softmax'))
 model.compile(optimizer = 'rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Create Slackker object
-slack_update = SLKerasUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
+slack_update = slackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
     channel="A04AAB77ABC",
     modelName='SampleModel',
     export='png',
@@ -131,7 +161,7 @@ Contribution are the best way to keep `slackker` amazing :muscle:
 #
 
 ## Citation :page_facing_up:
-Please cite slackker in your publications if this is useful for your research. Here is an example BibTeX entry:
+Please cite slackker in your publications if this is useful for your project/research. Here is an example BibTeX entry:
 ```BibTeX
 @misc{siddheshgunjal2023slackker,
   title={slackker},
@@ -150,6 +180,7 @@ Please cite slackker in your publications if this is useful for your research. H
 <!-- Markdown link -->
 [slack-sdk]: https://github.com/slackapi/python-slack-sdk
 [setup-slack]: https://medium.com/@siddheshgunjal82/how-to-setup-slackker-to-monitor-keras-model-training-status-on-slack-9f67265dfabd
+[setup-telegram]: 
 [matplot-lib]: https://github.com/matplotlib/matplotlib
 [keras]: https://github.com/keras-team/keras
 [py-pi]: https://pypi.org/

@@ -24,14 +24,20 @@ setuptools.setup(
      license="Apache-2.0",
      author="Siddhesh Gunjal",
      author_email="siddhu19@live.com",
-     description="Python package for reporting your Model training status in realtime on slack channel.",
+     description="Python package for reporting your Model training status in realtime on slack & telegram.",
      long_description=read_file("README.md"),
      long_description_content_type="text/markdown",
      url="https://github.com/siddheshgunjal/slackker",
      packages=setuptools.find_packages(), # Searches throughout all dirs for files to include
      include_package_data=True, # Must be true to include files depicted in MANIFEST.in
      classifiers=[
-         "Programming Language :: Python :: 3",
+         "Programming Language :: Python :: 3.5",
+         "Programming Language :: Python :: 3.6",
+         "Programming Language :: Python :: 3.7",
+         "Programming Language :: Python :: 3.8",
+         "Programming Language :: Python :: 3.9",
+         "Programming Language :: Python :: 3.10",
+         "Programming Language :: Python :: 3.11",
          "License :: OSI Approved :: Apache Software License",
          "Operating System :: OS Independent",
          "Intended Audience :: Developers",
