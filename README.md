@@ -13,7 +13,8 @@
   * [Setup Slack to work with slackker](#setup-slack-to-work-with-slackker)
   * [Setup Telegram to work with slackker](#setup-slack-to-work-with-slackker)
   * [Using slackker callbacks with keras callbacks](#using-slackker-callbacks-with-keras-callbacks-method)
-  * [Create slackker object](#create-slackker-object)
+  * [Create slackker object for Slack](#create-slackker-object-for-slack)
+  * [Create slackker object for Telegram](#create-slackker-object-for-telegram)
   * [Call slackker object into callbacks during model.fit()](#call-slackker-object-into-callbacks-during-model-fit)
   * [Final code](#final-code)
 * [Support](#support-sparkles)
@@ -118,10 +119,10 @@ history = model.fit(x_train,
                     callbacks=[slack_update])
 ```
 
-### Final code (with slack integration)
+### Final code
 ```python
 # Import library for keras
-from slackker.callbacks import slackUpdate
+from slackker.callbacks.keras import slackUpdate
 
 # Train-Test split for your keras model
 x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8)
@@ -173,8 +174,9 @@ Please cite slackker in your publications if this is useful for your project/res
 
 ## Maintainer :sunglasses:
 * Siddhesh Gunjal
-  * GitHub: [Siddhesh Gunjal](https://github.com/siddheshgunjal)
-  * LinkedIn: [LinkedIn](https://linkedin.com/in/siddheshgunjal)
+  * [Website][portfolio]
+  * [GitHub](https://github.com/siddheshgunjal)
+  * [LinkedIn](https://linkedin.com/in/siddheshgunjal)
 
 
 <!-- Markdown link -->
@@ -187,4 +189,4 @@ Please cite slackker in your publications if this is useful for your project/res
 [slack-app]: https://api.slack.com/apps
 [gh-issues]: https://github.com/siddheshgunjal/slackker/issues
 [gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIBUTING.md
-
+[portfolio]: https://siddheshgunjal.github.io/
