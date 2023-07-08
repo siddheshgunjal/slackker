@@ -180,7 +180,7 @@ Please cite slackker in your publications if this is useful for your project/res
 <!-- Markdown link -->
 [slack-sdk]: https://github.com/slackapi/python-slack-sdk
 [setup-slack]: https://medium.com/@siddheshgunjal82/how-to-setup-slackker-to-monitor-keras-model-training-status-on-slack-9f67265dfabd
-[setup-telegram]: 
+[setup-telegram]: https://medium.com/@siddheshgunjal82/how-to-setup-slackker-with-telegram-to-monitor-keras-model-training-21b1ff0c1020
 [matplot-lib]: https://github.com/matplotlib/matplotlib
 [keras]: https://github.com/keras-team/keras
 [py-pi]: https://pypi.org/
