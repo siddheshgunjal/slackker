@@ -1,10 +1,10 @@
 from slackker import callbacks
 from slackker.utils import checkker
-from slackker.utils import funckker
+from slackker.utils import functions
 
 __author__ = 'Siddhesh Gunjal'
 __email__ = 'siddhu19@live.com'
-__version__ = '1.0.1'
+__version__ = '1.1.0'
 
 # module level doc-string
 __doc__ = """
@@ -12,7 +12,7 @@ slackker
 =====================================================================
 Description
 -----------
-slackker is a python package for monitoring your Model training status in real-time on slack channel.
+slackker is a python package for monitoring your Model training status in real-time on slack & telegram.
 
 References
 ----------
