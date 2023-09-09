@@ -1,12 +1,12 @@
-name: Publish Python 🐍 distributions 📦 to TestPyPI
+name: Publish Python 📦 to TestPyPI
 
 on:
   push:
-    branches: [ testing ]
+    branches: [ development ]
     
 jobs:
   test-pypi-publish:
-    name: Build and publish Python 🐍 distributions 📦 to TestPyPI
+    name: Build and publish Python 📦 to TestPyPI
     runs-on: ubuntu-latest
     environment:
       name: testpypi
@@ -33,7 +33,7 @@ jobs:
           --wheel
           --outdir dist/
           .
-      - name: Publish distribution 📦 to Test PyPI
+      - name: Publish 📦 to Test PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.SLACKKER_TEST_PYPI_TOKEN }}

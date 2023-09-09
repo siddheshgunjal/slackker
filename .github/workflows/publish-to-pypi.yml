@@ -1,4 +1,4 @@
-name: Publish Python 🐍 distributions 📦 to PyPI
+name: Publish Python 📦 to PyPI
 
 on:
   release:
@@ -6,7 +6,7 @@ on:
     
 jobs:
   test-pypi-publish:
-    name: Build and publish Python 🐍 distributions 📦 to PyPI
+    name: Build and publish Python 📦 to PyPI
     runs-on: ubuntu-latest
     environment:
       name: pypi
@@ -33,7 +33,7 @@ jobs:
           --wheel
           --outdir dist/
           .
-      - name: Publish distribution 📦 to PyPI
+      - name: Publish 📦 to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.SLACKKER_PYPI_TOKEN }}
