@@ -103,7 +103,7 @@ class slackUpdate(Callback):
             verbose=self.verbose)
 
 class telegramUpdate(Callback):
-    """Custom Keras callback that posts to Slack while training a neural network"""
+    """Custom Keras callback that posts to Telegram while training a neural network"""
     def __init__(self, token, modelName, export="png", sendPlot=True, verbose=0):
 
         if token is None:
