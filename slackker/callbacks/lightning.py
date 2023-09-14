@@ -53,20 +53,43 @@ class slackUpdate(Callback):
 			text=f'Training on "{self.modelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
 			verbose=self.verbose)
 
+		self.training_logs = {}
+		self.n_epochs = 0
+
 	# Called when epoch ends
 	def on_train_epoch_end(self, trainer, pl_module):
 		metrics = trainer.callback_metrics
-		train_logs = self.train_logs
+		logs = self.train_logs
 
+		custom_logs = {}
 		toPrint = []
 
-		[toPrint.append(f"{i}: {metrics[i]:.4f}") for i in train_logs]
+		[custom_logs.update({i:float(metrics[i])}) for i in logs]
 
-		message = f"Epoch: {trainer.current_epoch}, {', '.join(toPrint)}"
+		[self.training_logs.setdefault(key, []).append(value) for key, value in custom_logs.items()]
 
-		print(message)
+		colors.prYellow(custom_logs)
+		colors.prYellow(self.training_logs)
+
+		[toPrint.append(f"{i}: {metrics[i]:.4f}") for i in logs]
+
+		message = f"Epoch: {self.n_epochs}, {', '.join(toPrint)}"
+
+		# Check internet before sending update on slacj
+		server, attempt = checkker.check_internet_epoch_end(url="www.slack.com")
+
+		# If internet working send message else skip sending message and continue training.
+		if server == True:
+			functions.slack.report_stats(
+				client=self.client,
+				channel=self.channel,
+				text=message,
+				verbose=self.verbose)
+		else:
+			pass
+
+		self.n_epochs += 1
 
 	# Prepare and send report with graphs at the end of training.
 	def on_train_end(self, trainer, pl_module):
-		print('Training Finished')
-		print(self.modelName)
+		print(f'Training Finished for {self.modelName}')
