@@ -58,7 +58,6 @@ class slackUpdate(Callback):
         self.train_acc.append(custom_logs[1])
         self.valid_loss.append(custom_logs[2])
         self.valid_acc.append(custom_logs[3])
-        self.n_epochs += 1
 
         message = f'Epoch: {self.n_epochs}, Training Loss: {self.train_loss[-1]:.4f}, Validation Loss: {self.valid_loss[-1]:.4f}'
 
@@ -74,6 +73,8 @@ class slackUpdate(Callback):
                 verbose=self.verbose)
         else:
             pass
+
+        self.n_epochs += 1
 
     # Prepare and send report with graphs at the end of training.
     def on_train_end(self, logs={}):
