@@ -44,7 +44,7 @@ class slack():
                 return 
             
             # As loss always exists
-            epochs = range(1, len(train_loss)+1)
+            epochs = range(0, len(train_loss)+1)
             
             # Loss
             plt.figure(1, figsize=(15,8))
@@ -130,7 +130,7 @@ class telegram():
                 return 
             
             # As loss always exists
-            epochs = range(1, len(train_loss)+1)
+            epochs = range(0, len(train_loss)+1)
             
             # Loss
             plt.figure(1, figsize=(15,8))

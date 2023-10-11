@@ -2,7 +2,6 @@ import numpy as np
 from lightning.pytorch.callbacks import Callback
 from slack_sdk import WebClient
 from datetime import datetime
-import argparse
 import slackker.utils.checkker as checkker
 import slackker.utils.functions as functions
 from slackker.utils.ccolors import colors
@@ -34,14 +33,17 @@ class slackUpdate(Callback):
 				raise argparse.ArgumentTypeError("[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
 			if train_logs is None and val_logs is None:
-				raise argparse.ArgumentTypeError("[slackker] Provice at least 1 log type, either 'train_logs' or 'val_logs' for logging purpose.")
+				colors.prRed("[slackker] Provice at least 1 log type, either 'train_logs' or 'val_logs' for logging purpose.")
+				exit()
 			else:
 				if type(train_logs) is not list and train_logs is not None:
-					raise argparse.ArgumentTypeError("[slackker] 'train_logs' is a list type of argument, add values in '[]'")
+					colors.prRed("[slackker] 'train_logs' is a list type of argument, add values in '[]'")
+					exit()
 				else:
 					pass
 				if type(val_logs) is not list and val_logs is not None:
-					raise argparse.ArgumentTypeError("[slackker] 'val_logs' is a list type of argument, add values in '[]'")
+					colors.prRed("[slackker] 'val_logs' is a list type of argument, add values in '[]'")
+					exit()
 				else:
 					pass
 
@@ -67,9 +69,6 @@ class slackUpdate(Callback):
 		[custom_logs.update({i:float(metrics[i])}) for i in logs]
 
 		[self.training_logs.setdefault(key, []).append(value) for key, value in custom_logs.items()]
-
-		colors.prYellow(custom_logs)
-		colors.prYellow(self.training_logs)
 
 		[toPrint.append(f"{i}: {metrics[i]:.4f}") for i in logs]
 
