@@ -98,4 +98,15 @@ class slackUpdate(Callback):
 	def on_fit_end(self, trainer, pl_module):
 		print(f'Training Finished for {self.modelName}')
 		# print(self.training_logs)
-		[print(min(value)) for key, value in self.training_logs.items() if "val_loss" in key.lower() else print(max(value))]
+		# [print(min(value)) for key, value in self.training_logs.items() if "val_loss" in key.lower() else print(max(value))]
+		for key, value in self.training_logs.items():
+			if "loss" in self.monitor.lower():
+				if self.monitor.lower() in key.lower():
+					print(min(value))
+				else:
+					colors.prYellow("[slackker] couldn't find monitor argument in 'logs_to_send'. Skipping printing Best Epoch")
+			elif "acc" in self.monitor.lower():
+				if self.monitor.lower() in key.lower():
+					print(max(value))
+				else:
+					colors.prYellow("[slackker] couldn't find monitor argument in 'logs_to_send'. Skipping printing Best Epoch")
