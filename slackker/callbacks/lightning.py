@@ -9,7 +9,7 @@ import requests
 
 class slackUpdate(Callback):
 	"""Custom Lightning callback that posts to Slack while training a neural network"""
-	def __init__(self, token, channel, modelName, train_logs=None, val_logs=None, export="png", sendPlot=True, verbose=0):
+	def __init__(self, token, channel, modelName, logs_to_send=None, monitor=None, export="png", sendPlot=True, verbose=0):
 		
 		if token is None:
 			colors.prRed('[slackker] Please enter Valid Slack API Token.')
@@ -25,44 +25,46 @@ class slackUpdate(Callback):
 			self.export = export
 			self.sendPlot = sendPlot
 			self.verbose = verbose
-			self.train_logs = train_logs
+			self.logs_to_send = logs_to_send
+			self.monitor = monitor
 
 			if export is not None:
 				pass
 			else:
 				raise argparse.ArgumentTypeError("[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
-			if train_logs is None and val_logs is None:
-				colors.prRed("[slackker] Provice at least 1 log type, either 'train_logs' or 'val_logs' for logging purpose.")
+			if logs_to_send is None:
+				colors.prRed("[slackker] Provice at least 1 log type for sending update.")
 				exit()
 			else:
-				if type(train_logs) is not list and train_logs is not None:
-					colors.prRed("[slackker] 'train_logs' is a list type of argument, add values in '[]'")
+				if type(logs_to_send) is not list and logs_to_send is not None:
+					colors.prRed("[slackker] 'logs_to_send' is a list type of argument, add values in '[]'")
 					exit()
 				else:
 					pass
-				if type(val_logs) is not list and val_logs is not None:
-					colors.prRed("[slackker] 'val_logs' is a list type of argument, add values in '[]'")
-					exit()
-				else:
-					pass
+
+			if monitor is not None:
+				pass
+			else:
+				colors.prRed("[slackker] Provice 'monitor' argument to determine the best epoch")
+				exit()
 
 	# Called when training starts
-	def on_train_start(self, trainer, pl_module):
-		# functions.slack.report_stats(
-		# 	client=self.client,
-		# 	channel=self.channel,
-		# 	text=f'Training on "{self.modelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-		# 	verbose=self.verbose)
+	def on_fit_start(self, trainer, pl_module):
+		functions.slack.report_stats(
+			client=self.client,
+			channel=self.channel,
+			text=f'Training on "{self.modelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
+			verbose=self.verbose)
 
 		self.training_logs = {}
-		self.validation_logs = {}
 		self.n_epochs = 0
 
-	# Called when every epoch ends
+	# Called when every training epoch ends
 	def on_train_epoch_end(self, trainer, pl_module):
 		metrics = trainer.callback_metrics
-		logs = self.train_logs
+		# print(metrics)
+		logs = self.logs_to_send
 
 		custom_logs = {}
 		toPrint = []
@@ -74,24 +76,26 @@ class slackUpdate(Callback):
 		[toPrint.append(f"{i}: {metrics[i]:.4f}") for i in logs]
 
 		message = f"Epoch: {self.n_epochs}, {', '.join(toPrint)}"
+		print("\n")
+		print(message)
 
-		# # Check internet before sending update on slacj
-		# server, attempt = checkker.check_internet_epoch_end(url="www.slack.com")
+		# Check internet before sending update on slacj
+		server, attempt = checkker.check_internet_epoch_end(url="www.slack.com")
 
-		# # If internet working send message else skip sending message and continue training.
-		# if server == True:
-		# 	functions.slack.report_stats(
-		# 		client=self.client,
-		# 		channel=self.channel,
-		# 		text=message,
-		# 		verbose=self.verbose)
-		# else:
-		# 	pass
+		# If internet working send message else skip sending message and continue training.
+		if server == True:
+			functions.slack.report_stats(
+				client=self.client,
+				channel=self.channel,
+				text=message,
+				verbose=self.verbose)
+		else:
+			pass
 
 		self.n_epochs += 1
 
 	# Prepare and send report with graphs at the end of training.
-	def on_train_end(self, trainer, pl_module):
+	def on_fit_end(self, trainer, pl_module):
 		print(f'Training Finished for {self.modelName}')
 		# print(self.training_logs)
-		[print(min(value)) for key, value in self.training_logs.items() if "loss" in key.lower()]
+		[print(min(value)) for key, value in self.training_logs.items() if "val_loss" in key.lower() else print(max(value))]
