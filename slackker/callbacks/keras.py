@@ -85,7 +85,7 @@ class slackUpdate(Callback):
         train_acc = self.train_acc[best_epoch]
         val_acc = self.valid_acc[best_epoch]
 
-        message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch + 1}.'
+        message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}.'
         message2 = f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
 
         functions.slack.report_stats(client=self.client, channel=self.channel, text=message1, verbose=self.verbose)
