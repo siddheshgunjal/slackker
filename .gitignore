@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# skip these dev test files & folders
+model.py
+model-lightning.py
