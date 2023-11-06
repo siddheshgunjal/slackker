@@ -131,3 +131,5 @@ dmypy.json
 # skip these dev test files & folders
 model.py
 model-lightning.py
+lightning_logs/
+MNIST/
