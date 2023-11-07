@@ -113,4 +113,12 @@ class slackUpdate(Callback):
 			client=self.client,
 			channel=self.channel,
 			text=message,
-			verbose=self.verbose)		
+			verbose=self.verbose)
+
+		functions.slack.lightning_plot_history(modelName=self.modelName,
+			export=self.export,
+			client=self.client,
+			channel=self.channel,
+			sendPlot=self.sendPlot,
+			training_logs=self.training_logs,
+			verbose=self.verbose)	
