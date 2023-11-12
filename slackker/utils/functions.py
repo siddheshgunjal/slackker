@@ -44,7 +44,7 @@ class slack():
                 return 
             
             # As loss always exists
-            epochs = range(0, len(train_loss)+1)
+            epochs = range(1, len(train_loss)+1)
             
             # Loss
             plt.figure(1, figsize=(15,8))
@@ -70,75 +70,6 @@ class slack():
             plt.figure(2, figsize=(15,8))
             plt.plot(epochs, train_acc,'b-',lw=2.5, label=f'Training Accuracy: {train_acc[-1]:.4f}')
             plt.plot(epochs, val_acc,'g-',lw=2.5, label=f'Validation Accuracy: {val_acc[-1]:.4f}')
-            plt.title(f'{modelName} Accuracy Graph', fontsize=20)
-            plt.xlabel('Epochs', fontsize=15)
-            plt.ylabel('Accuracy', fontsize=15)
-            plt.legend(fontsize=12)
-            plt.grid(True)
-            plt.savefig(f'{modelName}_Accuracy.{export}')
-            plt.close()
-
-            if sendPlot == True:
-                try:
-                    slack.upload_plot(name = f'{modelName} Accuracy', client=client, channel=channel, filepath=f'{modelName}_Accuracy.{export}', verbose=verbose)
-                except Exception as e:
-                    colors.prRed(f"[slackker] Invalid Argument: {e}")
-            else:
-                pass
-
-        except Exception as e:
-            colors.prRed(f'[slackker] Plotting Generation Failed: {e}')
-            pass
-
-    def lightning_plot_history(modelName, export, client, channel, sendPlot, training_logs, verbose=1):
-        try:
-            # Make sure training has began
-            if len(training_logs) == 0:
-                colors.prRed('[slackker] Loss is missing from training history')
-                return
-
-            # As loss always exists
-            k = str(list(training_logs.keys())[0])
-            epochs = range(0, len(training_logs[k]))
-
-            # colors list for loss graph
-            clrs_loss = iter(['b-', 'g-', 'r-', 'c-', 'm-', 'y-', 'k-', 'orange', 'darkviolet', 'fuchsia'])
-
-            # Loss
-            plt.figure(1, figsize=(15,8))
-
-            for key, value in training_logs.items():
-                if 'loss' in key.lower():
-                    plt.plot(epochs, training_logs[key], next(clrs_loss), lw=2.5, label=f'{key}: {training_logs[key][-1]:.4f}')
-                else:
-                    pass
-            plt.title(f'{modelName} Loss Graph', fontsize=20)
-            plt.xlabel('Epochs', fontsize=15)
-            plt.ylabel('Loss', fontsize=15)
-            plt.legend(fontsize=12)
-            plt.grid(True)
-            plt.savefig(f'{modelName}_Loss.{export}')
-            plt.close()
-
-            if sendPlot == True:
-                try:
-                    slack.upload_plot(name = f'{modelName} Loss', client=client, channel=channel, filepath=f'{modelName}_Loss.{export}', verbose=verbose)
-                except Exception as e:
-                    colors.prRed(f"[slackker] Invalid Argument: {e}")
-            else:
-                pass
-
-            # Accuracy
-            plt.figure(1, figsize=(15,8))
-
-            # colors list for accuracy graph
-            clrs_acc = iter(['b-', 'g-', 'r-', 'c-', 'm-', 'y-', 'k-', 'orange', 'darkviolet', 'fuchsia'])
-
-            for key, value in training_logs.items():
-                if 'acc' in key.lower():
-                    plt.plot(epochs, training_logs[key], next(clrs_acc), lw=2.5, label=f'{key}: {training_logs[key][-1]:.4f}')
-                else:
-                    pass
             plt.title(f'{modelName} Accuracy Graph', fontsize=20)
             plt.xlabel('Epochs', fontsize=15)
             plt.ylabel('Accuracy', fontsize=15)
@@ -199,7 +130,7 @@ class telegram():
                 return 
             
             # As loss always exists
-            epochs = range(0, len(train_loss)+1)
+            epochs = range(1, len(train_loss)+1)
             
             # Loss
             plt.figure(1, figsize=(15,8))
@@ -236,75 +167,6 @@ class telegram():
             if sendPlot == True:
                 try:
                     telegram.upload_plot(name=f'{modelName} Accuracy', token=token, channel=channel, image=open(f'{modelName}_Accuracy.{export}', 'rb'), verbose=verbose)
-                except Exception as e:
-                    colors.prRed(f"[slackker] Invalid Argument: {e}")
-            else:
-                pass
-
-        except Exception as e:
-            colors.prRed(f'[slackker] Plotting Generation Failed: {e}')
-            pass
-
-    def lightning_plot_history(modelName, export, token, channel, sendPlot, training_logs, verbose=1):
-        try:
-            # Make sure training has began
-            if len(training_logs) == 0:
-                colors.prRed('[slackker] Loss is missing from training history')
-                return
-
-            # As loss always exists
-            k = str(list(training_logs.keys())[0])
-            epochs = range(0, len(training_logs[k]))
-
-            # colors list for loss graph
-            clrs_loss = iter(['b-', 'g-', 'r-', 'c-', 'm-', 'y-', 'k-', 'orange', 'darkviolet', 'fuchsia'])
-
-            # Loss
-            plt.figure(1, figsize=(15,8))
-
-            for key, value in training_logs.items():
-                if 'loss' in key.lower():
-                    plt.plot(epochs, training_logs[key], next(clrs_loss), lw=2.5, label=f'{key}: {training_logs[key][-1]:.4f}')
-                else:
-                    pass
-            plt.title(f'{modelName} Loss Graph', fontsize=20)
-            plt.xlabel('Epochs', fontsize=15)
-            plt.ylabel('Loss', fontsize=15)
-            plt.legend(fontsize=12)
-            plt.grid(True)
-            plt.savefig(f'{modelName}_Loss.{export}')
-            plt.close()
-
-            if sendPlot == True:
-                try:
-                    telegram.upload_plot(name = f'{modelName} Loss', token=token, channel=channel, image=open(f'{modelName}_Loss.{export}', 'rb'), verbose=verbose)
-                except Exception as e:
-                    colors.prRed(f"[slackker] Invalid Argument: {e}")
-            else:
-                pass
-
-            # Accuracy
-            plt.figure(1, figsize=(15,8))
-
-            # colors list for accuracy graph
-            clrs_acc = iter(['b-', 'g-', 'r-', 'c-', 'm-', 'y-', 'k-', 'orange', 'darkviolet', 'fuchsia'])
-
-            for key, value in training_logs.items():
-                if 'acc' in key.lower():
-                    plt.plot(epochs, training_logs[key], next(clrs_acc), lw=2.5, label=f'{key}: {training_logs[key][-1]:.4f}')
-                else:
-                    pass
-            plt.title(f'{modelName} Accuracy Graph', fontsize=20)
-            plt.xlabel('Epochs', fontsize=15)
-            plt.ylabel('Accuracy', fontsize=15)
-            plt.legend(fontsize=12)
-            plt.grid(True)
-            plt.savefig(f'{modelName}_Accuracy.{export}')
-            plt.close()
-
-            if sendPlot == True:
-                try:
-                    telegram.upload_plot(name = f'{modelName} Accuracy', token=token, channel=channel, image=open(f'{modelName}_Accuracy.{export}', 'rb'), verbose=verbose)
                 except Exception as e:
                     colors.prRed(f"[slackker] Invalid Argument: {e}")
             else:

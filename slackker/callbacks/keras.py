@@ -58,6 +58,7 @@ class slackUpdate(Callback):
         self.train_acc.append(custom_logs[1])
         self.valid_loss.append(custom_logs[2])
         self.valid_acc.append(custom_logs[3])
+        self.n_epochs += 1
 
         message = f'Epoch: {self.n_epochs}, Training Loss: {self.train_loss[-1]:.4f}, Validation Loss: {self.valid_loss[-1]:.4f}'
 
@@ -74,8 +75,6 @@ class slackUpdate(Callback):
         else:
             pass
 
-        self.n_epochs += 1
-
     # Prepare and send report with graphs at the end of training.
     def on_train_end(self, logs={}):
 
@@ -85,7 +84,7 @@ class slackUpdate(Callback):
         train_acc = self.train_acc[best_epoch]
         val_acc = self.valid_acc[best_epoch]
 
-        message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}.'
+        message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch + 1}.'
         message2 = f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
 
         functions.slack.report_stats(client=self.client, channel=self.channel, text=message1, verbose=self.verbose)
@@ -104,7 +103,7 @@ class slackUpdate(Callback):
             verbose=self.verbose)
 
 class telegramUpdate(Callback):
-    """Custom Keras callback that posts to Telegram while training a neural network"""
+    """Custom Keras callback that posts to Slack while training a neural network"""
     def __init__(self, token, modelName, export="png", sendPlot=True, verbose=0):
 
         if token is None:
@@ -179,7 +178,7 @@ class telegramUpdate(Callback):
         train_acc = self.train_acc[best_epoch]
         val_acc = self.valid_acc[best_epoch]
 
-        message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}.'
+        message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch + 1}.'
         message2 = f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
 
         functions.telegram.report_stats(token=self.token, channel=self.channel, text=message1, verbose=self.verbose)
