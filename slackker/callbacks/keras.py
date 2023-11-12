@@ -13,7 +13,7 @@ class SlackUpdate(Callback):
     def __init__(self, token, channel, ModelName, export="png", SendPlot=False, verbose=0):
 
         if token is None:
-            colors.prRed('[slackker] Please enter Valid Slack API Token.')
+            colors.prRed('[slackker] ERROR: Please enter Valid Slack API Token.')
             return
 
         server = checkker.check_internet(url="www.slack.com", verbose=verbose)
@@ -30,7 +30,7 @@ class SlackUpdate(Callback):
             if export is not None:
                 pass
             else:
-                raise argparse.ArgumentTypeError("[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
+                raise argparse.ArgumentTypeError("[slackker] ERROR: 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
         self.train_acc = []
         self.valid_acc = []
@@ -107,7 +107,7 @@ class TelegramUpdate(Callback):
     def __init__(self, token, ModelName, export="png", SendPlot=False, verbose=0):
 
         if token is None:
-            colors.prRed('[slackker] Please enter Valid Telegram API Token.')
+            colors.prRed('[slackker] ERROR: Please enter Valid Telegram API Token.')
             return
 
         server = checkker.check_internet(url="www.telegram.org", verbose=verbose)
@@ -124,7 +124,7 @@ class TelegramUpdate(Callback):
             if export is not None:
                 pass
             else:
-                raise argparse.ArgumentTypeError("[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
+                raise argparse.ArgumentTypeError("[slackker] ERROR: 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
         self.train_acc = []
         self.valid_acc = []

@@ -13,7 +13,7 @@ class SlackUpdate(Callback):
     """Custom Lightning callback that posts to Slack while training a neural network"""
     def __init__(self, token, channel, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=False, verbose=0):
         if token is None:
-            colors.prRed('[slackker] Please enter Valid Slack API Token.')
+            colors.prRed('[slackker] ERROR: Please enter Valid Slack API Token.')
             return
 
         server = checkker.check_internet(url="www.slack.com", verbose=verbose)
@@ -32,26 +32,26 @@ class SlackUpdate(Callback):
             if export is not None:
                 pass
             else:
-                raise argparse.ArgumentTypeError("[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
+                raise argparse.ArgumentTypeError("[slackker] ERROR: 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
             if TrackLogs is None:
-                colors.prRed("[slackker] Provice at least 1 log type for sending update.")
+                colors.prRed("[slackker] ERROR: Provice at least 1 log type for sending update.")
                 sys.exit()
             else:
                 if type(TrackLogs) is not list and TrackLogs is not None:
-                    colors.prRed("[slackker] 'TrackLogs' is a list type of argument, add values in '[]'")
+                    colors.prRed("[slackker] ERROR: 'TrackLogs' is a list type of argument, add values in '[]'")
                     sys.exit()
                 else:
                     pass
 
             if monitor is not None:
                 if monitor not in TrackLogs:
-                    colors.prRed("[slackker] Couldn't find Argument 'monitor' value in 'TrackLogs' provided")
+                    colors.prRed("[slackker] ERROR: Couldn't find Argument 'monitor' value in 'TrackLogs' provided")
                     sys.exit()
                 else:
                     pass
             else:
-                colors.prYellow("[slackker] Argument 'monitor' not provided, will skip reporting Best Epoch")
+                colors.prYellow("[slackker] WARNING: Argument 'monitor' not provided, will skip reporting Best Epoch")
 
         self.training_logs = {}
         self.n_epochs = 0
@@ -128,7 +128,7 @@ class TelegramUpdate(Callback):
     """Custom Lightning callback that posts to Telegram while training a neural network"""
     def __init__(self, token, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=False, verbose=0):
         if token is None:
-            colors.prRed('[slackker] Please enter Valid Telegram API Token.')
+            colors.prRed('[slackker] ERROR: Please enter Valid Telegram API Token.')
             return
 
         server = checkker.check_internet(url="www.telegram.org", verbose=verbose)
@@ -147,26 +147,26 @@ class TelegramUpdate(Callback):
             if export is not None:
                 pass
             else:
-                raise argparse.ArgumentTypeError("[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
+                raise argparse.ArgumentTypeError("[slackker] ERROR: 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
             if TrackLogs is None:
-                colors.prRed("[slackker] Provice at least 1 log type for sending update.")
+                colors.prRed("[slackker] ERROR: Provice at least 1 log type for sending update.")
                 sys.exit()
             else:
                 if type(TrackLogs) is not list and TrackLogs is not None:
-                    colors.prRed("[slackker] 'TrackLogs' is a list type of argument, add values in '[]'")
+                    colors.prRed("[slackker] ERROR: 'TrackLogs' is a list type of argument, add values in '[]'")
                     sys.exit()
                 else:
                     pass
 
             if monitor is not None:
                 if monitor not in TrackLogs:
-                    colors.prRed("[slackker] Couldn't find Argument 'monitor' value in 'TrackLogs' provided")
+                    colors.prRed("[slackker] ERROR: Couldn't find Argument 'monitor' value in 'TrackLogs' provided")
                     sys.exit()
                 else:
                     pass
             else:
-                colors.prYellow("[slackker] Argument 'monitor' not provided, will skip reporting Best Epoch")
+                colors.prYellow("[slackker] WARNING: Argument 'monitor' not provided, will skip reporting Best Epoch")
 
         self.training_logs = {}
         self.n_epochs = 0

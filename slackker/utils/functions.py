@@ -14,10 +14,10 @@ class Plotter:
             file = filepath,
             initial_comment=f"{name} :bar_chart:")
             if verbose>=1:
-                colors.prCyan(f"[slackker] Uploaded graph on {channel} channel")
+                colors.prCyan(f"[slackker] DEBUG: Uploaded graph on {channel} channel")
 
         except SlackApiError as e:
-            colors.prRed(f"[slackker] Error uploading graph: {e}")
+            colors.prRed(f"[slackker] ERROR: Error uploading graph: {e}")
     
     @staticmethod
     def telegram_img_upload(name, token, channel, image, verbose=1):
@@ -28,17 +28,17 @@ class Plotter:
             # Call the requests.post method using API request
             response = requests.post(apiURL, params={'chat_id': channel, 'caption': f"{name} \U0001F4CA"}, files={'photo': image})
             if verbose>=1:
-                colors.prCyan("[slackker] Uploaded graph on Telegram")
+                colors.prCyan("[slackker] DEBUG: Uploaded graph on Telegram")
 
         except Exception as e:
-            colors.prRed(f"[slackker] Error uploading graph: {e}")
+            colors.prRed(f"[slackker] ERROR: Error uploading graph: {e}")
 
     @staticmethod
     def plot_and_upload(platform, ModelName, export, client, channel, SendPlot, logs, metric, verbose=1):
         try:
             # Make sure training has began
             if len(logs) == 0:
-                colors.prRed('[slackker] Loss is missing from training history')
+                colors.prRed('[slackker] ERROR: Loss is missing from training history')
                 return
 
             # As loss always exists
@@ -76,11 +76,11 @@ class Plotter:
                     else:
                         Plotter.telegram_img_upload(name = f'{ModelName}_{metric}', token=client, channel=channel, image=open(path, 'rb'), verbose=verbose)
                 except Exception as e:
-                    colors.prRed(f"[slackker] Invalid Argument: {e}")
+                    colors.prRed(f"[slackker] ERROR: Invalid Argument: {e}")
             else:
-                colors.prCyan("[slackker] Skipping graph upload as SendPlot == False ")
+                colors.prYellow("[slackker] WARNING: Skipping graph upload as SendPlot == False ")
         except Exception as e:
-            colors.prRed(f'Plotting Generation Failed: {e}')
+            colors.prRed(f'[slackker] ERROR: Plotting Generation Failed: {e}')
 
 class Slack:
     @staticmethod
@@ -95,7 +95,7 @@ class Slack:
                 colors.prCyan(f"[slackker] Posted update on {channel} channel")
 
         except SlackApiError as e:
-            colors.prRed(f"[slackker] Error posting update: {e}")
+            colors.prRed(f"[slackker] ERROR: Error posting update: {e}")
 
     @staticmethod
     def keras_plot_history(ModelName, export, client, channel, SendPlot, training_logs, verbose=1):
@@ -123,10 +123,10 @@ class Telegram:
             # Call the requests.post method using API request
             response = requests.post(apiURL, params={'chat_id': channel, 'text': text})
             if verbose>=1:
-                colors.prCyan("[slackker] Posted update on Telegram")
+                colors.prCyan("[slackker] DEBUG: Posted update on Telegram")
 
         except Exception as e:
-            colors.prRed(f"[slackker] Error posting update: {e}")
+            colors.prRed(f"[slackker] ERROR: Error posting update: {e}")
 
     @staticmethod
     def keras_plot_history(ModelName, export, token, channel, SendPlot, training_logs, verbose=1):
