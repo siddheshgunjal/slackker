@@ -1,4 +1,3 @@
-import sys
 import time
 import requests
 import http.client as httplib
@@ -23,7 +22,7 @@ def check_internet(url, verbose=2):
             status=True
             if verbose >= 2:
                 colors.prCyan(f"[slackker] {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server successful!")
-        except:
+        except Exception:
             status=False
             colors.prYellow(f"[slackker] ERROR: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Please check your internet. Trying again in 60 sec..[attempt {counter}]")
             time.sleep(sleepinsec)
@@ -47,7 +46,7 @@ def check_internet_epoch_end(url):
             conn.request("HEAD", "/")
             conn.close()
             status=True
-        except:
+        except Exception:
             status=False
             colors.prYellow(f"[slackker] ERROR: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Trying again in 10 sec..[attempt {counter}]")
             time.sleep(sleepinsec)
@@ -58,7 +57,7 @@ def check_internet_epoch_end(url):
     elif counter > 3:
         colors.prCyan(f'[slackker] Skipping report update due to connection failure. {counter} attempts made before skipping')
 
-    return status, counter
+    return status
 
 
 def slack_connect(token, verbose=2):
