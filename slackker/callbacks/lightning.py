@@ -1,16 +1,17 @@
+import sys
+from datetime import datetime
+import argparse
+import requests
 import numpy as np
 from lightning.pytorch.callbacks import Callback
 from slack_sdk import WebClient
-from datetime import datetime
-import slackker.utils.checkker as checkker
-import slackker.utils.functions as functions
+from slackker.utils import checkker
+from slackker.utils import functions
 from slackker.utils.ccolors import colors
-import requests
 
-class slackUpdate(Callback):
+class SlackUpdate(Callback):
     """Custom Lightning callback that posts to Slack while training a neural network"""
-    def __init__(self, token, channel, modelName, trackLogs=None, monitor=None, export="png", sendPlot=True, verbose=0):
-        
+    def __init__(self, token, channel, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=True, verbose=0):
         if token is None:
             colors.prRed('[slackker] Please enter Valid Slack API Token.')
             return
@@ -21,11 +22,11 @@ class slackUpdate(Callback):
         if server and api:
             self.client = WebClient(token=token)
             self.channel = channel
-            self.modelName = modelName
+            self.ModelName = ModelName
             self.export = export
-            self.sendPlot = sendPlot
+            self.SendPlot = SendPlot
             self.verbose = verbose
-            self.trackLogs = trackLogs
+            self.TrackLogs = TrackLogs
             self.monitor = monitor
 
             if export is not None:
@@ -33,40 +34,40 @@ class slackUpdate(Callback):
             else:
                 raise argparse.ArgumentTypeError("[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
-            if trackLogs is None:
+            if TrackLogs is None:
                 colors.prRed("[slackker] Provice at least 1 log type for sending update.")
-                exit()
+                sys.exit()
             else:
-                if type(trackLogs) is not list and trackLogs is not None:
-                    colors.prRed("[slackker] 'trackLogs' is a list type of argument, add values in '[]'")
-                    exit()
+                if type(TrackLogs) is not list and TrackLogs is not None:
+                    colors.prRed("[slackker] 'TrackLogs' is a list type of argument, add values in '[]'")
+                    sys.exit()
                 else:
                     pass
 
             if monitor is not None:
-                if monitor not in trackLogs:
-                    colors.prRed("[slackker] Couldn't find Argument 'monitor' value in 'trackLogs' provided")
-                    exit()
+                if monitor not in TrackLogs:
+                    colors.prRed("[slackker] Couldn't find Argument 'monitor' value in 'TrackLogs' provided")
+                    sys.exit()
                 else:
                     pass
             else:
                 colors.prYellow("[slackker] Argument 'monitor' not provided, will skip reporting Best Epoch")
+
+        self.training_logs = {}
+        self.n_epochs = 0
 
     # Called when training starts
     def on_fit_start(self, trainer, pl_module):
         functions.slack.report_stats(
             client=self.client,
             channel=self.channel,
-            text=f'Training on "{self.modelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
+            text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
             verbose=self.verbose)
-
-        self.training_logs = {}
-        self.n_epochs = 0
 
     # Called when every training epoch ends
     def on_train_epoch_end(self, trainer, pl_module):
         metrics = trainer.callback_metrics
-        logs = self.trackLogs
+        logs = self.TrackLogs
 
         custom_logs = {}
         toPrint = []
@@ -80,10 +81,10 @@ class slackUpdate(Callback):
         message = f"Epoch: {self.n_epochs}, {', '.join(toPrint)}"
 
         # Check internet before sending update on slacj
-        server, attempt = checkker.check_internet_epoch_end(url="www.slack.com")
+        server = checkker.check_internet_epoch_end(url="www.slack.com")
 
         # If internet working send message else skip sending message and continue training.
-        if server == True:
+        if server:
             functions.slack.report_stats(
                 client=self.client,
                 channel=self.channel,
@@ -115,18 +116,17 @@ class slackUpdate(Callback):
             text=message,
             verbose=self.verbose)
 
-        functions.slack.lightning_plot_history(modelName=self.modelName,
+        functions.slack.lightning_plot_history(ModelName=self.ModelName,
             export=self.export,
             client=self.client,
             channel=self.channel,
-            sendPlot=self.sendPlot,
+            SendPlot=self.SendPlot,
             training_logs=self.training_logs,
             verbose=self.verbose)
 
-class telegramUpdate(Callback):
+class TelegramUpdate(Callback):
     """Custom Lightning callback that posts to Telegram while training a neural network"""
-    def __init__(self, token, modelName, trackLogs=None, monitor=None, export="png", sendPlot=True, verbose=0):
-        
+    def __init__(self, token, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=True, verbose=0):
         if token is None:
             colors.prRed('[slackker] Please enter Valid Telegram API Token.')
             return
@@ -137,11 +137,11 @@ class telegramUpdate(Callback):
         if server and channel:
             self.token = token
             self.channel = channel
-            self.modelName = modelName
+            self.ModelName = ModelName
             self.export = export
-            self.sendPlot = sendPlot
+            self.SendPlot = SendPlot
             self.verbose = verbose
-            self.trackLogs = trackLogs
+            self.TrackLogs = TrackLogs
             self.monitor = monitor
 
             if export is not None:
@@ -149,40 +149,40 @@ class telegramUpdate(Callback):
             else:
                 raise argparse.ArgumentTypeError("[slackker] 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
 
-            if trackLogs is None:
+            if TrackLogs is None:
                 colors.prRed("[slackker] Provice at least 1 log type for sending update.")
-                exit()
+                sys.exit()
             else:
-                if type(trackLogs) is not list and trackLogs is not None:
-                    colors.prRed("[slackker] 'trackLogs' is a list type of argument, add values in '[]'")
-                    exit()
+                if type(TrackLogs) is not list and TrackLogs is not None:
+                    colors.prRed("[slackker] 'TrackLogs' is a list type of argument, add values in '[]'")
+                    sys.exit()
                 else:
                     pass
 
             if monitor is not None:
-                if monitor not in trackLogs:
-                    colors.prRed("[slackker] Couldn't find Argument 'monitor' value in 'trackLogs' provided")
-                    exit()
+                if monitor not in TrackLogs:
+                    colors.prRed("[slackker] Couldn't find Argument 'monitor' value in 'TrackLogs' provided")
+                    sys.exit()
                 else:
                     pass
             else:
                 colors.prYellow("[slackker] Argument 'monitor' not provided, will skip reporting Best Epoch")
+
+        self.training_logs = {}
+        self.n_epochs = 0
 
     # Called when training starts
     def on_fit_start(self, trainer, pl_module):
         functions.telegram.report_stats(
             token=self.token,
             channel=self.channel,
-            text=f'Training on "{self.modelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
+            text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
             verbose=self.verbose)
-
-        self.training_logs = {}
-        self.n_epochs = 0
 
     # Called when every training epoch ends
     def on_train_epoch_end(self, trainer, pl_module):
         metrics = trainer.callback_metrics
-        logs = self.trackLogs
+        logs = self.TrackLogs
 
         custom_logs = {}
         toPrint = []
@@ -196,10 +196,10 @@ class telegramUpdate(Callback):
         message = f"Epoch: {self.n_epochs}, {', '.join(toPrint)}"
 
         # Check internet before sending update on slacj
-        server, attempt = checkker.check_internet_epoch_end(url="www.slack.com")
+        server = checkker.check_internet_epoch_end(url="www.slack.com")
 
         # If internet working send message else skip sending message and continue training.
-        if server == True:
+        if server:
             functions.telegram.report_stats(
                 token=self.token,
                 channel=self.channel,
@@ -231,10 +231,10 @@ class telegramUpdate(Callback):
             text=message,
             verbose=self.verbose)
 
-        functions.telegram.lightning_plot_history(modelName=self.modelName,
+        functions.telegram.lightning_plot_history(ModelName=self.ModelName,
             export=self.export,
             token=self.token,
             channel=self.channel,
-            sendPlot=self.sendPlot,
+            SendPlot=self.SendPlot,
             training_logs=self.training_logs,
-            verbose=self.verbose)   
+            verbose=self.verbose)
