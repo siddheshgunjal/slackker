@@ -11,7 +11,7 @@ from slackker.utils.ccolors import colors
 
 class SlackUpdate(Callback):
     """Custom Lightning callback that posts to Slack while training a neural network"""
-    def __init__(self, token, channel, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=True, verbose=0):
+    def __init__(self, token, channel, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=False, verbose=0):
         if token is None:
             colors.prRed('[slackker] Please enter Valid Slack API Token.')
             return
@@ -58,7 +58,7 @@ class SlackUpdate(Callback):
 
     # Called when training starts
     def on_fit_start(self, trainer, pl_module):
-        functions.slack.report_stats(
+        functions.Slack.report_stats(
             client=self.client,
             channel=self.channel,
             text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
@@ -85,7 +85,7 @@ class SlackUpdate(Callback):
 
         # If internet working send message else skip sending message and continue training.
         if server:
-            functions.slack.report_stats(
+            functions.Slack.report_stats(
                 client=self.client,
                 channel=self.channel,
                 text=message,
@@ -110,13 +110,13 @@ class SlackUpdate(Callback):
         else:
             message = f"Trained for {self.n_epochs} epochs. Argument 'monitor' was not provided, skipped reporting Best Epoch"
 
-        functions.slack.report_stats(
+        functions.Slack.report_stats(
             client=self.client,
             channel=self.channel,
             text=message,
             verbose=self.verbose)
 
-        functions.slack.lightning_plot_history(ModelName=self.ModelName,
+        functions.Slack.lightning_plot_history(ModelName=self.ModelName,
             export=self.export,
             client=self.client,
             channel=self.channel,
@@ -126,7 +126,7 @@ class SlackUpdate(Callback):
 
 class TelegramUpdate(Callback):
     """Custom Lightning callback that posts to Telegram while training a neural network"""
-    def __init__(self, token, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=True, verbose=0):
+    def __init__(self, token, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=False, verbose=0):
         if token is None:
             colors.prRed('[slackker] Please enter Valid Telegram API Token.')
             return
@@ -173,7 +173,7 @@ class TelegramUpdate(Callback):
 
     # Called when training starts
     def on_fit_start(self, trainer, pl_module):
-        functions.telegram.report_stats(
+        functions.Telegram.report_stats(
             token=self.token,
             channel=self.channel,
             text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
@@ -200,7 +200,7 @@ class TelegramUpdate(Callback):
 
         # If internet working send message else skip sending message and continue training.
         if server:
-            functions.telegram.report_stats(
+            functions.Telegram.report_stats(
                 token=self.token,
                 channel=self.channel,
                 text=message,
@@ -225,13 +225,13 @@ class TelegramUpdate(Callback):
         else:
             message = f"Trained for {self.n_epochs} epochs. Argument 'monitor' was not provided, skipped reporting Best Epoch"
 
-        functions.telegram.report_stats(
+        functions.Telegram.report_stats(
             token=self.token,
             channel=self.channel,
             text=message,
             verbose=self.verbose)
 
-        functions.telegram.lightning_plot_history(ModelName=self.ModelName,
+        functions.Telegram.lightning_plot_history(ModelName=self.ModelName,
             export=self.export,
             token=self.token,
             channel=self.channel,

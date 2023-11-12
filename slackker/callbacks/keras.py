@@ -10,7 +10,7 @@ from slackker.utils.ccolors import colors
 
 class SlackUpdate(Callback):
     """Custom Keras callback that posts to Slack while training a neural network"""
-    def __init__(self, token, channel, ModelName, export="png", SendPlot=True, verbose=0):
+    def __init__(self, token, channel, ModelName, export="png", SendPlot=False, verbose=0):
 
         if token is None:
             colors.prRed('[slackker] Please enter Valid Slack API Token.')
@@ -40,7 +40,7 @@ class SlackUpdate(Callback):
 
     # Called when training starts
     def on_train_begin(self, logs={}):
-        functions.slack.report_stats(
+        functions.Slack.report_stats(
             client=self.client,
             channel=self.channel,
             text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
@@ -66,7 +66,7 @@ class SlackUpdate(Callback):
 
         # If internet working send message else skip sending message and continue training.
         if server:
-            functions.slack.report_stats(
+            functions.Slack.report_stats(
                 client=self.client,
                 channel=self.channel,
                 text=message,
@@ -85,27 +85,26 @@ class SlackUpdate(Callback):
         train_acc = self.train_acc[best_epoch]
         val_acc = self.valid_acc[best_epoch]
 
+        training_logs = {'train_loss': self.train_loss, 'train_acc': self.train_acc, 'val_loss': self.valid_loss, 'val_acc': self.valid_acc}
+
         message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}.'
         message2 = f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
 
-        functions.slack.report_stats(client=self.client, channel=self.channel, text=message1, verbose=self.verbose)
+        functions.Slack.report_stats(client=self.client, channel=self.channel, text=message1, verbose=self.verbose)
 
-        functions.slack.report_stats(client=self.client, channel=self.channel, text=message2, verbose=self.verbose)
+        functions.Slack.report_stats(client=self.client, channel=self.channel, text=message2, verbose=self.verbose)
 
-        functions.slack.keras_plot_history(ModelName=self.ModelName,
+        functions.Slack.keras_plot_history(ModelName=self.ModelName,
             export=self.export,
             client=self.client,
             channel=self.channel,
-            SendPlot = self.SendPlot,
-            train_loss=self.train_loss,
-            val_loss=self.valid_loss,
-            train_acc=self.train_acc,
-            val_acc=self.valid_acc,
+            SendPlot=self.SendPlot,
+            training_logs=training_logs,
             verbose=self.verbose)
 
 class TelegramUpdate(Callback):
     """Custom Keras callback that posts to Telegram while training a neural network"""
-    def __init__(self, token, ModelName, export="png", SendPlot=True, verbose=0):
+    def __init__(self, token, ModelName, export="png", SendPlot=False, verbose=0):
 
         if token is None:
             colors.prRed('[slackker] Please enter Valid Telegram API Token.')
@@ -135,7 +134,7 @@ class TelegramUpdate(Callback):
 
     # Called when training starts
     def on_train_begin(self, logs={}):
-        functions.telegram.report_stats(
+        functions.Telegram.report_stats(
             token=self.token,
             channel=self.channel,
             text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
@@ -162,7 +161,7 @@ class TelegramUpdate(Callback):
 
         # If internet working send message else skip sending message and continue training.
         if server:
-            functions.telegram.report_stats(
+            functions.Telegram.report_stats(
                 token=self.token,
                 channel=self.channel,
                 text=message,
@@ -179,20 +178,19 @@ class TelegramUpdate(Callback):
         train_acc = self.train_acc[best_epoch]
         val_acc = self.valid_acc[best_epoch]
 
+        training_logs = {'train_loss': self.train_loss, 'train_acc': self.train_acc, 'val_loss': self.valid_loss, 'val_acc': self.valid_acc}
+
         message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}.'
         message2 = f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
 
-        functions.telegram.report_stats(token=self.token, channel=self.channel, text=message1, verbose=self.verbose)
+        functions.Telegram.report_stats(token=self.token, channel=self.channel, text=message1, verbose=self.verbose)
 
-        functions.telegram.report_stats(token=self.token, channel=self.channel, text=message2, verbose=self.verbose)
+        functions.Telegram.report_stats(token=self.token, channel=self.channel, text=message2, verbose=self.verbose)
 
-        functions.telegram.keras_plot_history(ModelName=self.ModelName,
+        functions.Telegram.keras_plot_history(ModelName=self.ModelName,
             export=self.export,
             token=self.token,
             channel=self.channel,
-            SendPlot = self.SendPlot,
-            train_loss=self.train_loss,
-            val_loss=self.valid_loss,
-            train_acc=self.train_acc,
-            val_acc=self.valid_acc,
+            SendPlot=self.SendPlot,
+            training_logs=training_logs,
             verbose=self.verbose)
