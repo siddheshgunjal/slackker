@@ -11,7 +11,7 @@
   * [Use slackker callbacks with Keras](#use-slackker-callbacks-with-keras)
     * [Import slackker for Keras](#import-slackker-for-keras)
     * [Create slackker object for keras](#create-slackker-object-for-keras)
-    * [Call slackker object into model.fit()](#call-slackker-object-into-model.fit())
+    * [Call slackker object into model.fit()](#call-slackker-object-into-modelfit)
     * [Final code for Keras](#final-code-for-keras)
   * [Use slackker callbacks with Lightning](#use-slackker-callbacks-with-lightning)
     * [Create slackker object for lightning](#create-slackker-object-for-lightning)
