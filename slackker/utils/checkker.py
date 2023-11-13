@@ -1,4 +1,3 @@
-import sys
 import time
 import requests
 import http.client as httplib
@@ -22,16 +21,16 @@ def check_internet(url, verbose=2):
             conn.close()
             status=True
             if verbose >= 2:
-                colors.prCyan(f"[slackker] {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server successful!")
-        except:
+                colors.prCyan(f"[slackker] DEBUG: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server successful!")
+        except Exception:
             status=False
-            colors.prYellow(f"[slackker] ERROR: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Please check your internet. Trying again in 60 sec..[attempt {counter}]")
+            colors.prYellow(f"[slackker] WARNING:: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Please check your internet. Trying again in 60 sec..[attempt {counter}]")
             time.sleep(sleepinsec)
             counter=counter+1
 
     if counter>1:
         if verbose>=2:
-            colors.prCyan(f"[slackker] {_now().strftime('%d-%m-%Y %H:%M')} re-established connection to '{url}' server after {counter} attempts.")
+            colors.prCyan(f"[slackker] DEBUG: {_now().strftime('%d-%m-%Y %H:%M')} re-established connection to '{url}' server after {counter} attempts.")
 
     return status
 
@@ -47,18 +46,18 @@ def check_internet_epoch_end(url):
             conn.request("HEAD", "/")
             conn.close()
             status=True
-        except:
+        except Exception:
             status=False
-            colors.prYellow(f"[slackker] ERROR: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Trying again in 10 sec..[attempt {counter}]")
+            colors.prYellow(f"[slackker] WARNING: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Trying again in 10 sec..[attempt {counter}]")
             time.sleep(sleepinsec)
             counter=counter+1
                 
     if counter <= 3 and counter > 1:
-        colors.prCyan(f"[slackker] {_now().strftime('%d-%m-%Y %H:%M')} re-established connection to '{url}' server after {counter} attempts.")
+        colors.prCyan(f"[slackker] DEBUG: {_now().strftime('%d-%m-%Y %H:%M')} re-established connection to '{url}' server after {counter} attempts.")
     elif counter > 3:
-        colors.prCyan(f'[slackker] Skipping report update due to connection failure. {counter} attempts made before skipping')
+        colors.prYellow(f'[slackker] WARNING: Skipping report update due to connection failure. {counter} attempts made before skipping')
 
-    return status, counter
+    return status
 
 
 def slack_connect(token, verbose=2):
@@ -69,7 +68,7 @@ def slack_connect(token, verbose=2):
         api_response = client.api_test()
         status = True
         if verbose >= 2:
-            colors.prCyan(f"[slackker] Connection to slack API successful! {api_response}")
+            colors.prCyan(f"[slackker] DEBUG: Connection to slack API successful! {api_response}")
     except Exception as e:
         status = False
         colors.prRed(f"[slackker] ERROR: Invalid slack API token: {e}")
@@ -84,8 +83,8 @@ def get_telegram_chat_id(token, verbose=2):
         firstMsg = requests.get(url).json()
         chat_id = str(firstMsg["result"][0]["message"]["chat"]["id"])
         if verbose >= 2:
-            colors.prCyan(f"[slackker] Connection to telegram API successful!")
-            colors.prCyan(f"[slackker] Found chat with 'chat_id'={chat_id}")
+            colors.prCyan(f"[slackker] DEBUG: Connection to telegram API successful!")
+            colors.prCyan(f"[slackker] DEBUG: Found chat with 'chat_id'={chat_id}")
     except Exception as e:
         chat_id = False
         colors.prRed(f"[slackker] ERROR: Could not connect to Telegram API: {e}")
