@@ -31,13 +31,7 @@ setuptools.setup(
      packages=setuptools.find_packages(), # Searches throughout all dirs for files to include
      include_package_data=True, # Must be true to include files depicted in MANIFEST.in
      classifiers=[
-         "Programming Language :: Python :: 3.5",
-         "Programming Language :: Python :: 3.6",
-         "Programming Language :: Python :: 3.7",
-         "Programming Language :: Python :: 3.8",
-         "Programming Language :: Python :: 3.9",
-         "Programming Language :: Python :: 3.10",
-         "Programming Language :: Python :: 3.11",
+         "Programming Language :: Python :: 3",
          "License :: OSI Approved :: Apache Software License",
          "Operating System :: OS Independent",
          "Intended Audience :: Developers",
