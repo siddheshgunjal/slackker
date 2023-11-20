@@ -10,8 +10,6 @@
 
 _Requirements: `slack_sdk>=3.19.0` and `matplotlib`_
 
-<img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/publish-to-pypi.yml?style=for-the-badge&logo=github">
-
 </div>
 
 # Table of contents :notebook:
@@ -25,6 +23,7 @@ _Requirements: `slack_sdk>=3.19.0` and `matplotlib`_
     * [Final code for Keras](#final-code-for-keras)
   * [Use slackker callbacks with Lightning](#use-slackker-callbacks-with-lightning)
     * [Import slackker for Lightning](#import-slackker-for-lightning)
+    * [Log your metrics to track](#log-your-metrics-to-track)
     * [Create slackker object for lightning](#create-slackker-object-for-lightning)
     * [Call slackker object in Trainer module](#call-slackker-object-in-trainer-module)
     * [Final code for Lightning](#final-code-for-lightning)
@@ -142,6 +141,20 @@ or
 ```python
 from slackker.callbacks.lightning import TelegramUpdate # for telegram
 ```
+### Log your metrics to track
+#### Log Training loop metrics
+```python
+self.log("train_loss", loss, on_epoch=True)
+self.log("train_acc", accuracy, on_epoch=True)
+```
+Make sure to set `on_epoch=True` to in training step.
+#### Log Validation loop metrics
+```python
+self.log("val_loss", loss)
+self.log("val_acc", accuracy)
+```
+In Validation step `on_epoch=True` by default.
+
 ### Create slackker object for lightning
 ```python
 # for Slack
@@ -168,7 +181,7 @@ slackker_update = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5
 * `token`: _(string)_ Slack app/Telegram token
 * `channel`: _(string)_ Slack channel where you want to receive updates
 * `ModelName`: _(string)_ Name for your model. This same name will be used in future for title of the generated plots.
-* `TrackLogs`: _(list)_ List of logs you want slackker to send.
+* `TrackLogs`: _(list)_ List of metrics you want slackker to track & notify.
 * `monitor`: _(string)_ This metric will be used to determine best Epoch
 * `export`: _(string)_ default `"png"`: Format for plots to be exported. _(supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)_
 * `SendPlots`: _(Bool)_ default `False`: If set to `True` it will export history of model, both training and validation, save it in the format given in `export` argument and send graphs to slack channel when training ends. If set to `False` it will not send exported graphs to slack channel. 
@@ -289,13 +302,8 @@ Please cite slackker in your publications if this is useful for your project/res
 ```
 
 # Maintainer :sunglasses:
-<div align="center">
-
 [<img alt="Static Badge" src="https://img.shields.io/badge/my_website-click_to_visit-informational?style=for-the-badge&logo=googlechrome&logoColor=white&color=black">][portfolio]
 [<img alt="Static Badge" src="https://img.shields.io/badge/my_blog-informational?style=for-the-badge&logo=medium&color=black">][medium]
-[<img alt="Static Badge" src="https://img.shields.io/badge/twitter-%40gunjal_siddhesh-informational?style=for-the-badge&logo=X&labelColor=black&color=grey">][X]
-
-</div>
 
 <!-- Markdown link -->
 [slack-sdk]: https://github.com/slackapi/python-slack-sdk
@@ -312,5 +320,4 @@ Please cite slackker in your publications if this is useful for your project/res
 [gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIBUTING.md
 [portfolio]: https://siddheshgunjal.github.io
 [GitHub]: https://github.com/siddheshgunjal
-[X]: https://twitter.com/gunjal_siddhesh
 [medium]: https://medium.com/@siddheshgunjal82
