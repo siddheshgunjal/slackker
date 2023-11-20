@@ -2,7 +2,9 @@
 
 [![slackker-logo.png](https://i.postimg.cc/mgSDJPds/slackker-logo.png)](https://postimg.cc/RWN4nZ5s)
 
-`slackker` is a python package for monitoring your ML model training status in real-time on Slack & Telegram. It can send you update for your ML model training progress and send final report with graphs when the training finishes. So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move without loosing your peace of mind.
+Watching training metrics is a time killer and addictive. Have you ever found yourself walking back and forth to computer to monitor progress, only to find that the current epoch is not finished yet or that nothing has changed?
+
+When you're in front of your screen, you start to look for patterns in the metrics to judge the progress, this way training spills over into the rest of your live. All the time the models are training, your brain works at 50% at most. So, I made slackker to make your life easy :grin:
 
 <div align="center">
 
@@ -11,6 +13,8 @@
 _Requirements: `slack_sdk>=3.19.0` and `matplotlib`_
 
 </div>
+
+`slackker` is a python package for monitoring your ML model training status in real-time on Slack & Telegram. It can send you update for your ML model training progress and send final report with graphs when the training finishes. So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move without loosing your peace of mind.
 
 # Table of contents :notebook:
 * [Installation](#installation-arrow_down)
@@ -63,8 +67,7 @@ slackker_object = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c
     channel="A04AAB77ABC",
     ModelName='Keras_NN',
     export='png',
-    SendPlot=True,
-    verbose=0)
+    SendPlot=True)
 ```
 or
 ```python
@@ -72,8 +75,7 @@ or
 slackker_update = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
     ModelName='Simple_NN',
     export='png',
-    SendPlot=True,
-    verbose=0)
+    SendPlot=True)
 ```
 * `token`: _(string)_ Slack app/Telegram token
 * `channel`: _(string)_ Slack channel where you want to receive updates
@@ -118,8 +120,7 @@ slack_update = slackUpdate(token="xoxb-123234234235-123234234235-adedce74748c384
     channel="A04AAB77ABC",
     modelName='SampleModel',
     export='png',
-    sendPlot=True,
-    verbose=0)
+    sendPlot=True)
 
 # Call Slackker object in model.fit() callbacks
 history = model.fit(x_train, 
@@ -164,8 +165,7 @@ slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c
     TrackLogs=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
     monitor="val_loss",
     export='png',
-    SendPlot=True,
-    verbose=0)
+    SendPlot=True)
 ```
 or
 ```python
@@ -175,8 +175,7 @@ slackker_update = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5
     TrackLogs=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
     monitor="val_loss",
     export='png',
-    SendPlot=True,
-    verbose=0)
+    SendPlot=True)
 ```
 * `token`: _(string)_ Slack app/Telegram token
 * `channel`: _(string)_ Slack channel where you want to receive updates
@@ -276,8 +275,7 @@ slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c
     TrackLogs=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
     monitor="val_loss",
     export='png',
-    SendPlot=True,
-    verbose=0)
+    SendPlot=True)
 
 trainer = Trainer(max_epochs=2, callbacks=[slackker_update])
 trainer.fit(model, train_loader, test_loader)
@@ -303,7 +301,6 @@ Please cite slackker in your publications if this is useful for your project/res
 
 # Maintainer :sunglasses:
 [<img alt="Static Badge" src="https://img.shields.io/badge/my_website-click_to_visit-informational?style=for-the-badge&logo=googlechrome&logoColor=white&color=black">][portfolio]
-[<img alt="Static Badge" src="https://img.shields.io/badge/my_blog-informational?style=for-the-badge&logo=medium&color=black">][medium]
 
 <!-- Markdown link -->
 [slack-sdk]: https://github.com/slackapi/python-slack-sdk
@@ -320,4 +317,3 @@ Please cite slackker in your publications if this is useful for your project/res
 [gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIBUTING.md
 [portfolio]: https://siddheshgunjal.github.io
 [GitHub]: https://github.com/siddheshgunjal
-[medium]: https://medium.com/@siddheshgunjal82
