@@ -51,3 +51,16 @@ class TelegramUpdate():
 
             return result
         return wrapper
+    
+    def notify(self, script):
+        
+        text = f"Your script: '{script}' has been executed successfully at {datetime.now(timezone.utc).strftime('%d-%m-%Y %H:%M:%S')}"
+
+        functions.Telegram.report_stats(
+            token=self.token,
+            channel=self.channel,
+            text=text,
+            verbose=self.verbose
+        )
+
+        return
