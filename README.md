@@ -63,7 +63,7 @@ from slackker.callbacks.keras import TelegramUpdate # for telegram
 Create slackker object.
 ```python
 # for Slack
-slackker_object = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
+slackker = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
     channel="A04AAB77ABC",
     ModelName='Keras_NN',
     export='png',
@@ -72,7 +72,7 @@ slackker_object = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c
 or
 ```python
 # for Telegram
-slackker_update = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
+slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
     ModelName='Simple_NN',
     export='png',
     SendPlot=True)
@@ -116,7 +116,7 @@ model.add(Dense(3,activation='softmax'))
 model.compile(optimizer = 'rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Create Slackker object
-slack_update = slackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
+slackker = slackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
     channel="A04AAB77ABC",
     modelName='SampleModel',
     export='png',
@@ -129,7 +129,7 @@ history = model.fit(x_train,
                     batch_size = 16,
                     verbose=1,
                     validation_data=(x_val,y_val),
-                    callbacks=[slack_update])
+                    callbacks=[slackker])
 ```
 ## Use slackker callbacks with [Lightning][lightning]
 ![lightning-banner](https://i.postimg.cc/fR5Nqtcd/slackker-lightning.png)
@@ -159,7 +159,7 @@ In Validation step `on_epoch=True` by default.
 ### Create slackker object for lightning
 ```python
 # for Slack
-slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
+slackker = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
     channel="A04AAB77ABC",
     ModelName='Lightning NN',
     TrackLogs=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
@@ -170,7 +170,7 @@ slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c
 or
 ```python
 # for Telegram
-slackker_update = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
+slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
     ModelName="Lightning NN Testing",
     TrackLogs=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
     monitor="val_loss",
@@ -192,7 +192,7 @@ slackker_update = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5
 ### Call slackker object in Trainer module
 Now you can call slackker object into callbacks argument just like any other callbacks object.
 ```python
-trainer = Trainer(max_epochs=2,callbacks=[slackker_update])
+trainer = Trainer(max_epochs=2,callbacks=[slackker])
 ```
 
 ### Final code for Lightning
@@ -269,7 +269,7 @@ test_loader = DataLoader(test_data, batch_size=128)
 model = LightningModel()
 
 # slackker checkpoint for slack
-slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
+slackker = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
     channel="A04AAB77ABC",
     ModelName='Lightning NN',
     TrackLogs=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
@@ -277,7 +277,7 @@ slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c
     export='png',
     SendPlot=True)
 
-trainer = Trainer(max_epochs=2, callbacks=[slackker_update])
+trainer = Trainer(max_epochs=2, callbacks=[slackker])
 trainer.fit(model, train_loader, test_loader)
 ```
 

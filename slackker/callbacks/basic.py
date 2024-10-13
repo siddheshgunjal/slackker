@@ -5,13 +5,71 @@ from slackker.utils import checkker
 from slackker.utils import functions
 from slackker.utils.ccolors import colors
 
-
-class TelegramUpdate():
-    """Custom Keras callback that posts to Slack while training a neural network"""
-    def __init__(self, token, verbose=0):
+class SlackUpdate():
+    ''' SlackUpdate class to send updates to Telegram channel '''
+    def __init__(self, token, channel, verbose=0):
 
         if token is None:
             colors.prRed('[slackker] ERROR: Please enter Valid Slack API Token.')
+            return
+
+        server = checkker.check_internet(url="www.telegram.org", verbose=verbose)
+        api = checkker.slack_connect(token=token, verbose=verbose)
+
+        if server and api:
+            self.client = WebClient(token=token)
+            self.channel = channel
+            self.verbose = verbose
+        
+    def logger(self, function):
+        ''' Decorator to log function calls '''
+        def wrapper(*args, **kwargs):
+            if self.verbose > 0:
+                # Log the function call
+                colors.prCyan(f"[slackker] INFO: Calling {function.__name__} with args: {args}, kwargs: {kwargs}")
+            
+            # Call the original function
+            start_time = time.time()
+            result = function(*args, **kwargs)
+            end_time = time.time()
+
+            # execution time
+            execution_time = end_time - start_time
+
+            if result is not None:
+                message = f"Function '{function.__name__}' from Script: '{__import__(function.__module__).__file__}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: {result}"
+            else:
+                message = f"Function '{function.__name__}' from Script: '{__import__(function.__module__).__file__}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: None"
+
+            # Log the return value
+            functions.Slack.report_stats(
+                client=self.client,
+                channel=self.channel,
+                text=message,
+                verbose=self.verbose
+            )
+
+            return result
+        return wrapper
+    
+    def notify(self, script):
+        ''' Notify the user that the script has been executed '''
+        
+        text = f"Your script: '{script}' has been executed successfully at {datetime.now(timezone.utc).strftime('%d-%m-%Y %H:%M:%S')}"
+
+        functions.Slack.report_stats(
+            client=self.client,
+            channel=self.channel,
+            text=text,
+            verbose=self.verbose
+        )
+
+class TelegramUpdate():
+    ''' TelegramUpdate class to send updates to Telegram channel '''
+    def __init__(self, token, verbose=0):
+
+        if token is None:
+            colors.prRed('[slackker] ERROR: Please enter Valid Telegram API Token.')
             return
 
         server = checkker.check_internet(url="www.telegram.org", verbose=verbose)
@@ -23,6 +81,7 @@ class TelegramUpdate():
             self.verbose = verbose
         
     def logger(self, function):
+        ''' Decorator to log function calls '''
         def wrapper(*args, **kwargs):
             if self.verbose > 0:
                 # Log the function call
@@ -53,6 +112,7 @@ class TelegramUpdate():
         return wrapper
     
     def notify(self, script):
+        ''' Notify the user that the script has been executed '''
         
         text = f"Your script: '{script}' has been executed successfully at {datetime.now(timezone.utc).strftime('%d-%m-%Y %H:%M:%S')}"
 
@@ -62,5 +122,3 @@ class TelegramUpdate():
             text=text,
             verbose=self.verbose
         )
-
-        return
