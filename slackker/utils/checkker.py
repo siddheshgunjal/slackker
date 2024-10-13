@@ -5,9 +5,6 @@ from slack_sdk import WebClient
 from datetime import datetime, timezone
 from slackker.utils.ccolors import colors
 
-def _now():
-    return datetime.utcnow().replace(tzinfo=timezone.utc)
-
 # Check whether server is still alive.
 def check_internet(url, verbose=2):
     counter=1
@@ -21,16 +18,16 @@ def check_internet(url, verbose=2):
             conn.close()
             status=True
             if verbose >= 2:
-                colors.prCyan(f"[slackker] DEBUG: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server successful!")
+                colors.prCyan(f"[slackker] DEBUG: {datetime.now(timezone.utc).strftime('%d-%m-%Y %H:%M:%S')} Connection to '{url}' server successful!")
         except Exception:
             status=False
-            colors.prYellow(f"[slackker] WARNING:: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Please check your internet. Trying again in 60 sec..[attempt {counter}]")
+            colors.prYellow(f"[slackker] WARNING:: {datetime.now(timezone.utc).strftime('%d-%m-%Y %H:%M:%S')} Connection to '{url}' server failed. Please check your internet. Trying again in 60 sec..[attempt {counter}]")
             time.sleep(sleepinsec)
             counter=counter+1
 
     if counter>1:
         if verbose>=2:
-            colors.prCyan(f"[slackker] DEBUG: {_now().strftime('%d-%m-%Y %H:%M')} re-established connection to '{url}' server after {counter} attempts.")
+            colors.prCyan(f"[slackker] DEBUG: {datetime.now(timezone.utc).strftime('%d-%m-%Y %H:%M')} re-established connection to '{url}' server after {counter} attempts.")
 
     return status
 
@@ -48,12 +45,12 @@ def check_internet_epoch_end(url):
             status=True
         except Exception:
             status=False
-            colors.prYellow(f"[slackker] WARNING: {_now().strftime('%d-%m-%Y %H:%M')} Connection to '{url}' server failed. Trying again in 10 sec..[attempt {counter}]")
+            colors.prYellow(f"[slackker] WARNING: {datetime.now(timezone.utc).strftime('%d-%m-%Y %H:%M:%S')} Connection to '{url}' server failed. Trying again in 10 sec..[attempt {counter}]")
             time.sleep(sleepinsec)
             counter=counter+1
                 
     if counter <= 3 and counter > 1:
-        colors.prCyan(f"[slackker] DEBUG: {_now().strftime('%d-%m-%Y %H:%M')} re-established connection to '{url}' server after {counter} attempts.")
+        colors.prCyan(f"[slackker] DEBUG: {datetime.now(timezone.utc).strftime('%d-%m-%Y %H:%M:%S')} re-established connection to '{url}' server after {counter} attempts.")
     elif counter > 3:
         colors.prYellow(f'[slackker] WARNING: Skipping report update due to connection failure. {counter} attempts made before skipping')
 
