@@ -21,7 +21,7 @@ class SlackUpdate():
             self.channel = channel
             self.verbose = verbose
         
-    def logger(self, function):
+    def notifier(self, function):
         ''' Decorator to log function calls '''
         def wrapper(*args, **kwargs):
             if self.verbose > 0:
@@ -87,7 +87,7 @@ class TelegramUpdate():
             self.channel = channel
             self.verbose = verbose
         
-    def logger(self, function):
+    def notifier(self, function):
         ''' Decorator to log function calls '''
         def wrapper(*args, **kwargs):
             if self.verbose > 0:

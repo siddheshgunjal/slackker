@@ -76,7 +76,7 @@ slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG"
 
 Now you can wrap your function with this slackker object.
 ```python
-@slackker.logger
+@slackker.notifier
 def your_function():
     return value_1, value_2
 ```
@@ -115,7 +115,7 @@ slackker = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747
 # for Telegram
 slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG")
 
-@slackker.logger
+@slackker.notifier
 def your_function():
     return value_1, value_2
 
