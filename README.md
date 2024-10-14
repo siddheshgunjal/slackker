@@ -14,23 +14,23 @@ _Requirements: `slack_sdk>=3.19.0` and `matplotlib`_
 
 </div>
 
-`slackker` is a python package for monitoring your ML model training status in real-time on Slack & Telegram. It can send you update for your ML model training progress and send final report with graphs when the training finishes. So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move without loosing your peace of mind.
+`slackker` is a python package for monitoring your python script & ML model training status in real-time on Slack & Telegram.
+Features:
+* **Integrate within any _.py_ function/script**: You can integrate slackker with any python script or function.
+* **Real-time updates**: Get updates on your training progress in real-time on Slack & Telegram.
+* **Exported Plots**: Exported plots of training metrics and send it to your Slack channel.
+* **Customizable**: Customize the metrics you want to track and notify.
+* **Easy to use**: Just import the package, setup the slack/telegram and you are good to go.
+
+So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move without loosing your peace of mind.
 
 # Table of contents :notebook:
 * [Installation](#installation-arrow_down)
 * [Getting started with slackker callbacks](#getting-started-with-slackker-callbacks)
   * [Setup slackker](#setup-slackker)
+  * [Use slackker callbacks for any python functions](#use-slackker-callbacks-for-any-python-functions)
   * [Use slackker callbacks with Keras](#use-slackker-callbacks-with-keras)
-    * [Import slackker for Keras](#import-slackker-for-keras)
-    * [Create slackker object for keras](#create-slackker-object-for-keras)
-    * [Call slackker object into model.fit()](#call-slackker-object-into-modelfit)
-    * [Final code for Keras](#final-code-for-keras)
   * [Use slackker callbacks with Lightning](#use-slackker-callbacks-with-lightning)
-    * [Import slackker for Lightning](#import-slackker-for-lightning)
-    * [Log your metrics to track](#log-your-metrics-to-track)
-    * [Create slackker object for lightning](#create-slackker-object-for-lightning)
-    * [Call slackker object in Trainer module](#call-slackker-object-in-trainer-module)
-    * [Final code for Lightning](#final-code-for-lightning)
 * [Support](#support-sparkles)
 * [Citation](#citation-page_facing_up)
 * [Maintainer](#maintainer-sunglasses)
@@ -48,22 +48,92 @@ pip install slackker
 * Slack: [How to setup slackker for your slack channel][setup-slack]
 * Telegram: [How to setup slackker for Telegram][setup-telegram]
 
-## Use slackker callbacks with [Keras][keras]
-![keras-banner](https://i.postimg.cc/MpLBBTn7/slackker-keras.png)
-### Import slackker for Keras
-Import `slackker.callbacks` with following line:
+## Use slackker callbacks for any python functions
+![python-banner](https://brandslogos.com/wp-content/uploads/images/large/python-logo-1.png)
+Import basic slackker callbacks with following line:
 ```python
-from slackker.callbacks.keras import SlackUpdate # for slack
+from slackker.callbacks.basic import SlackUpdate # for slack
+###################### OR ######################
+from slackker.callbacks.basic import TelegramUpdate # for telegram
+```
+Create slackker object.
+```python
+# for Slack
+slackker = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
+    channel="A04AAB77ABC")
 ```
 or
 ```python
+# for Telegram
+slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG")
+```
+* `token`: _(string)_ Slack app/Telegram token
+* `channel`: _(string)_ Slack channel where you want to receive updates
+* `verbose`: _(int)_ default `0`: You can sent the verbose level up to 3.
+  * `verbose = 0` No logging
+  * `verbose = 1` Info logging
+  * `verbose = 2` Debug/In-depth logging
+
+Now you can wrap your function with this slackker object.
+```python
+@slackker.notifier
+def your_function():
+    return value_1, value_2
+```
+following messages will be sent to your slack channel when the function executes.
+```bash
+Function 'your_function' from Script: 'your_script.py' executed.
+Execution time: 5.006 Seconds
+Returned 2 outputs:
+Output 0:
+value_1
+
+Output 1:
+value_2
+```
+
+You can also use `slackker.notify(__file__)` at the end of your script to notify the end of script execution.
+```python
+if __name__ == "__main__":
+    your_function()
+    slackker.notify(__file__)
+```
+following message will be sent to your slack channel when the script ends.
+```bash
+Your script: 'your_script.py' has been executed successfully at 14-10-2024 12:15:54
+```
+### Final code for python function
+```python
+from slackker.callbacks.basic import SlackUpdate
+###################### OR ######################
+from slackker.callbacks.basic import TelegramUpdate # for telegram
+
+# for Slack
+slackker = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
+    channel="A04AAB77ABC")
+###################### OR ######################
+# for Telegram
+slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG")
+
+@slackker.notifier
+def your_function():
+    return value_1, value_2
+
+```
+## Use slackker callbacks with [Keras][keras]
+![keras-banner](https://i.postimg.cc/MpLBBTn7/slackker-keras.png)
+### Import slackker for Keras
+Import slackker callbacks for keras with following line:
+```python
+from slackker.callbacks.keras import SlackUpdate # for slack
+###################### OR ######################
 from slackker.callbacks.keras import TelegramUpdate # for telegram
 ```
 ### Create slackker object for keras
 Create slackker object.
 ```python
 # for Slack
-slackker_object = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
+slackker = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
     channel="A04AAB77ABC",
     ModelName='Keras_NN',
     export='png',
@@ -72,7 +142,7 @@ slackker_object = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c
 or
 ```python
 # for Telegram
-slackker_update = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
+slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
     ModelName='Simple_NN',
     export='png',
     SendPlot=True)
@@ -116,7 +186,7 @@ model.add(Dense(3,activation='softmax'))
 model.compile(optimizer = 'rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
 
 # Create Slackker object
-slack_update = slackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
+slackker = slackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb",
     channel="A04AAB77ABC",
     modelName='SampleModel',
     export='png',
@@ -129,17 +199,15 @@ history = model.fit(x_train,
                     batch_size = 16,
                     verbose=1,
                     validation_data=(x_val,y_val),
-                    callbacks=[slack_update])
+                    callbacks=[slackker])
 ```
 ## Use slackker callbacks with [Lightning][lightning]
 ![lightning-banner](https://i.postimg.cc/fR5Nqtcd/slackker-lightning.png)
 ### Import slackker for Lightning
-Import `slackker.callbacks` with following line:
+Import slackker callbacks for PyTorch Lightning with following line:
 ```python
 from slackker.callbacks.lightning import SlackUpdate # for slack
-```
-or
-```python
+###################### OR ######################
 from slackker.callbacks.lightning import TelegramUpdate # for telegram
 ```
 ### Log your metrics to track
@@ -159,7 +227,7 @@ In Validation step `on_epoch=True` by default.
 ### Create slackker object for lightning
 ```python
 # for Slack
-slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
+slackker = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
     channel="A04AAB77ABC",
     ModelName='Lightning NN',
     TrackLogs=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
@@ -170,7 +238,7 @@ slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c
 or
 ```python
 # for Telegram
-slackker_update = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
+slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG",
     ModelName="Lightning NN Testing",
     TrackLogs=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
     monitor="val_loss",
@@ -192,7 +260,7 @@ slackker_update = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5
 ### Call slackker object in Trainer module
 Now you can call slackker object into callbacks argument just like any other callbacks object.
 ```python
-trainer = Trainer(max_epochs=2,callbacks=[slackker_update])
+trainer = Trainer(max_epochs=2,callbacks=[slackker])
 ```
 
 ### Final code for Lightning
@@ -269,7 +337,7 @@ test_loader = DataLoader(test_data, batch_size=128)
 model = LightningModel()
 
 # slackker checkpoint for slack
-slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
+slackker = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
     channel="A04AAB77ABC",
     ModelName='Lightning NN',
     TrackLogs=['train_loss', 'train_acc', 'val_loss', 'val_acc'],
@@ -277,7 +345,7 @@ slackker_update = SlackUpdate(token="xoxb-123234234235-123234234235-adedce74748c
     export='png',
     SendPlot=True)
 
-trainer = Trainer(max_epochs=2, callbacks=[slackker_update])
+trainer = Trainer(max_epochs=2, callbacks=[slackker])
 trainer.fit(model, train_loader, test_loader)
 ```
 

@@ -24,7 +24,7 @@ setuptools.setup(
      license="Apache-2.0",
      author="Siddhesh Gunjal",
      author_email="siddhu19@live.com",
-     description="Python package for monitoring your Model training status in real-time on slack & telegram.",
+     description="Python package for monitoring your python script & Model training status in real-time on slack & telegram.",
      long_description=read_file("README.md"),
      long_description_content_type="text/markdown",
      url="https://github.com/siddheshgunjal/slackker",

@@ -58,6 +58,8 @@ to make sure everything is in order.
 
 6. :inbox_tray: Open a Pull Request on github.com from your new branch on your fork to `development` branch in this repository.
 
+_NOTE: Any PRs to Main branch will not be accepted. Please raise PR to `development` branch only_
+
 Happy Coding! :star:
 
 
