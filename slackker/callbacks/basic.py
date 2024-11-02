@@ -1,6 +1,7 @@
 import time
 import os
-from datetime import datetime, timezone
+from inspect import stack
+from datetime import datetime
 from slack_sdk import WebClient
 from slackker.utils import checkker
 from slackker.utils import functions
@@ -60,10 +61,18 @@ class SlackUpdate():
             return result
         return wrapper
     
-    def notify(self, script):
+    def notify(self, *args, **kwargs):
         ''' Notify the user that the script has been executed '''
         
+        script = stack()[1].filename
+        
         text = f"Your script: '{os.path.basename(script)}' has been executed successfully at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
+        if args:
+            for arg in args:
+                text += f"\n\n{arg}"
+        if kwargs:
+            for key, value in kwargs.items():
+                text += f"\n\n{key}: {value}"
 
         functions.Slack.report_stats(
             client=self.client,
@@ -126,10 +135,18 @@ class TelegramUpdate():
             return result
         return wrapper
     
-    def notify(self, script):
+    def notify(self, *args, **kwargs):
         ''' Notify the user that the script has been executed '''
+
+        script = stack()[1].filename
         
         text = f"Your script: '{os.path.basename(script)}' has been executed successfully at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
+        if args:
+            for arg in args:
+                text += f"\n\n{arg}"
+        if kwargs:
+            for key, value in kwargs.items():
+                text += f"\n\n{key}: {value}"
 
         functions.Telegram.report_stats(
             token=self.token,
