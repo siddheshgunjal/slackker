@@ -81,6 +81,7 @@ def your_function():
     return value_1, value_2
 ```
 following messages will be sent to your slack channel when the function executes.
+
 ```text
 Function 'your_function' from Script: 'your_script.py' executed.
 Execution time: 5.006 Seconds
