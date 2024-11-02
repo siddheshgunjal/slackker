@@ -81,7 +81,11 @@ def your_function():
     return value_1, value_2
 ```
 following messages will be sent to your slack channel when the function executes.
+<<<<<<< HEAD
+```text
+=======
 ```bash
+>>>>>>> main
 Function 'your_function' from Script: 'your_script.py' executed.
 Execution time: 5.006 Seconds
 Returned 2 outputs:
@@ -92,6 +96,23 @@ Output 1:
 value_2
 ```
 
+<<<<<<< HEAD
+You can also use `slackker.notify(*args, **kwargs)` at the end of your script to notify the end of script execution.
+```python
+if __name__ == "__main__":
+    your_function()
+    slackker.notify(arg1, f"This is argument 2 = {arg2}", value="This is a string") 
+```
+following message will be sent to your slack channel when the script ends.
+```text
+Your script: 'your_script.py' has been executed successfully at 14-10-2024 12:15:54
+
+arg1
+
+This is argument 2 = arg2
+
+value: This is a string
+=======
 You can also use `slackker.notify(__file__)` at the end of your script to notify the end of script execution.
 ```python
 if __name__ == "__main__":
@@ -101,6 +122,7 @@ if __name__ == "__main__":
 following message will be sent to your slack channel when the script ends.
 ```bash
 Your script: 'your_script.py' has been executed successfully at 14-10-2024 12:15:54
+>>>>>>> main
 ```
 ### Final code for python function
 ```python
@@ -119,6 +141,10 @@ slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG"
 def your_function():
     return value_1, value_2
 
+<<<<<<< HEAD
+slackker.notify(f"This is value 1: {value_1}", value=value_2)
+=======
+>>>>>>> main
 ```
 ## Use slackker callbacks with [Keras][keras]
 ![keras-banner](https://i.postimg.cc/MpLBBTn7/slackker-keras.png)
