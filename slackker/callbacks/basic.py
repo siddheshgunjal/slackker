@@ -39,7 +39,7 @@ class SlackUpdate():
             execution_time = end_time - start_time
 
             if result is not None:
-                if isinstance(result, tuple):
+                if isinstance(result, tuple)
                     message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned {len(result)} outputs:\n"
                     num = 0
                     for i in result:
