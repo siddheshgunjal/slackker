@@ -1,4 +1,5 @@
 import time
+import os
 from datetime import datetime, timezone
 from slack_sdk import WebClient
 from slackker.utils import checkker
@@ -38,15 +39,15 @@ class SlackUpdate():
 
             if result is not None:
                 if isinstance(result, tuple):
-                    message = f"Function '{function.__name__}' from Script: '{__import__(function.__module__).__file__}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned {len(result)} outputs:\n"
+                    message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned {len(result)} outputs:\n"
                     num = 0
                     for i in result:
                         message += f"Output {num}:\n{i}\n\n"
                         num += 1
                 else:
-                    message = f"Function '{function.__name__}' from Script: '{__import__(function.__module__).__file__}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: {result}"
+                    message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: {result}"
             else:
-                message = f"Function '{function.__name__}' from Script: '{__import__(function.__module__).__file__}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: None"
+                message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: None"
 
             # Log the return value
             functions.Slack.report_stats(
@@ -62,7 +63,7 @@ class SlackUpdate():
     def notify(self, script):
         ''' Notify the user that the script has been executed '''
         
-        text = f"Your script: '{script}' has been executed successfully at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
+        text = f"Your script: '{os.path.basename(script)}' has been executed successfully at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
 
         functions.Slack.report_stats(
             client=self.client,
@@ -104,15 +105,15 @@ class TelegramUpdate():
 
             if result is not None:
                 if isinstance(result, tuple):
-                    message = f"Function '{function.__name__}' from Script: '{__import__(function.__module__).__file__}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned {len(result)} outputs:\n"
+                    message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned {len(result)} outputs:\n"
                     num = 0
                     for i in result:
                         message += f"Output {num}:\n{i}\n\n"
                         num += 1
                 else:
-                    message = f"Function '{function.__name__}' from Script: '{__import__(function.__module__).__file__}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: {result}"
+                    message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: {result}"
             else:
-                message = f"Function '{function.__name__}' from Script: '{__import__(function.__module__).__file__}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: None"
+                message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: None"
 
             # Log the return value
             functions.Telegram.report_stats(
@@ -128,7 +129,7 @@ class TelegramUpdate():
     def notify(self, script):
         ''' Notify the user that the script has been executed '''
         
-        text = f"Your script: '{script}' has been executed successfully at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
+        text = f"Your script: '{os.path.basename(script)}' has been executed successfully at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
 
         functions.Telegram.report_stats(
             token=self.token,
