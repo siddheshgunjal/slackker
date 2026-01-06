@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "slackker"
 version = "1.2.34"
@@ -21,8 +25,29 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "Intended Audience :: Science/Research",
 ]
+
 [project.urls]
 Homepage = "https://github.com/siddheshgunjal/slackker"
 Repository = "https://github.com/siddheshgunjal/slackker"
 Issues = "https://github.com/siddheshgunjal/slackker/issues"
 Changelog = "https://github.com/siddheshgunjal/slackker/releases"
+
+[tool.hatch.build.targets.wheel]
+include = ["slackker/**"]
+exclude = ["tests/**", "docs/**"]
+[tool.hatch.version]
+path = "slackker/__init__.py"
+pattern = "__version__ = [\"'](.*?)[\"']"
+write = true
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
+publish-url = "https://upload.pypi.org/legacy/"
+explicit = true

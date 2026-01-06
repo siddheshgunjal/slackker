@@ -1597,8 +1597,8 @@ wheels = [
 
 [[package]]
 name = "slackker"
-version = "0.1.0"
-source = { virtual = "." }
+version = "1.2.34"
+source = { editable = "." }
 dependencies = [
     { name = "matplotlib", version = "3.7.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "matplotlib", version = "3.9.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
