@@ -13,27 +13,15 @@ jobs:
       url: https://pypi.org/project/slackker/
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-      - name: Install pypa/build
-        run: >-
-          python3 -m
-          pip install
-          build
-          --user
-      - name: Build a binary wheel and a source tarball
-        run: >-
-          python3 -m
-          build
-          --sdist
-          --wheel
-          --outdir dist/
-          .
-      - name: Publish 📦 to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          verbose: true
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Install Python 3.13
+        run: uv python install 3.13
+      - name: Build
+        run: uv build
+      - name: Publish
+        run: uv publish --index pypi

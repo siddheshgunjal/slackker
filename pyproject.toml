@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "slackker"
+version = "1.2.36"
+description = "Python package for monitoring your python script & Model training status in real-time on slack & telegram."
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    {name = "Siddhesh Gunjal", email = "siddhu19@live.com"},
+]
+dependencies = [
+    "matplotlib>=3.7.5",
+    "numpy>=1.24.4",
+    "slack-sdk>=3.39.0",
+]
+license = "Apache-2.0"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+]
+
+[project.urls]
+Homepage = "https://github.com/siddheshgunjal/slackker"
+Repository = "https://github.com/siddheshgunjal/slackker"
+Issues = "https://github.com/siddheshgunjal/slackker/issues"
+Changelog = "https://github.com/siddheshgunjal/slackker/releases"
+
+[tool.hatch.build.targets.wheel]
+include = ["slackker/**"]
+exclude = ["tests/**", "docs/**"]
+[tool.hatch.version]
+path = "slackker/__init__.py"
+pattern = "__version__ = [\"'](.*?)[\"']"
+write = true
+
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple/"
+publish-url = "https://upload.pypi.org/legacy/"
+explicit = true
+
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
