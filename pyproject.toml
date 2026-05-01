@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slackker"
-version = "1.2.36"
+version = "1.2.37"
 description = "Python package for monitoring your python script & Model training status in real-time on slack & telegram."
 readme = "README.md"
 requires-python = ">=3.10"

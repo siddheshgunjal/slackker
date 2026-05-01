@@ -6,23 +6,20 @@ echo "Slackker Test Suite Runner"
 echo "==================================="
 echo ""
 
-# Check if pytest is installed
-if ! command -v pytest &> /dev/null; then
-    echo "❌ pytest is not installed. Installing now..."
-    pip install pytest pytest-cov
+# Check if uv is installed
+if ! command -v uv &> /dev/null; then
+    echo "❌ uv is not installed. Install it from https://docs.astral.sh/uv/getting-started/installation/"
+    exit 1
 fi
 
-echo "📋 Running test suite..."
-echo ""
-
 # Run tests with verbose output and coverage
-pytest tests/ -v --tb=short --cov=slackker --cov-report=term-missing
+uv run pytest tests/ -v --tb=short --cov=slackker --cov-report=term-missing
 
 echo ""
 echo "✅ Test suite completed!"
 echo ""
 echo "For coverage report in HTML format, run:"
-echo "  pytest tests/ --cov=slackker --cov-report=html"
+echo "  uv run pytest tests/ --cov=slackker --cov-report=html"
 echo ""
 echo "For specific test file:"
-echo "  pytest tests/test_basic.py -v"
+echo "  uv run pytest tests/test_basic.py -v"
