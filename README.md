@@ -93,21 +93,34 @@ Output 1:
 value_2
 ```
 
-You can also use `slackker.notify(*args, **kwargs)` at the end of your script to notify the end of script execution.
+You can also use `slackker.notify(event=None, attachment=None, **kwargs)` at the end of your script to notify the end of script execution.
 ```python
 if __name__ == "__main__":
     your_function()
-    slackker.notify(arg1, f"This is argument 2 = {arg2}", value="This is a string") 
+    slackker.notify(
+        event="training_complete",
+        value_1=arg1,
+        value_2=f"This is argument 2 = {arg2}",
+        status="completed"
+    )
 ```
 following message will be sent to your slack channel when the script ends.
 ```text
-Your script: 'your_script.py' has been executed successfully at 14-10-2024 12:15:54
+Notification: training_complete at 14-10-2024 12:15:54
 
-arg1
+value_1: arg1
+value_2: This is argument 2 = arg2
+status: completed
+```
 
-This is argument 2 = arg2
-
-value: This is a string
+If you want to send a file with the same update, pass the file path using `attachment`:
+```python
+slackker.notify(
+    event="training_complete",
+    attachment="./artifacts/model.ckpt",
+    best_val_loss=0.0123,
+    epoch=20
+)
 ```
 ### Final code for python function
 ```python
@@ -126,7 +139,12 @@ slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG"
 def your_function():
     return value_1, value_2
 
-slackker.notify(f"This is value 1: {value_1}", value=value_2)
+slackker.notify(
+    event="script_finished",
+    value_1=value_1,
+    value_2=value_2,
+    attachment="./artifacts/summary.txt"
+)
 ```
 ## Use slackker callbacks with [Keras][keras]
 ![keras-banner](https://i.postimg.cc/MpLBBTn7/slackker-keras.png)

@@ -1,23 +1,25 @@
 import requests
 import itertools
+import os
 import matplotlib.pyplot as plt
 from slack_sdk.errors import SlackApiError
 from slackker.utils.ccolors import colors
 
 class Plotter:
     @staticmethod
-    def slack_img_upload(name, client, channel, filepath, verbose=1):
-        """Upload generated graphs"""
+    def slack_file_upload(name, client, channel, filepath, initial_comment=None, verbose=1):
+        """Upload generated attachments"""
         try:
+            comment = initial_comment if initial_comment is not None else f"{name} :paperclip:"
             # Call the chat.postMessage method using the WebClient
             response = client.files_upload_v2(channel=channel,
             file = filepath,
-            initial_comment=f"{name} :bar_chart:")
+            initial_comment=comment)
             if verbose>=1:
-                colors.prCyan(f"[slackker] DEBUG: Uploaded graph on {channel} channel")
+                colors.prCyan(f"[slackker] DEBUG: Uploaded attachment on {channel} channel")
 
         except SlackApiError as e:
-            colors.prRed(f"[slackker] ERROR: Error uploading graph: {e}")
+            colors.prRed(f"[slackker] ERROR: Error uploading attachment: {e}")
     
     @staticmethod
     def telegram_img_upload(name, token, channel, image, verbose=1):
@@ -26,12 +28,27 @@ class Plotter:
 
         try:
             # Call the requests.post method using API request
-            response = requests.post(apiURL, params={'chat_id': channel, 'caption': f"{name} \U0001F4CA"}, files={'photo': image})
+            response = requests.post(apiURL, params={'chat_id': channel, 'caption': f"{name} \U0001F4CE"}, files={'photo': image})
             if verbose>=1:
-                colors.prCyan("[slackker] DEBUG: Uploaded graph on Telegram")
+                colors.prCyan("[slackker] DEBUG: Uploaded attachment on Telegram")
 
         except Exception as e:
-            colors.prRed(f"[slackker] ERROR: Error uploading graph: {e}")
+            colors.prRed(f"[slackker] ERROR: Error uploading attachment: {e}")
+    
+    @staticmethod
+    def telegram_file_upload(name, token, channel, file, caption=None, verbose=1):
+        # apiURL for send file
+        apiURL = f'https://api.telegram.org/bot{token}/sendDocument'
+
+        try:
+            tg_caption = caption if caption is not None else f"{name} \U0001F4CE"
+            # Call the requests.post method using API request
+            response = requests.post(apiURL, params={'chat_id': channel, 'caption': tg_caption}, files={'document': file})
+            if verbose>=1:
+                colors.prCyan("[slackker] DEBUG: Uploaded attachment on Telegram")
+
+        except Exception as e:
+            colors.prRed(f"[slackker] ERROR: Error uploading attachment: {e}")
 
     @staticmethod
     def plot_and_upload(platform, ModelName, export, client, channel, SendPlot, logs, metric, verbose=1):
@@ -72,7 +89,7 @@ class Plotter:
             if SendPlot:
                 try:
                     if platform == 'slack':
-                        Plotter.slack_img_upload(name = f'{ModelName}_{metric}', client=client, channel=channel, filepath=path, verbose=verbose)
+                        Plotter.slack_file_upload(name = f'{ModelName}_{metric}', client=client, channel=channel, filepath=path, verbose=verbose)
                     else:
                         Plotter.telegram_img_upload(name = f'{ModelName}_{metric}', token=client, channel=channel, image=open(path, 'rb'), verbose=verbose)
                 except Exception as e:
@@ -84,15 +101,29 @@ class Plotter:
 
 class Slack:
     @staticmethod
-    def report_stats(client, channel, text, verbose=1):
+    def report_stats(client, channel, text, attachment=None, verbose=1):
         """Report training stats"""
         try:
-            # Call the chat.postMessage method using the WebClient
-            result = client.chat_postMessage(
-                channel=channel, 
-                text=text)
-            if verbose>=1:
-                colors.prCyan(f"[slackker] Posted update on {channel} channel")
+            if attachment:
+                if not os.path.isfile(attachment):
+                    colors.prRed(f"[slackker] ERROR: Invalid attachment path: {attachment}")
+                    return
+                Plotter.slack_file_upload(
+                    name="Attachment",
+                    client=client,
+                    channel=channel,
+                    filepath=attachment,
+                    initial_comment=text,
+                    verbose=verbose
+                )
+            else:
+                # Call the chat.postMessage method using the WebClient
+                client.chat_postMessage(
+                    channel=channel,
+                    text=text
+                )
+                if verbose>=1:
+                    colors.prCyan(f"[slackker] Posted update on {channel} channel")
 
         except SlackApiError as e:
             colors.prRed(f"[slackker] ERROR: Error posting update: {e}")
@@ -115,15 +146,29 @@ class Slack:
 
 class Telegram:
     @staticmethod
-    def report_stats(token, channel, text, verbose=1):
+    def report_stats(token, channel, text, attachment=None, verbose=1):
         # apiURL for send message
         apiURL = f'https://api.telegram.org/bot{token}/sendMessage'
 
         try:
-            # Call the requests.post method using API request
-            response = requests.post(apiURL, params={'chat_id': channel, 'text': text})
-            if verbose>=1:
-                colors.prCyan("[slackker] DEBUG: Posted update on Telegram")
+            if attachment:
+                if not os.path.isfile(attachment):
+                    colors.prRed(f"[slackker] ERROR: Invalid attachment path: {attachment}")
+                    return
+                with open(attachment, 'rb') as uploaded_file:
+                    Plotter.telegram_file_upload(
+                        name="Attachment",
+                        token=token,
+                        channel=channel,
+                        file=uploaded_file,
+                        caption=text,
+                        verbose=verbose
+                    )
+            else:
+                # Call the requests.post method using API request
+                requests.post(apiURL, params={'chat_id': channel, 'text': text})
+                if verbose>=1:
+                    colors.prCyan("[slackker] DEBUG: Posted update on Telegram")
 
         except Exception as e:
             colors.prRed(f"[slackker] ERROR: Error posting update: {e}")

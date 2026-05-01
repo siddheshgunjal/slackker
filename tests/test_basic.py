@@ -336,12 +336,12 @@ class TestSlackUpdateNotifyMethod:
         mock_slack_connect.return_value = True
         
         slackker = SlackUpdate(token="test_token", channel="C123456", verbose=0)
-        slackker.notify("arg1", "This is argument 2 = arg2")
+        slackker.notify("arg1", detail="This is argument 2 = arg2")
         
         mock_report.assert_called_once()
         call_args = mock_report.call_args
         message = call_args[1]['text']
-        assert "has been executed successfully at" in message
+        assert "Notification: " in message
         assert "arg1" in message
         assert "This is argument 2 = arg2" in message
     
@@ -373,13 +373,13 @@ class TestSlackUpdateNotifyMethod:
         mock_slack_connect.return_value = True
         
         slackker = SlackUpdate(token="test_token", channel="C123456", verbose=0)
-        slackker.notify("arg1", "arg2", value="kwarg_value")
+        slackker.notify("arg1", arg2="arg2", value="kwarg_value")
         
         mock_report.assert_called_once()
         call_args = mock_report.call_args
         message = call_args[1]['text']
         assert "arg1" in message
-        assert "arg2" in message
+        assert "arg2: arg2" in message
         assert "value: kwarg_value" in message
     
     @patch('slackker.callbacks.basic.checkker.check_internet')
@@ -397,7 +397,24 @@ class TestSlackUpdateNotifyMethod:
         mock_report.assert_called_once()
         call_args = mock_report.call_args
         message = call_args[1]['text']
-        assert "executed successfully at" in message
+        assert "Notification: " in message
+
+    @patch('slackker.callbacks.basic.checkker.check_internet')
+    @patch('slackker.callbacks.basic.checkker.slack_connect')
+    @patch('slackker.callbacks.basic.WebClient')
+    @patch('slackker.callbacks.basic.functions.Slack.report_stats')
+    def test_notify_with_attachment(self, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
+        """Test notify method forwards attachment for Slack"""
+        mock_check_internet.return_value = True
+        mock_slack_connect.return_value = True
+
+        slackker = SlackUpdate(token="test_token", channel="C123456", verbose=0)
+        slackker.notify("training_complete", attachment="/tmp/model.ckpt")
+
+        mock_report.assert_called_once()
+        call_args = mock_report.call_args
+        assert call_args[1]['attachment'] == "/tmp/model.ckpt"
+        assert "attachment" not in call_args[1]['text']
 
 
 class TestTelegramUpdateNotifyMethod:
@@ -412,13 +429,14 @@ class TestTelegramUpdateNotifyMethod:
         mock_get_chat_id.return_value = "123456789"
         
         slackker = TelegramUpdate(token="test_token", verbose=0)
-        slackker.notify("arg1", "This is argument 2 = arg2")
+        slackker.notify("arg1", detail="This is argument 2 = arg2")
         
         mock_report.assert_called_once()
         call_args = mock_report.call_args
         message = call_args[1]['text']
-        assert "has been executed successfully at" in message
+        assert "Notification: " in message
         assert "arg1" in message
+        assert "This is argument 2 = arg2" in message
     
     @patch('slackker.callbacks.basic.checkker.check_internet')
     @patch('slackker.callbacks.basic.checkker.get_telegram_chat_id')
@@ -453,6 +471,22 @@ class TestTelegramUpdateNotifyMethod:
         assert "arg1" in message
         assert "value: kwarg_value" in message
 
+    @patch('slackker.callbacks.basic.checkker.check_internet')
+    @patch('slackker.callbacks.basic.checkker.get_telegram_chat_id')
+    @patch('slackker.callbacks.basic.functions.Telegram.report_stats')
+    def test_telegram_notify_with_attachment(self, mock_report, mock_get_chat_id, mock_check_internet):
+        """Test Telegram notify method forwards attachment"""
+        mock_check_internet.return_value = True
+        mock_get_chat_id.return_value = "123456789"
+
+        slackker = TelegramUpdate(token="test_token", verbose=0)
+        slackker.notify("training_complete", attachment="/tmp/logs.zip")
+
+        mock_report.assert_called_once()
+        call_args = mock_report.call_args
+        assert call_args[1]['attachment'] == "/tmp/logs.zip"
+        assert "attachment" not in call_args[1]['text']
+
 
 class TestIntegrationScenarios:
     """Integration tests with combined notifier and notify usage"""
@@ -478,7 +512,7 @@ class TestIntegrationScenarios:
         assert prod_result == 15
         
         # Script completion notification
-        slackker.notify(f"Sum: {sum_result}", f"Product: {prod_result}")
+        slackker.notify(f"Sum: {sum_result}", product=f"{prod_result}")
         
         # Verify both calls were made
         assert mock_report.call_count >= 2
@@ -498,7 +532,7 @@ class TestIntegrationScenarios:
             return "value_1", "value_2"
         
         result = your_function()
-        slackker.notify("arg1", f"This is argument 2 = arg2", value="This is a string")
+        slackker.notify("arg1", detail="This is argument 2 = arg2", value="This is a string")
         
         # Verify both calls were made
         assert mock_report.call_count >= 2
@@ -584,7 +618,7 @@ class TestEdgeCases:
         mock_report.assert_called_once()
         call_args = mock_report.call_args
         message = call_args[1]['text']
-        assert "has been executed successfully at" in message
+        assert "Notification: " in message
     
     @patch('slackker.callbacks.basic.checkker.check_internet')
     @patch('slackker.callbacks.basic.checkker.get_telegram_chat_id')
