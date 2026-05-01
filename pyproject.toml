@@ -54,6 +54,8 @@ explicit = true
 
 [dependency-groups]
 dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
     "keras>=3.12.1",
     "lightning>=2.6.1",
     "scikit-learn>=1.7.2",
