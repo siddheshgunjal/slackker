@@ -51,3 +51,13 @@ name = "testpypi"
 url = "https://test.pypi.org/simple/"
 publish-url = "https://test.pypi.org/legacy/"
 explicit = true
+
+[dependency-groups]
+dev = [
+    "keras>=3.12.1",
+    "lightning>=2.6.1",
+    "scikit-learn>=1.7.2",
+    "tensorflow>=2.21.0",
+    "torchaudio>=2.11.0",
+    "torchvision>=0.26.0",
+]
