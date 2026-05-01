@@ -1,116 +1,96 @@
 # Slackker Tests
 
-This directory contains comprehensive unit and integration tests for the slackker package.
+This folder contains the complete test suite for `slackker`. All test documentation is consolidated in this single file.
 
-## Test Structure
+## Test Files
 
-- `test_basic.py` - Tests for the basic callback functions (`SlackUpdate` and `TelegramUpdate`)
+- `test_basic.py`: Basic callback tests (`SlackUpdate`, `TelegramUpdate`) for decorators and script notifications.
+- `test_keras.py`: Keras callback tests (`SlackUpdate`, `TelegramUpdate`) for train lifecycle reporting.
+- `test_lightning.py`: Lightning callback tests (`SlackUpdate`, `TelegramUpdate`) for fit lifecycle reporting.
+- `conftest.py`: Shared pytest setup.
 
-## Test Classes
+## Coverage Summary
 
-### SlackUpdate Tests
-- `TestSlackUpdateInitialization` - Tests for SlackUpdate class initialization
-- `TestSlackUpdateNotifierDecorator` - Tests for the notifier decorator
-- `TestSlackUpdateNotifyMethod` - Tests for the notify method
+### Basic Callback Coverage
 
-### TelegramUpdate Tests
-- `TestTelegramUpdateInitialization` - Tests for TelegramUpdate class initialization
-- `TestTelegramUpdateNotifierDecorator` - Tests for the notifier decorator
-- `TestTelegramUpdateNotifyMethod` - Tests for the notify method
+- Initialization checks (token, connectivity, API validation)
+- `notifier` decorator behavior (tuple/single/None returns)
+- Execution time and message generation
+- `notify(*args, **kwargs)` formatting and timestamp behavior
+- Error and edge scenarios
 
-### Integration Tests
-- `TestIntegrationScenarios` - End-to-end workflow tests
-- `TestEdgeCases` - Edge case and error handling tests
-- `TestVerboseLevels` - Tests for different verbose levels
+### Keras Callback Coverage
+
+- Callback initialization and argument handling
+- `on_train_begin`, `on_epoch_end`, `on_train_end`
+- Training history tracking and best-epoch reporting
+- Plot-history dispatch calls
+- Verbose mode and edge cases
+
+### Lightning Callback Coverage
+
+- Callback initialization and validation for `TrackLogs` and `monitor`
+- `on_fit_start`, `on_train_epoch_end`, `on_fit_end`
+- Per-epoch metric extraction from `trainer.callback_metrics`
+- Best epoch selection for loss and accuracy monitors
+- Reference workflow simulation from a `Trainer(max_epochs=...)` style run
 
 ## Running Tests
 
-### Install Test Dependencies
+### Install Dependencies
+
 ```bash
 pip install pytest pytest-cov
+# or
+pip install -e ".[test]"
 ```
 
 ### Run All Tests
+
 ```bash
 pytest
-```
-
-### Run with Verbose Output
-```bash
 pytest -v
+pytest --cov=slackker --cov-report=term-missing
 ```
 
-### Run Specific Test File
+### Run By Module
+
 ```bash
 pytest tests/test_basic.py -v
+pytest tests/test_keras.py -v
+pytest tests/test_lightning.py -v
 ```
 
-### Run Specific Test Class
+### Run By Pattern
+
 ```bash
-pytest tests/test_basic.py::TestSlackUpdateInitialization -v
+pytest -k "telegram" -v
+pytest -k "keras" -v
+pytest -k "lightning" -v
+pytest -k "integration" -v
 ```
 
-### Run Specific Test Function
-```bash
-pytest tests/test_basic.py::TestSlackUpdateInitialization::test_slack_update_init_success -v
-```
+### Coverage HTML Report
 
-### Run with Coverage Report
 ```bash
 pytest --cov=slackker --cov-report=html
 ```
 
-### Run Tests Matching a Pattern
-```bash
-pytest -k "telegram" -v
-```
-
-## Test Coverage
-
-The test suite provides comprehensive coverage including:
-
-- ✅ Initialization with valid/invalid tokens
-- ✅ Internet connectivity checks
-- ✅ API connection validation
-- ✅ Notifier decorator with various return types (tuple, single, None)
-- ✅ Function argument passing and execution time tracking
-- ✅ Notify method with args and kwargs
-- ✅ Timestamp generation
-- ✅ Verbose logging at different levels
-- ✅ Error handling and exceptions
-- ✅ Integration workflows
-- ✅ Edge cases (empty tuples, dicts, lists)
-
 ## Mocking Strategy
 
-All external API calls are mocked using `unittest.mock`:
-- Slack API calls via `WebClient`
-- Telegram API calls via HTTP requests
-- Internet connectivity checks
-- Chat ID retrieval
+Tests use `unittest.mock` to isolate external dependencies:
 
-This allows tests to run without requiring actual API tokens or internet connectivity.
+- Slack client calls (`WebClient`, Slack reporting helpers)
+- Telegram API helpers
+- Connectivity checks
+- Plot upload/report helpers
 
-## Example Test Usage
+This keeps tests deterministic and runnable without real tokens or network access.
 
-```python
-from slackker.callbacks.basic import TelegramUpdate
+## Adding New Tests
 
-# Example from the test suite
-@pytest.mark.parametrize("token,expected", [
-    ("1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG", True),
-    (None, False),
-])
-def test_telegram_token_validation(token, expected):
-    # Test implementation
-    pass
-```
-
-## Contributing
-
-When adding new tests:
-1. Follow the existing test class organization
-2. Use descriptive test names with `test_` prefix
-3. Mock external dependencies to avoid side effects
-4. Include docstrings explaining what is being tested
-5. Test both success and failure scenarios
+1. Follow existing naming: `test_<behavior>`.
+2. Keep tests focused on one behavior.
+3. Mock external I/O and network calls.
+4. Assert both side effects and message content when relevant.
+5. Add edge-case coverage for new callback paths.

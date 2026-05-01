@@ -22,7 +22,7 @@ class TestSlackUpdateInitialization:
         
         slackker = SlackUpdate(token="test_token", channel="C123456", verbose=0)
         
-        assert slackker.token == "test_token" or hasattr(slackker, 'client')
+        assert hasattr(slackker, 'client')
         assert slackker.channel == "C123456"
         assert slackker.verbose == 0
         mock_webclient.assert_called_once_with(token="test_token")
