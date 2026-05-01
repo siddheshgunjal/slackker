@@ -54,10 +54,10 @@ class SlackUpdate(Callback):
         for i in logs:
             custom_logs.append(logs[i])
 
-        self.train_loss.append(custom_logs[0])
-        self.train_acc.append(custom_logs[1])
-        self.valid_loss.append(custom_logs[2])
-        self.valid_acc.append(custom_logs[3])
+        self.train_loss.append(custom_logs[1])
+        self.train_acc.append(custom_logs[0])
+        self.valid_loss.append(custom_logs[3])
+        self.valid_acc.append(custom_logs[2])
 
         message = f'Epoch: {self.n_epochs}, Training Loss: {self.train_loss[-1]:.4f}, Validation Loss: {self.valid_loss[-1]:.4f}'
 
@@ -148,10 +148,10 @@ class TelegramUpdate(Callback):
         for i in logs:
             custom_logs.append(logs[i])
 
-        self.train_loss.append(custom_logs[0])
-        self.train_acc.append(custom_logs[1])
-        self.valid_loss.append(custom_logs[2])
-        self.valid_acc.append(custom_logs[3])
+        self.train_loss.append(custom_logs[1])
+        self.train_acc.append(custom_logs[0])
+        self.valid_loss.append(custom_logs[3])
+        self.valid_acc.append(custom_logs[2])
         self.n_epochs += 1
 
         message = f'Epoch: {self.n_epochs}, Training Loss: {self.train_loss[-1]:.4f}, Validation Loss: {self.valid_loss[-1]:.4f}'

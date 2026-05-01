@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slackker"
-version = "1.2.36"
+version = "1.2.37"
 description = "Python package for monitoring your python script & Model training status in real-time on slack & telegram."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
     {name = "Siddhesh Gunjal", email = "siddhu19@live.com"},
 ]
@@ -51,3 +51,15 @@ name = "testpypi"
 url = "https://test.pypi.org/simple/"
 publish-url = "https://test.pypi.org/legacy/"
 explicit = true
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "keras>=3.12.1",
+    "lightning>=2.6.1",
+    "scikit-learn>=1.7.2",
+    "tensorflow>=2.21.0",
+    "torchaudio>=2.11.0",
+    "torchvision>=0.26.0",
+]

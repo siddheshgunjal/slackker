@@ -2,7 +2,7 @@ name: Publish Python 📦 to TestPyPI
 
 on:
   push:
-    branches: [ development ]
+    branches: [ main ]
     
 jobs:
   test-pypi-publish:
