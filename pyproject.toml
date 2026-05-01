@@ -7,7 +7,7 @@ name = "slackker"
 version = "1.2.36"
 description = "Python package for monitoring your python script & Model training status in real-time on slack & telegram."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [
     {name = "Siddhesh Gunjal", email = "siddhu19@live.com"},
 ]
