@@ -2762,7 +2762,7 @@ wheels = [
 
 [[package]]
 name = "slackker"
-version = "1.2.37"
+version = "1.2.38"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
