@@ -59,3 +59,238 @@ function activateTab(targetId) {
 tabs.forEach((tab) => {
   tab.addEventListener("click", () => activateTab(tab.dataset.target));
 });
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function highlightPython(codeText) {
+  let code = escapeHtml(codeText);
+  const placeholders = [];
+
+  const stash = (regex, tokenClass) => {
+    code = code.replace(regex, (match) => {
+      const idx = placeholders.push(`<span class="${tokenClass}">${match}</span>`) - 1;
+      return `@@HL${idx}@@`;
+    });
+  };
+
+  // Protect strings/comments from later substitutions.
+  stash(/("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g, "tok-string");
+  stash(/#.*/g, "tok-comment");
+
+  code = code.replace(/(^\s*)(@[A-Za-z_][\w.]*)/gm, "$1<span class=\"tok-decorator\">$2</span>");
+  code = code.replace(/\b(def|class)\s+([A-Za-z_][A-Za-z0-9_]*)\b/g, (m, kw, name) => {
+    return `<span class="tok-keyword">${kw}</span> <span class="tok-function">${name}</span>`;
+  });
+  code = code.replace(/\b(from|import|as|if|elif|else|for|while|return|try|except|finally|with|in|pass|raise|break|continue|lambda|and|or|not|is|yield|await|async|global|nonlocal|assert|del)\b/g, "<span class=\"tok-keyword\">$1</span>");
+  code = code.replace(/\b(True|False|None|self)\b/g, "<span class=\"tok-builtin\">$1</span>");
+  code = code.replace(/\b\d+(?:\.\d+)?\b/g, "<span class=\"tok-number\">$&</span>");
+
+  code = code.replace(/@@HL(\d+)@@/g, (_, idx) => placeholders[Number(idx)]);
+  return code;
+}
+
+function applyPythonHighlighting() {
+  document.querySelectorAll("code.code-python").forEach((block) => {
+    block.innerHTML = highlightPython(block.textContent || "");
+  });
+}
+
+applyPythonHighlighting();
+
+// ── Platform toggle ───────────────────────────────────────────
+
+const CODE_SNIPPETS = {
+  hero: {
+    telegram:
+`from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(token="123456:ABC-DEF...")
+slackker = SimpleCallback(client)
+
+@slackker.notifier
+def train_model():
+    return "done"
+
+slackker.notify(event="training_complete", status="completed")`,
+    slack:
+`from slackker.core import SlackClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = SlackClient(token="xoxb-...", channel="A04AAB77ABC")
+slackker = SimpleCallback(client)
+
+@slackker.notifier
+def train_model():
+    return "done"
+
+slackker.notify(event="training_complete", status="completed")`,
+  },
+  basic: {
+    telegram:
+`from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def run_data_pipeline(source_path: str):
+    rows_processed = 12500
+    status = "success"
+    return rows_processed, status
+
+if __name__ == "__main__":
+    rows, status = run_data_pipeline("./data/train.csv")
+    notify.notify(
+        event="pipeline_finished",
+        rows_processed=rows,
+        status=status,
+        attachment="./artifacts/summary.txt"
+    )`,
+    slack:
+`from slackker.core import SlackClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = SlackClient(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def run_data_pipeline(source_path: str):
+    rows_processed = 12500
+    status = "success"
+    return rows_processed, status
+
+if __name__ == "__main__":
+    rows, status = run_data_pipeline("./data/train.csv")
+    notify.notify(
+        event="pipeline_finished",
+        rows_processed=rows,
+        status=status,
+        attachment="./artifacts/summary.txt"
+    )`,
+  },
+  keras: {
+    telegram:
+`from slackker.core import TelegramClient
+from slackker.callbacks.keras import KerasCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+slackker_cb = KerasCallback(
+    client=client,
+    model_name="ImageClassifierV1",
+    export="png",
+    send_plot=True,
+)
+
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=20,
+    batch_size=32,
+    validation_data=(x_val, y_val),
+    callbacks=[slackker_cb]
+)`,
+    slack:
+`from slackker.core import SlackClient
+from slackker.callbacks.keras import KerasCallback
+
+client = SlackClient(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+slackker_cb = KerasCallback(
+    client=client,
+    model_name="ImageClassifierV1",
+    export="png",
+    send_plot=True,
+)
+
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=20,
+    batch_size=32,
+    validation_data=(x_val, y_val),
+    callbacks=[slackker_cb]
+)`,
+  },
+  lightning: {
+    telegram:
+`from lightning.pytorch import Trainer
+from slackker.core import TelegramClient
+from slackker.callbacks.lightning import LightningCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+slackker_cb = LightningCallback(
+    client=client,
+    model_name="LightningClassifier",
+    track_logs=["train_loss", "train_acc", "val_loss", "val_acc"],
+    monitor="val_loss",
+    export="png",
+    send_plot=True,
+)
+
+trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
+trainer.fit(model, train_loader, val_loader)`,
+    slack:
+`from lightning.pytorch import Trainer
+from slackker.core import SlackClient
+from slackker.callbacks.lightning import LightningCallback
+
+client = SlackClient(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+slackker_cb = LightningCallback(
+    client=client,
+    model_name="LightningClassifier",
+    track_logs=["train_loss", "train_acc", "val_loss", "val_acc"],
+    monitor="val_loss",
+    export="png",
+    send_plot=True,
+)
+
+trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
+trainer.fit(model, train_loader, val_loader)`,
+  },
+};
+
+document.querySelectorAll(".platform-toggle").forEach((toggle) => {
+  toggle.querySelectorAll(".plt-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const platform = btn.dataset.platform;
+      const container = toggle.closest(".hero-code, .example-panel");
+      const codeBlock = container.querySelector("code.code-python");
+      const snippet = codeBlock.dataset.snippet;
+
+      if (!CODE_SNIPPETS[snippet]?.[platform]) return;
+
+      toggle.querySelectorAll(".plt-btn").forEach((b) =>
+        b.classList.toggle("active", b === btn)
+      );
+
+      codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
+    });
+  });
+});
