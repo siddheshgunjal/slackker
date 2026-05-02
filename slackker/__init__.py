@@ -4,7 +4,7 @@ from slackker.utils import functions
 
 __author__ = 'Siddhesh Gunjal'
 __email__ = 'siddhu19@live.com'
-__version__ = '1.2.38'
+__version__ = '1.2.39'
 
 # module level doc-string
 __doc__ = """
