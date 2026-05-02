@@ -51,7 +51,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.8rem 1rem;
+  padding: 0.5rem 1rem;
   position: sticky;
   top: 0.9rem;
   z-index: 20;
@@ -70,15 +70,19 @@ body {
 }
 
 .brand img {
-  width: 40px;
-  height: 40px;
+  width: 55px;
+  height: 55px;
   border-radius: 0.7rem;
+}
+
+.brand span {
+  font-size: 1.5rem;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.2rem;
 }
 
 .nav-links a {
@@ -213,8 +217,29 @@ h2 {
 }
 
 .card {
-  padding: 1rem;
-  min-height: 172px;
+  padding: 1.2rem 1rem;
+  min-height: 220px;
+}
+
+.card-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-icon svg {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.card-icon img {
+  width: 75px;
+  height: 75px;
+  object-fit: contain;
 }
 
 .example-switch {
@@ -252,7 +277,7 @@ h2 {
   align-items: center;
   gap: 0.45rem;
   padding: 0.6rem 0.9rem;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.72);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
@@ -269,26 +294,108 @@ h2 {
 
 .ide-filename {
   margin-left: 0.55rem;
-  font-size: 0.76rem;
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-  color: rgb(11, 30, 26);
+  font-size: 0.85rem;
+  font-family: "JetBrains Mono", "CaskaydiaCove", monospace;
+  color: #ffffff;
   letter-spacing: 0.02em;
+}
+
+.platform-label {
+  font-size: 0.85rem;
+  color: #ffffff;
+  font-family: "JetBrains Mono", "CaskaydiaCove", monospace;
+  vertical-align: middle;
+}
+
+.platform-toggle {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 0.25rem;
+}
+
+.plt-btn {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: "Manrope", sans-serif;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+  line-height: 1.4;
+}
+
+.plt-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.plt-btn.active {
+  background: linear-gradient(135deg, var(--teal), var(--teal-2));
+  color: #ffffff;
+  border-color: transparent;
 }
 
 .hero-code pre,
 .example-panel pre {
-  background: #0b1e1a;
-  color: #9efce5;
-  padding: 1.2rem;
   margin: 0;
+  border-radius: 0 0 0.75rem 0.75rem;
+}
+
+.hero-code code.code-python,
+.example-panel code.code-python {
+  display: block;
+  min-width: 100%;
+  padding: 1.2rem;
+  background: #000000;
+  color: #e8fff8;
+  white-space: pre;
+}
+
+.hero-code .tok-keyword,
+.example-panel .tok-keyword {
+  color: #e879f9;
+}
+
+.hero-code .tok-string,
+.example-panel .tok-string {
+  color: #a8ff78;
+}
+
+.hero-code .tok-comment,
+.example-panel .tok-comment {
+  color: #6b7f8a;
+  font-style: italic;
+}
+
+.hero-code .tok-number,
+.example-panel .tok-number {
+  color: #ff9a5c;
+}
+
+.hero-code .tok-decorator,
+.example-panel .tok-decorator {
+  color: #60a5fa;
+}
+
+.hero-code .tok-builtin,
+.example-panel .tok-builtin {
+  color: #ffd93d;
+}
+
+.hero-code .tok-function,
+.example-panel .tok-function {
+  color: #34ffe0;
 }
 
 pre {
   margin: 0;
-  padding: 1.1rem;
+  padding: 0;
   overflow-x: auto;
-  color: var(--text);
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-family: "JetBrains Mono", "CaskaydiaCove", monospace;
   font-size: 0.88rem;
   line-height: 1.55;
 }
@@ -313,22 +420,39 @@ pre {
 }
 
 .steps li {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
+  display: block;
   padding: 0.85rem 1rem;
+  line-height: 1.6;
+}
+
+.steps li code {
+  font-family: "JetBrains Mono", "CaskaydiaCove", monospace;
+  font-size: 0.85em;
+  background: rgba(0, 255, 180, 0.1);
+  color: var(--text);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 255, 180, 0.2);
 }
 
 .steps li span {
+  display: inline-grid;
+  place-items: center;
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  display: inline-grid;
-  place-items: center;
   background: linear-gradient(135deg, var(--teal), var(--accent));
   color: #ffffff;
   font-size: 0.85rem;
   font-weight: 800;
+  margin-right: 0.6rem;
+  vertical-align: middle;
+}
+
+.cta-logo {
+  width: 90px;
+  height: 90px;
+  margin-bottom: 0.1rem;
 }
 
 .footer {
@@ -350,7 +474,7 @@ pre {
   flex-wrap: wrap;
   gap: 0.75rem;
   font-size: 0.78rem;
-  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-family: "JetBrains Mono", "CaskaydiaCove", monospace;
   color: var(--muted);
   text-align: center;
 }
@@ -437,6 +561,7 @@ pre {
 
   .menu-btn {
     display: inline-flex;
+    font-size: 1rem;
   }
 
   .footer-bar {
@@ -476,5 +601,264 @@ pre {
 
   .cards {
     grid-template-columns: 1fr;
+  }
+
+  /* ── Code blocks ─────────────────────────────────────────── */
+  .hero-code {
+    max-width: 100%;
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+  }
+
+  .hero-code code.code-python,
+  .example-panel code.code-python {
+    font-size: 0.75rem;
+    padding: 1rem 0.85rem;
+    white-space: pre;
+    overflow-x: auto;
+    display: block;
+    max-width: 100%;
+  }
+
+  .hero-code pre,
+  .example-panel pre {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  /* ── Example panels ──────────────────────────────────────── */
+  .example-panels {
+    max-width: 100%;
+  }
+
+  .example-panel {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .example-switch {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .example-tab {
+    font-size: 0.82rem;
+    padding: 0.45rem 0.75rem;
+  }
+
+  /* ── Quickstart steps ────────────────────────────────────── */
+  .steps {
+    max-width: 100%;
+  }
+
+  .steps li {
+    font-size: 0.88rem;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .steps li code {
+    font-size: 0.78em;
+    word-break: break-word;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────── */
+  .hero-cta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+    width: 100%;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem 1rem;
+  }
+
+  /* ── Section spacing ─────────────────────────────────────── */
+  .section {
+    padding: 2rem 0;
+  }
+
+  .section-head {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 0.5rem;
+  }
+
+  .topbar {
+    padding: 0.6rem 0.75rem;
+    top: 0.4rem;
+  }
+
+  .hero {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  h1 {
+    font-size: clamp(1.75rem, 9vw, 2.5rem);
+  }
+
+  .lead {
+    font-size: 0.92rem;
+  }
+
+  .hero-code code.code-python,
+  .example-panel code.code-python {
+    font-size: 0.7rem;
+    padding: 0.85rem 0.7rem;
+  }
+
+  .ide-titlebar {
+    gap: 0.3rem;
+  }
+
+  .ide-filename {
+    font-size: 0.75rem;
+  }
+
+  .platform-label {
+    font-size: 0.68rem;
+  }
+
+  .plt-btn {
+    font-size: 0.68rem;
+  }
+
+  .steps li {
+    font-size: 0.82rem;
+    padding: 0.65rem 0.7rem;
+  }
+
+  .steps li span {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+}
+
+/* ── How it works ───────────────────────────────────────────── */
+.hiw-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.hiw-step {
+  flex: 1;
+  padding: 1.8rem 1.4rem;
+  position: relative;
+  text-align: center;
+}
+
+.hiw-icon {
+  font-size: 2rem;
+  line-height: 1;
+  margin-bottom: 0.65rem;
+}
+
+.hiw-num {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--teal);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.hiw-step h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.hiw-step p {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.hiw-step code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82em;
+  background: rgba(0, 255, 180, 0.1);
+  color: var(--teal);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 255, 180, 0.2);
+}
+
+.hiw-arrow {
+  color: var(--teal);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* ── CTA ────────────────────────────────────────────────────── */
+.cta-section {
+  padding-bottom: 1rem;
+}
+
+.cta-card {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 3.2rem 2.4rem;
+  text-align: center;
+  background:
+    linear-gradient(145deg, rgba(26,171,138,0.08), rgba(62,212,174,0.12));
+  border-color: rgba(26, 171, 138, 0.25);
+}
+
+.cta-card h2 {
+  font-size: clamp(1.75rem, 6vw, 2rem);
+  margin: 0.5rem 0 1rem;
+  line-height: 1.2;
+}
+
+.cta-sub {
+  color: var(--muted);
+  max-width: 52ch;
+  margin: 0 auto 1.8rem;
+  font-size: 1rem;
+}
+
+.cta-actions {
+  gap: 0.8rem;
+}
+
+.highlight {
+  color: var(--teal);
+  font-weight: 700;
+}
+
+/* ── How it works responsive ────────────────────────────────── */
+@media (max-width: 760px) {
+  .hiw-steps {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .hiw-arrow {
+    transform: rotate(90deg);
+  }
+
+  .hiw-step {
+    width: 100%;
+  }
+
+  .cta-card {
+    padding: 2rem 1.4rem;
   }
 }

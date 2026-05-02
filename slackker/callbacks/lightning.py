@@ -1,240 +1,179 @@
 import sys
+import warnings
 from datetime import datetime
-import argparse
-import requests
 import numpy as np
 from lightning.pytorch.callbacks import Callback
-from slack_sdk import WebClient
-from slackker.utils import checkker
-from slackker.utils import functions
-from slackker.utils.ccolors import colors
+from slackker.core.client import BaseClient, _run_sync
+from slackker.utils.logger import log
+from slackker.utils import network, plotting
 
-class SlackUpdate(Callback):
-    """Custom Lightning callback that posts to Slack while training a neural network"""
+
+class LightningCallback(Callback):
+    """Unified Lightning training callback that works with any client backend."""
+
+    SUPPORTED_FORMATS = ("eps", "jpeg", "jpg", "pdf", "pgf", "png", "ps", "raw", "rgba", "svg", "svgz", "tif", "tiff")
+
+    def __init__(
+        self,
+        client: BaseClient,
+        model_name: str,
+        track_logs: list[str] | None = None,
+        monitor: str | None = None,
+        export: str = "png",
+        send_plot: bool = False,
+    ):
+        super().__init__()
+        if export not in self.SUPPORTED_FORMATS:
+            raise ValueError(f"Unsupported export format '{export}'. Supported: {self.SUPPORTED_FORMATS}")
+
+        if track_logs is None:
+            log.error("Provide at least 1 log type for sending update.")
+            sys.exit()
+        if not isinstance(track_logs, list):
+            log.error("'track_logs' must be a list, e.g. ['train_loss', 'val_loss']")
+            sys.exit()
+
+        if monitor is not None and monitor not in track_logs:
+            log.error(f"'monitor' value '{monitor}' not found in 'track_logs'")
+            sys.exit()
+        elif monitor is None:
+            log.warning("'monitor' not provided, will skip reporting Best Epoch")
+
+        self.client = client
+        self.model_name = model_name
+        self.track_logs = track_logs
+        self.monitor = monitor
+        self.export = export
+        self.send_plot = send_plot
+
+        if not client.is_connected:
+            _run_sync(client.connect())
+
+        self.training_logs: dict[str, list[float]] = {}
+        self.n_epochs = 0
+
+    def on_fit_start(self, trainer, pl_module):
+        self.client.send_message_sync(
+            f'Training on "{self.model_name}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
+        )
+
+    def on_train_epoch_end(self, trainer, pl_module):
+        metrics = trainer.callback_metrics
+
+        for key in self.track_logs:
+            val = float(metrics[key])
+            self.training_logs.setdefault(key, []).append(val)
+
+        parts = [f"{key}: {metrics[key]:.4f}" for key in self.track_logs]
+        message = f"Epoch: {self.n_epochs}, {', '.join(parts)}"
+
+        url = "www.slack.com" if self.client.platform == "slack" else "www.telegram.org"
+        connected = _run_sync(network.check_connection_quick(url=url))
+        if connected:
+            self.client.send_message_sync(message)
+
+        self.n_epochs += 1
+
+    def on_fit_end(self, trainer, pl_module):
+        if self.monitor is not None:
+            for key, values in self.training_logs.items():
+                if self.monitor.lower() in key.lower():
+                    if "loss" in self.monitor.lower():
+                        best = int(np.argmin(values))
+                    else:
+                        best = int(np.argmax(values))
+                    message = f"Trained for {self.n_epochs} epochs. Best epoch was, Epoch {best}"
+                    break
+            else:
+                message = f"Trained for {self.n_epochs} epochs."
+        else:
+            message = f"Trained for {self.n_epochs} epochs. 'monitor' was not provided, skipped reporting Best Epoch"
+
+        self.client.send_message_sync(message)
+
+        if self.send_plot:
+            paths = plotting.generate_and_get_plots(self.model_name, self.export, self.training_logs)
+            for path in paths:
+                self.client.upload_image_sync(path, comment=f"{self.model_name} 📎")
+
+
+# ──────────────────────────────────────────────
+# Backward-compatible shims (deprecated)
+# ──────────────────────────────────────────────
+
+from slackker.core.slack import SlackClient
+from slackker.core.telegram import TelegramClient
+
+
+class SlackUpdate(LightningCallback):
+    """Deprecated: Use LightningCallback(SlackClient(...), ...) instead."""
+
     def __init__(self, token, channel, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=False, verbose=0):
+        warnings.warn(
+            "SlackUpdate is deprecated. Use LightningCallback(SlackClient(token, channel), ...) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if token is None:
-            colors.prRed('[slackker] ERROR: Please enter Valid Slack API Token.')
+            log.error("Please enter a valid Slack API Token.")
             return
 
-        server = checkker.check_internet(url="www.slack.com", verbose=verbose)
-        api = checkker.slack_connect(token=token, verbose=verbose)
+        client = SlackClient(token=token, channel=channel, verbose=verbose)
+        connected = _run_sync(client.connect())
+        if not connected:
+            log.error("Failed to connect to Slack.")
+            return
 
-        if server and api:
-            self.client = WebClient(token=token)
-            self.channel = channel
-            self.ModelName = ModelName
-            self.export = export
-            self.SendPlot = SendPlot
-            self.verbose = verbose
-            self.TrackLogs = TrackLogs
-            self.monitor = monitor
+        super().__init__(
+            client=client,
+            model_name=ModelName,
+            track_logs=TrackLogs,
+            monitor=monitor,
+            export=export,
+            send_plot=SendPlot,
+        )
 
-            if export is not None:
-                pass
-            else:
-                raise argparse.ArgumentTypeError("[slackker] ERROR: 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
+        # Expose old attribute names for backward compat
+        self.ModelName = ModelName
+        self.TrackLogs = TrackLogs
+        self.SendPlot = SendPlot
+        self.verbose = verbose
+        self._sdk_client = client._client
+        self.channel = channel
 
-            if TrackLogs is None:
-                colors.prRed("[slackker] ERROR: Provice at least 1 log type for sending update.")
-                sys.exit()
-            else:
-                if type(TrackLogs) is not list and TrackLogs is not None:
-                    colors.prRed("[slackker] ERROR: 'TrackLogs' is a list type of argument, add values in '[]'")
-                    sys.exit()
-                else:
-                    pass
 
-            if monitor is not None:
-                if monitor not in TrackLogs:
-                    colors.prRed("[slackker] ERROR: Couldn't find Argument 'monitor' value in 'TrackLogs' provided")
-                    sys.exit()
-                else:
-                    pass
-            else:
-                colors.prYellow("[slackker] WARNING: Argument 'monitor' not provided, will skip reporting Best Epoch")
+class TelegramUpdate(LightningCallback):
+    """Deprecated: Use LightningCallback(TelegramClient(...), ...) instead."""
 
-        self.training_logs = {}
-        self.n_epochs = 0
-
-    # Called when training starts
-    def on_fit_start(self, trainer, pl_module):
-        functions.Slack.report_stats(
-            client=self.client,
-            channel=self.channel,
-            text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-            verbose=self.verbose)
-
-    # Called when every training epoch ends
-    def on_train_epoch_end(self, trainer, pl_module):
-        metrics = trainer.callback_metrics
-        logs = self.TrackLogs
-
-        custom_logs = {}
-        toPrint = []
-
-        [custom_logs.update({i:float(metrics[i])}) for i in logs]
-
-        [self.training_logs.setdefault(key, []).append(value) for key, value in custom_logs.items()]
-
-        [toPrint.append(f"{i}: {metrics[i]:.4f}") for i in logs]
-
-        message = f"Epoch: {self.n_epochs}, {', '.join(toPrint)}"
-
-        # Check internet before sending update on slacj
-        server = checkker.check_internet_epoch_end(url="www.slack.com")
-
-        # If internet working send message else skip sending message and continue training.
-        if server:
-            functions.Slack.report_stats(
-                client=self.client,
-                channel=self.channel,
-                text=message,
-                verbose=self.verbose)
-        else:
-            pass
-
-        self.n_epochs += 1
-
-    # Prepare and send report with graphs at the end of training.
-    def on_fit_end(self, trainer, pl_module):
-        if self.monitor is not None:
-            for key, value in self.training_logs.items():
-                if "loss" in self.monitor.lower():
-                    if self.monitor.lower() in key.lower():
-                        # print(f"Lowest loss value is {min(value)}")
-                        message = f"Trained for {self.n_epochs} epochs. Best epoch was, Epoch {np.argmin(value)}"
-                elif "acc" in self.monitor.lower():
-                    if self.monitor.lower() in key.lower():
-                        # print(f"Highest accuracy value is{max(value)}")
-                        message = f"Trained for {self.n_epochs} epochs. Best epoch was, Epoch {np.argmax(value)}"
-        else:
-            message = f"Trained for {self.n_epochs} epochs. Argument 'monitor' was not provided, skipped reporting Best Epoch"
-
-        functions.Slack.report_stats(
-            client=self.client,
-            channel=self.channel,
-            text=message,
-            verbose=self.verbose)
-
-        functions.Slack.lightning_plot_history(ModelName=self.ModelName,
-            export=self.export,
-            client=self.client,
-            channel=self.channel,
-            SendPlot=self.SendPlot,
-            training_logs=self.training_logs,
-            verbose=self.verbose)
-
-class TelegramUpdate(Callback):
-    """Custom Lightning callback that posts to Telegram while training a neural network"""
     def __init__(self, token, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=False, verbose=0):
+        warnings.warn(
+            "TelegramUpdate is deprecated. Use LightningCallback(TelegramClient(token), ...) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if token is None:
-            colors.prRed('[slackker] ERROR: Please enter Valid Telegram API Token.')
+            log.error("Please enter a valid Telegram API Token.")
             return
 
-        server = checkker.check_internet(url="www.telegram.org", verbose=verbose)
-        channel = checkker.get_telegram_chat_id(token=token, verbose=verbose)
+        client = TelegramClient(token=token, verbose=verbose)
+        connected = _run_sync(client.connect())
+        if not connected:
+            log.error("Failed to connect to Telegram.")
+            return
 
-        if server and channel:
-            self.token = token
-            self.channel = channel
-            self.ModelName = ModelName
-            self.export = export
-            self.SendPlot = SendPlot
-            self.verbose = verbose
-            self.TrackLogs = TrackLogs
-            self.monitor = monitor
+        super().__init__(
+            client=client,
+            model_name=ModelName,
+            track_logs=TrackLogs,
+            monitor=monitor,
+            export=export,
+            send_plot=SendPlot,
+        )
 
-            if export is not None:
-                pass
-            else:
-                raise argparse.ArgumentTypeError("[slackker] ERROR: 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
-
-            if TrackLogs is None:
-                colors.prRed("[slackker] ERROR: Provice at least 1 log type for sending update.")
-                sys.exit()
-            else:
-                if type(TrackLogs) is not list and TrackLogs is not None:
-                    colors.prRed("[slackker] ERROR: 'TrackLogs' is a list type of argument, add values in '[]'")
-                    sys.exit()
-                else:
-                    pass
-
-            if monitor is not None:
-                if monitor not in TrackLogs:
-                    colors.prRed("[slackker] ERROR: Couldn't find Argument 'monitor' value in 'TrackLogs' provided")
-                    sys.exit()
-                else:
-                    pass
-            else:
-                colors.prYellow("[slackker] WARNING: Argument 'monitor' not provided, will skip reporting Best Epoch")
-
-        self.training_logs = {}
-        self.n_epochs = 0
-
-    # Called when training starts
-    def on_fit_start(self, trainer, pl_module):
-        functions.Telegram.report_stats(
-            token=self.token,
-            channel=self.channel,
-            text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-            verbose=self.verbose)
-
-    # Called when every training epoch ends
-    def on_train_epoch_end(self, trainer, pl_module):
-        metrics = trainer.callback_metrics
-        logs = self.TrackLogs
-
-        custom_logs = {}
-        toPrint = []
-
-        [custom_logs.update({i:float(metrics[i])}) for i in logs]
-
-        [self.training_logs.setdefault(key, []).append(value) for key, value in custom_logs.items()]
-
-        [toPrint.append(f"{i}: {metrics[i]:.4f}") for i in logs]
-
-        message = f"Epoch: {self.n_epochs}, {', '.join(toPrint)}"
-
-        # Check internet before sending update on slacj
-        server = checkker.check_internet_epoch_end(url="www.slack.com")
-
-        # If internet working send message else skip sending message and continue training.
-        if server:
-            functions.Telegram.report_stats(
-                token=self.token,
-                channel=self.channel,
-                text=message,
-                verbose=self.verbose)
-        else:
-            pass
-
-        self.n_epochs += 1
-
-    # Prepare and send report with graphs at the end of training.
-    def on_fit_end(self, trainer, pl_module):
-        if self.monitor is not None:
-            for key, value in self.training_logs.items():
-                if "loss" in self.monitor.lower():
-                    if self.monitor.lower() in key.lower():
-                        # print(f"Lowest loss value is {min(value)}")
-                        message = f"Trained for {self.n_epochs} epochs. Best epoch was, Epoch {np.argmin(value)}"
-                elif "acc" in self.monitor.lower():
-                    if self.monitor.lower() in key.lower():
-                        # print(f"Highest accuracy value is{max(value)}")
-                        message = f"Trained for {self.n_epochs} epochs. Best epoch was, Epoch {np.argmax(value)}"
-        else:
-            message = f"Trained for {self.n_epochs} epochs. Argument 'monitor' was not provided, skipped reporting Best Epoch"
-
-        functions.Telegram.report_stats(
-            token=self.token,
-            channel=self.channel,
-            text=message,
-            verbose=self.verbose)
-
-        functions.Telegram.lightning_plot_history(ModelName=self.ModelName,
-            export=self.export,
-            token=self.token,
-            channel=self.channel,
-            SendPlot=self.SendPlot,
-            training_logs=self.training_logs,
-            verbose=self.verbose)
+        # Expose old attribute names for backward compat
+        self.ModelName = ModelName
+        self.TrackLogs = TrackLogs
+        self.SendPlot = SendPlot
+        self.verbose = verbose
+        self.token = token
+        self.channel = client.chat_id

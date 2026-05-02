@@ -1,154 +1,70 @@
-import time
-import os
-from inspect import stack
-from datetime import datetime
-from slack_sdk import WebClient
-from slackker.utils import checkker
-from slackker.utils import functions
-from slackker.utils.ccolors import colors
+"""
+Deprecated module. Use slackker.callbacks.simple instead.
 
-class SlackUpdate():
-    ''' SlackUpdate class to send updates to Telegram channel '''
+This module is kept for backward compatibility only.
+"""
+
+import warnings
+from slackker.callbacks.simple import SimpleCallback
+from slackker.core.client import _run_sync as _sync
+from slackker.core.slack import SlackClient
+from slackker.core.telegram import TelegramClient
+from slackker.utils.logger import log
+
+
+class Update(SimpleCallback):
+    """Deprecated: Use SimpleCallback from slackker.callbacks.simple instead."""
+
+    def __init__(self, client):
+        warnings.warn(
+            "Update is deprecated. Use SimpleCallback(client) from slackker.callbacks.simple instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(client)
+
+
+# ──────────────────────────────────────────────
+# Backward-compatible shims (deprecated)
+# ──────────────────────────────────────────────
+
+class SlackUpdate(SimpleCallback):
+    """Deprecated: Use SimpleCallback(SlackClient(...)) instead."""
+
     def __init__(self, token, channel, verbose=0):
-
+        warnings.warn(
+            "SlackUpdate is deprecated. Use SimpleCallback(SlackClient(token, channel)) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if token is None:
-            colors.prRed('[slackker] ERROR: Please enter Valid Slack API Token.')
+            log.error("Please enter a valid Slack API Token.")
             return
 
-        server = checkker.check_internet(url="www.telegram.org", verbose=verbose)
-        api = checkker.slack_connect(token=token, verbose=verbose)
+        client = SlackClient(token=token, channel=channel, verbose=verbose)
+        connected = _sync(client.connect())
+        if connected:
+            super().__init__(client)
+        else:
+            log.error("Failed to connect to Slack.")
 
-        if server and api:
-            self.client = WebClient(token=token)
-            self.channel = channel
-            self.verbose = verbose
-        
-    def notifier(self, function):
-        ''' Decorator to log function calls '''
-        def wrapper(*args, **kwargs):
-            if self.verbose > 0:
-                # Log the function call
-                colors.prCyan(f"[slackker] INFO: Calling {function.__name__} with args: {args}, kwargs: {kwargs}")
-            
-            # Call the original function
-            start_time = time.time()
-            result = function(*args, **kwargs)
-            end_time = time.time()
 
-            # execution time
-            execution_time = end_time - start_time
+class TelegramUpdate(SimpleCallback):
+    """Deprecated: Use SimpleCallback(TelegramClient(...)) instead."""
 
-            if result is not None:
-                if isinstance(result, tuple):
-                    message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned {len(result)} outputs:\n"
-                    num = 0
-                    for i in result:
-                        message += f"Output {num}:\n{i}\n\n"
-                        num += 1
-                else:
-                    message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: {result}"
-            else:
-                message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: None"
-
-            # Log the return value
-            functions.Slack.report_stats(
-                client=self.client,
-                channel=self.channel,
-                text=message,
-                verbose=self.verbose
-            )
-
-            return result
-        return wrapper
-    
-    def notify(self, event: str = None, attachment: str = None, **kwargs):
-        ''' Notify the user that the script has been executed '''
-        
-        script = stack()[1].filename
-        
-        text = f"Notification: {event if event else os.path.basename(script)} at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
-
-        if kwargs:
-            for key, value in kwargs.items():
-                text += f"\n{key}: {value}"
-
-        functions.Slack.report_stats(
-            client=self.client,
-            channel=self.channel,
-            text=text,
-            attachment=attachment,
-            verbose=self.verbose
-        )
-
-class TelegramUpdate():
-    ''' TelegramUpdate class to send updates to Telegram channel '''
     def __init__(self, token, verbose=0):
-
+        warnings.warn(
+            "TelegramUpdate is deprecated. Use SimpleCallback(TelegramClient(token)) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if token is None:
-            colors.prRed('[slackker] ERROR: Please enter Valid Telegram API Token.')
+            log.error("Please enter a valid Telegram API Token.")
             return
 
-        server = checkker.check_internet(url="www.telegram.org", verbose=verbose)
-        channel = checkker.get_telegram_chat_id(token=token, verbose=verbose)
-
-        if server and channel:
-            self.token = token
-            self.channel = channel
-            self.verbose = verbose
-        
-    def notifier(self, function):
-        ''' Decorator to log function calls '''
-        def wrapper(*args, **kwargs):
-            if self.verbose > 0:
-                # Log the function call
-                colors.prCyan(f"[slackker] INFO: Calling {function.__name__} with args: {args}, kwargs: {kwargs}")
-            
-            # Call the original function
-            start_time = time.time()
-            result = function(*args, **kwargs)
-            end_time = time.time()
-
-            # execution time
-            execution_time = end_time - start_time
-
-            if result is not None:
-                if isinstance(result, tuple):
-                    message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned {len(result)} outputs:\n"
-                    num = 0
-                    for i in result:
-                        message += f"Output {num}:\n{i}\n\n"
-                        num += 1
-                else:
-                    message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: {result}"
-            else:
-                message = f"Function '{function.__name__}' from Script: '{os.path.basename(__import__(function.__module__).__file__)}' executed.\nExecution time: {execution_time:.3f} Seconds\nReturned output: None"
-
-            # Log the return value
-            functions.Telegram.report_stats(
-                token=self.token,
-                channel=self.channel,
-                text=message,
-                verbose=self.verbose
-            )
-
-            return result
-        return wrapper
-    
-    def notify(self, event: str = None, attachment: str = None, **kwargs):
-        ''' Notify the user that the script has been executed '''
-
-        script = stack()[1].filename
-        
-        text = f"Notification: {event if event else os.path.basename(script)} at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
-
-        if kwargs:
-            for key, value in kwargs.items():
-                text += f"\n{key}: {value}"
-
-        functions.Telegram.report_stats(
-            token=self.token,
-            channel=self.channel,
-            text=text,
-            attachment=attachment,
-            verbose=self.verbose
-        )
+        client = TelegramClient(token=token, verbose=verbose)
+        connected = _sync(client.connect())
+        if connected:
+            super().__init__(client)
+        else:
+            log.error("Failed to connect to Telegram.")

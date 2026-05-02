@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>slackker | Real-time Pipeline Notifications</title>
+  <title>slackker — Real-time Pipeline Notifications</title>
   <meta name="description" content="Monitor any Python script, data pipeline, or ML training run in real-time via Slack and Telegram with slackker callbacks." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -22,8 +22,8 @@
     <button id="menuButton" class="menu-btn" aria-expanded="false" aria-controls="navLinks">Menu</button>
     <nav id="navLinks" class="nav-links">
       <a href="#features">Features</a>
-      <a href="#examples">Examples</a>
       <a href="#quickstart">Quick Start</a>
+      <a href="#usage">Usage</a>
       <a href="https://pypi.org/project/slackker/" target="_blank" rel="noreferrer">PyPI</a>
     </nav>
   </header>
@@ -37,12 +37,17 @@
         ML training run, or automation workflow — complete with metrics, outputs, and optional plots.
       </p>
       <div class="hero-cta center-wrap">
-        <a class="btn btn-primary" href="https://pypi.org/project/slackker/" target="_blank" rel="noreferrer">pip install slackker</a>
         <a class="btn btn-ghost" href="https://github.com/siddheshgunjal/slackker" target="_blank" rel="noreferrer">
           <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
           </svg>
           View on GitHub
+        </a>
+        <a href="#quickstart" class="btn btn-primary">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Quick Start
         </a>
       </div>
       <div class="hero-code glass center-block">
@@ -51,10 +56,17 @@
           <span class="ide-dot dot-yellow"></span>
           <span class="ide-dot dot-green"></span>
           <span class="ide-filename">main.py</span>
+          <div class="platform-toggle" role="group" aria-label="Switch client">
+            <span class="platform-label">Client: </span>
+            <button class="plt-btn active" data-platform="telegram">Telegram</button>
+            <button class="plt-btn" data-platform="slack">Slack</button>
+          </div>
         </div>
-<pre><code>from slackker.callbacks.basic import SlackUpdate
+<pre><code class="code-python" data-snippet="hero">from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
 
-slackker = SlackUpdate(token="xoxb-...", channel="A04AAB77ABC")
+client = TelegramClient(token="123456:ABC-DEF...")
+slackker = SimpleCallback(client)
 
 @slackker.notifier
 def train_model():
@@ -71,25 +83,62 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
       </div>
       <div class="cards">
         <article class="card glass center-text">
+          <div class="card-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+              <path d="M24 4.5c-5.5 0-9.5 2.5-9.5 7V16h10v2H12c-3.5 0-6 2.8-6 7s2.5 7 6 7h3v-3.5c0-3.5 2.5-6 6.5-6h6c3.5 0 6-2.5 6-6.5V11.5c0-4.5-4-7-9.5-7zM20.5 9.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0z" fill="#3776AB"/>
+              <path d="M24 43.5c5.5 0 9.5-2.5 9.5-7V32h-10v-2H36c3.5 0 6-2.8 6-7s-2.5-7-6-7h-3v3.5c0 3.5-2.5 6-6.5 6h-6c-3.5 0-6 2.5-6 6.5v5c0 4.5 4 7 9.5 7zM26.5 38.5a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0z" fill="#FFD43B"/>
+            </svg>
+          </div>
           <h3>Any Python Function</h3>
           <p>Decorator-based notifications for script execution with returned output summaries.</p>
         </article>
         <article class="card glass center-text">
+          <div class="card-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+              <circle cx="24" cy="24" r="22" fill="#D00000"/>
+              <path d="M16 13h5v9L30 13h6L26 24l10 11h-6L21 25v10h-5z" fill="white"/>
+            </svg>
+          </div>
           <h3>Keras Callback</h3>
           <p>Attach to model.fit and receive metric progress during epoch training.</p>
         </article>
         <article class="card glass center-text">
+          <div class="card-icon" aria-hidden="true">
+            <img src="https://miro.medium.com/v2/1*f1Y6xXw2Uab_-T2Q0C02Zg.png" alt="PyTorch Lightning" />
+          </div>
           <h3>Lightning Callback</h3>
           <p>Track train and validation logs with monitor-based best epoch updates.</p>
         </article>
         <article class="card glass center-text">
+          <div class="card-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+              <rect x="6" y="28" width="9" height="14" rx="2" fill="var(--teal)"/>
+              <rect x="19.5" y="18" width="9" height="24" rx="2" fill="var(--teal)"/>
+              <rect x="33" y="10" width="9" height="32" rx="2" fill="var(--teal)"/>
+              <rect x="4" y="43" width="40" height="2.5" rx="1.25" fill="var(--teal)"/>
+            </svg>
+          </div>
           <h3>Plot Sharing</h3>
           <p>Export and send history plots so you can check model behavior quickly on mobile.</p>
         </article>
       </div>
     </section>
 
-    <section id="examples" class="section reveal">
+    <section id="quickstart" class="section reveal quickstart-section">
+      <div class="section-head center-text">
+        <p class="eyebrow">Quick start</p>
+        <h2>From install to updates in five steps</h2>
+      </div>
+      <ol class="steps center-block">
+        <li class="glass"><span>1</span>Install package: <code>pip install slackker</code></li>
+        <li class="glass"><span>2</span>Setup Slack app token and channel, or Telegram bot token.</li>
+        <li class="glass"><span>3</span>Create a <code>SlackClient</code> or <code>TelegramClient</code> with your credentials.</li>
+        <li class="glass"><span>4</span>Pass the client to <code>SimpleCallback</code>, <code>KerasCallback</code>, or <code>LightningCallback</code>.</li>
+        <li class="glass"><span>5</span>Run training and receive updates plus optional exported plots.</li>
+      </ol>
+    </section>
+
+    <section id="usage" class="section reveal">
       <div class="section-head center-text">
         <p class="eyebrow">Detailed callback usage</p>
         <h2>Drop-in examples for real projects</h2>
@@ -108,14 +157,20 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
             <span class="ide-dot dot-yellow"></span>
             <span class="ide-dot dot-green"></span>
             <span class="ide-filename">pipeline.py</span>
+            <div class="platform-toggle" role="group" aria-label="Switch client">
+              <span class="platform-label">Client: </span>
+              <button class="plt-btn active" data-platform="telegram">Telegram</button>
+              <button class="plt-btn" data-platform="slack">Slack</button>
+            </div>
           </div>
-<pre><code>from slackker.callbacks.basic import SlackUpdate
+<pre><code class="code-python" data-snippet="basic">from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
 
-notify = SlackUpdate(
-    token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
+client = TelegramClient(
+    token="123456:ABC-DEF...",
     verbose=1
 )
+notify = SimpleCallback(client)
 
 @notify.notifier
 def run_data_pipeline(source_path: str):
@@ -139,16 +194,24 @@ if __name__ == "__main__":
             <span class="ide-dot dot-yellow"></span>
             <span class="ide-dot dot-green"></span>
             <span class="ide-filename">train_keras.py</span>
+            <div class="platform-toggle" role="group" aria-label="Switch client">
+              <span class="platform-label">Client: </span>
+              <button class="plt-btn active" data-platform="telegram">Telegram</button>
+              <button class="plt-btn" data-platform="slack">Slack</button>
+            </div>
           </div>
-<pre><code>from slackker.callbacks.keras import SlackUpdate
+<pre><code class="code-python" data-snippet="keras">from slackker.core import TelegramClient
+from slackker.callbacks.keras import KerasCallback
 
-slackker_cb = SlackUpdate(
-    token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
-    ModelName="ImageClassifierV1",
-    export="png",
-    SendPlot=True,
+client = TelegramClient(
+    token="123456:ABC-DEF...",
     verbose=1
+)
+slackker_cb = KerasCallback(
+    client=client,
+    model_name="ImageClassifierV1",
+    export="png",
+    send_plot=True,
 )
 
 history = model.fit(
@@ -167,19 +230,27 @@ history = model.fit(
             <span class="ide-dot dot-yellow"></span>
             <span class="ide-dot dot-green"></span>
             <span class="ide-filename">train_lightning.py</span>
+            <div class="platform-toggle" role="group" aria-label="Switch client">
+              <span class="platform-label">Client: </span>
+              <button class="plt-btn active" data-platform="telegram">Telegram</button>
+              <button class="plt-btn" data-platform="slack">Slack</button>
+            </div>
           </div>
-<pre><code>from lightning.pytorch import Trainer
-from slackker.callbacks.lightning import SlackUpdate
+<pre><code class="code-python" data-snippet="lightning">from lightning.pytorch import Trainer
+from slackker.core import TelegramClient
+from slackker.callbacks.lightning import LightningCallback
 
-slackker_cb = SlackUpdate(
-    token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
-    ModelName="LightningClassifier",
-    TrackLogs=["train_loss", "train_acc", "val_loss", "val_acc"],
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+slackker_cb = LightningCallback(
+    client=client,
+    model_name="LightningClassifier",
+    track_logs=["train_loss", "train_acc", "val_loss", "val_acc"],
     monitor="val_loss",
     export="png",
-    SendPlot=True,
-    verbose=1
+    send_plot=True,
 )
 
 trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
@@ -188,17 +259,59 @@ trainer.fit(model, train_loader, val_loader)</code></pre>
       </div>
     </section>
 
-    <section id="quickstart" class="section reveal quickstart-section">
+    <section id="how-it-works" class="section reveal">
       <div class="section-head center-text">
-        <p class="eyebrow">Quick start</p>
-        <h2>From install to updates in four steps</h2>
+        <p class="eyebrow">Under the hood</p>
+        <h2>Three lines to stay in the loop</h2>
       </div>
-      <ol class="steps center-block">
-        <li class="glass"><span>1</span>Install package: <strong>pip install slackker</strong></li>
-        <li class="glass"><span>2</span>Setup Slack app token and channel, or Telegram token.</li>
-        <li class="glass"><span>3</span>Create callback object and attach notifier/decorator.</li>
-        <li class="glass"><span>4</span>Run training and receive updates plus optional exported plots.</li>
-      </ol>
+      <div class="hiw-steps">
+
+        <div class="hiw-step glass">
+          <div class="hiw-icon">🔌</div>
+          <div class="hiw-num">01</div>
+          <h3>Connect</h3>
+          <p>Create a <strong>SlackClient</strong> or <strong>TelegramClient</strong> with your API token. slackker verifies connectivity and resolves your channel or chat ID automatically.</p>
+        </div>
+
+        <div class="hiw-arrow" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </div>
+
+        <div class="hiw-step glass">
+          <div class="hiw-icon">🎯</div>
+          <div class="hiw-num">02</div>
+          <h3>Attach</h3>
+          <p>Pass the client to <strong>SimpleCallback</strong>, <strong>KerasCallback</strong>, or <strong>LightningCallback</strong>. Wrap your function with <code>@notifier</code> or drop the callback into your trainer.</p>
+        </div>
+
+        <div class="hiw-arrow" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </div>
+
+        <div class="hiw-step glass">
+          <div class="hiw-icon">📲</div>
+          <div class="hiw-num">03</div>
+          <h3>Receive</h3>
+          <p>Get real-time updates — execution time, returned outputs, epoch metrics, best model stats, and optional training plots — delivered straight to your phone.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="cta" class="section reveal cta-section">
+      <div class="cta-card glass">
+        <img src="assets/slackker_logo_medium_alpha.png" alt="slackker logo" class="cta-logo" />
+        <p class="eyebrow">Get started in 60 seconds</p>
+        <h2>Your pipeline runs. Your phone <span class="highlight">notifies</span></h2>
+        <p class="cta-sub">Stop babysitting terminal. Slackker keeps you informed so you can stay heads-down on what actually matters.</p>
+        <div class="cta-actions center-wrap">
+          <a class="btn btn-ghost" href="https://github.com/siddheshgunjal/slackker" target="_blank" rel="noreferrer">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+          <a class="btn btn-primary" href="https://pypi.org/project/slackker/" target="_blank" rel="noreferrer">pip install slackker</a>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -207,7 +320,7 @@ trainer.fit(model, train_loader, val_loader)</code></pre>
     <div class="footer-bar">
       <div class="footer-status">
         <span class="footer-pulse"></span>
-        <span>slackker v1.2.38</span>
+        <span>slackker v1.3.0</span>
       </div>
       <div class="footer-links">
         <a href="https://github.com/siddheshgunjal/slackker" target="_blank" rel="noreferrer">GitHub</a>

@@ -1,10 +1,10 @@
 from slackker import callbacks
-from slackker.utils import checkker
-from slackker.utils import functions
+from slackker.core import SlackClient, TelegramClient, BaseClient
+from slackker.callbacks.simple import SimpleCallback
 
 __author__ = 'Siddhesh Gunjal'
 __email__ = 'siddhu19@live.com'
-__version__ = '1.2.39'
+__version__ = '1.3.0'
 
 # module level doc-string
 __doc__ = """
@@ -12,9 +12,32 @@ slackker
 =====================================================================
 Description
 -----------
-slackker is a python package for monitoring your python script & Model training status in real-time on slack & telegram.
+slackker is a python package for sending notifications and monitoring
+your python scripts & ML model training in real-time on Slack & Telegram.
+
+Async-first with sync convenience wrappers. Works with any client
+backend via the BaseClient abstraction.
+
+New API (recommended):
+    from slackker.core import SlackClient, TelegramClient
+    from slackker.callbacks.simple import SimpleCallback
+    from slackker.callbacks.keras import KerasCallback
+    from slackker.callbacks.lightning import LightningCallback
+
+Legacy API (deprecated, still works):
+    from slackker.callbacks.basic import Update, SlackUpdate, TelegramUpdate
+    from slackker.callbacks.keras import SlackUpdate, TelegramUpdate
+    from slackker.callbacks.lightning import SlackUpdate, TelegramUpdate
 
 References
 ----------
 https://github.com/siddheshgunjal/slackker
 """
+
+__all__ = [
+    "SlackClient",
+    "TelegramClient",
+    "BaseClient",
+    "SimpleCallback",
+    "callbacks",
+]

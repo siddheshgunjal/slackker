@@ -1,196 +1,154 @@
+import warnings
 from datetime import datetime
-import argparse
-import requests
 import numpy as np
 from keras.callbacks import Callback
-from slack_sdk import WebClient
-from slackker.utils import checkker
-from slackker.utils import functions
-from slackker.utils.ccolors import colors
+from slackker.core.client import BaseClient, _run_sync
+from slackker.utils.logger import log
+from slackker.utils import network, plotting
 
-class SlackUpdate(Callback):
-    """Custom Keras callback that posts to Slack while training a neural network"""
+
+class KerasCallback(Callback):
+    """Unified Keras training callback that works with any client backend."""
+
+    SUPPORTED_FORMATS = ("eps", "jpeg", "jpg", "pdf", "pgf", "png", "ps", "raw", "rgba", "svg", "svgz", "tif", "tiff")
+
+    def __init__(self, client: BaseClient, model_name: str, export: str = "png", send_plot: bool = False):
+        super().__init__()
+        if export not in self.SUPPORTED_FORMATS:
+            raise ValueError(f"Unsupported export format '{export}'. Supported: {self.SUPPORTED_FORMATS}")
+
+        self.client = client
+        self.model_name = model_name
+        self.export = export
+        self.send_plot = send_plot
+
+        if not client.is_connected:
+            _run_sync(client.connect())
+
+        self.train_acc = []
+        self.valid_acc = []
+        self.train_loss = []
+        self.valid_loss = []
+        self.n_epochs = 0
+
+    def on_train_begin(self, logs=None):
+        self.client.send_message_sync(
+            f'Training on "{self.model_name}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
+        )
+
+    def on_epoch_end(self, batch, logs=None):
+        logs = logs or {}
+        log_values = list(logs.values())
+
+        if len(log_values) >= 4:
+            self.train_acc.append(log_values[0])
+            self.train_loss.append(log_values[1])
+            self.valid_acc.append(log_values[2])
+            self.valid_loss.append(log_values[3])
+
+        message = f"Epoch: {self.n_epochs}"
+        if self.train_loss:
+            message += f", Training Loss: {self.train_loss[-1]:.4f}"
+        if self.valid_loss:
+            message += f", Validation Loss: {self.valid_loss[-1]:.4f}"
+
+        connected = _run_sync(
+            network.check_connection_quick(url="www.slack.com" if self.client.platform == "slack" else "www.telegram.org")
+        )
+        if connected:
+            self.client.send_message_sync(message)
+
+        self.n_epochs += 1
+
+    def on_train_end(self, logs=None):
+        if self.valid_loss:
+            best_epoch = int(np.argmin(self.valid_loss))
+            val_loss = self.valid_loss[best_epoch]
+            train_loss = self.train_loss[best_epoch]
+            val_acc = self.valid_acc[best_epoch] if self.valid_acc else 0
+            train_acc = self.train_acc[best_epoch] if self.train_acc else 0
+
+            self.client.send_message_sync(
+                f"Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}."
+            )
+            self.client.send_message_sync(
+                f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
+            )
+
+        training_logs = {
+            "train_loss": self.train_loss,
+            "train_acc": self.train_acc,
+            "val_loss": self.valid_loss,
+            "val_acc": self.valid_acc,
+        }
+
+        if self.send_plot:
+            paths = plotting.generate_and_get_plots(self.model_name, self.export, training_logs)
+            for path in paths:
+                self.client.upload_image_sync(path, comment=f"{self.model_name} 📎")
+
+
+# ──────────────────────────────────────────────
+# Backward-compatible shims (deprecated)
+# ──────────────────────────────────────────────
+
+from slackker.core.slack import SlackClient
+from slackker.core.telegram import TelegramClient
+
+
+class SlackUpdate(KerasCallback):
+    """Deprecated: Use KerasCallback(SlackClient(...), ...) instead."""
+
     def __init__(self, token, channel, ModelName, export="png", SendPlot=False, verbose=0):
-
+        warnings.warn(
+            "SlackUpdate is deprecated. Use KerasCallback(SlackClient(token, channel), model_name) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if token is None:
-            colors.prRed('[slackker] ERROR: Please enter Valid Slack API Token.')
+            log.error("Please enter a valid Slack API Token.")
             return
 
-        server = checkker.check_internet(url="www.slack.com", verbose=verbose)
-        api = checkker.slack_connect(token=token, verbose=verbose)
+        client = SlackClient(token=token, channel=channel, verbose=verbose)
+        connected = _run_sync(client.connect())
+        if not connected:
+            log.error("Failed to connect to Slack.")
+            return
 
-        if server and api:
-            self.client = WebClient(token=token)
-            self.channel = channel
-            self.ModelName = ModelName
-            self.export = export
-            self.SendPlot = SendPlot
-            self.verbose = verbose
+        super().__init__(client=client, model_name=ModelName, export=export, send_plot=SendPlot)
 
-            if export is not None:
-                pass
-            else:
-                raise argparse.ArgumentTypeError("[slackker] ERROR: 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
+        # Expose old attribute names for backward compat
+        self.ModelName = ModelName
+        self.SendPlot = SendPlot
+        self.verbose = verbose
+        self._sdk_client = client._client
+        self.channel = channel
 
-        self.train_acc = []
-        self.valid_acc = []
-        self.train_loss = []
-        self.valid_loss = []
-        self.n_epochs = 0
 
-    # Called when training starts
-    def on_train_begin(self, logs={}):
-        functions.Slack.report_stats(
-            client=self.client,
-            channel=self.channel,
-            text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-            verbose=self.verbose)
+class TelegramUpdate(KerasCallback):
+    """Deprecated: Use KerasCallback(TelegramClient(...), ...) instead."""
 
-    # Called when epoch ends
-    def on_epoch_end(self, batch, logs={}):
-
-        custom_logs = []
-
-        for i in logs:
-            custom_logs.append(logs[i])
-
-        self.train_loss.append(custom_logs[1])
-        self.train_acc.append(custom_logs[0])
-        self.valid_loss.append(custom_logs[3])
-        self.valid_acc.append(custom_logs[2])
-
-        message = f'Epoch: {self.n_epochs}, Training Loss: {self.train_loss[-1]:.4f}, Validation Loss: {self.valid_loss[-1]:.4f}'
-
-        # Check internet before sending update on slacj
-        server = checkker.check_internet_epoch_end(url="www.slack.com")
-
-        # If internet working send message else skip sending message and continue training.
-        if server:
-            functions.Slack.report_stats(
-                client=self.client,
-                channel=self.channel,
-                text=message,
-                verbose=self.verbose)
-        else:
-            pass
-
-        self.n_epochs += 1
-
-    # Prepare and send report with graphs at the end of training.
-    def on_train_end(self, logs={}):
-
-        best_epoch = np.argmin(self.valid_loss)
-        val_loss = self.valid_loss[best_epoch]
-        train_loss = self.train_loss[best_epoch]
-        train_acc = self.train_acc[best_epoch]
-        val_acc = self.valid_acc[best_epoch]
-
-        training_logs = {'train_loss': self.train_loss, 'train_acc': self.train_acc, 'val_loss': self.valid_loss, 'val_acc': self.valid_acc}
-
-        message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}.'
-        message2 = f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
-
-        functions.Slack.report_stats(client=self.client, channel=self.channel, text=message1, verbose=self.verbose)
-
-        functions.Slack.report_stats(client=self.client, channel=self.channel, text=message2, verbose=self.verbose)
-
-        functions.Slack.keras_plot_history(ModelName=self.ModelName,
-            export=self.export,
-            client=self.client,
-            channel=self.channel,
-            SendPlot=self.SendPlot,
-            training_logs=training_logs,
-            verbose=self.verbose)
-
-class TelegramUpdate(Callback):
-    """Custom Keras callback that posts to Telegram while training a neural network"""
     def __init__(self, token, ModelName, export="png", SendPlot=False, verbose=0):
-
+        warnings.warn(
+            "TelegramUpdate is deprecated. Use KerasCallback(TelegramClient(token), model_name) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if token is None:
-            colors.prRed('[slackker] ERROR: Please enter Valid Telegram API Token.')
+            log.error("Please enter a valid Telegram API Token.")
             return
 
-        server = checkker.check_internet(url="www.telegram.org", verbose=verbose)
-        channel = checkker.get_telegram_chat_id(token=token, verbose=verbose)
+        client = TelegramClient(token=token, verbose=verbose)
+        connected = _run_sync(client.connect())
+        if not connected:
+            log.error("Failed to connect to Telegram.")
+            return
 
-        if server and channel:
-            self.token = token
-            self.channel = channel
-            self.ModelName = ModelName
-            self.export = export
-            self.SendPlot = SendPlot
-            self.verbose = verbose
+        super().__init__(client=client, model_name=ModelName, export=export, send_plot=SendPlot)
 
-            if export is not None:
-                pass
-            else:
-                raise argparse.ArgumentTypeError("[slackker] ERROR: 'export' argument is missing (supported formats: eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)")
-
-        self.train_acc = []
-        self.valid_acc = []
-        self.train_loss = []
-        self.valid_loss = []
-        self.n_epochs = 0
-
-    # Called when training starts
-    def on_train_begin(self, logs={}):
-        functions.Telegram.report_stats(
-            token=self.token,
-            channel=self.channel,
-            text=f'Training on "{self.ModelName}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
-            verbose=self.verbose)
-
-    # Called when epoch ends
-    def on_epoch_end(self, batch, logs={}):
-
-        custom_logs = []
-
-        for i in logs:
-            custom_logs.append(logs[i])
-
-        self.train_loss.append(custom_logs[1])
-        self.train_acc.append(custom_logs[0])
-        self.valid_loss.append(custom_logs[3])
-        self.valid_acc.append(custom_logs[2])
-        self.n_epochs += 1
-
-        message = f'Epoch: {self.n_epochs}, Training Loss: {self.train_loss[-1]:.4f}, Validation Loss: {self.valid_loss[-1]:.4f}'
-
-        # Check internet before sending update on slacj
-        server = checkker.check_internet_epoch_end(url="www.telegram.org")
-
-        # If internet working send message else skip sending message and continue training.
-        if server:
-            functions.Telegram.report_stats(
-                token=self.token,
-                channel=self.channel,
-                text=message,
-                verbose=self.verbose)
-        else:
-            pass
-
-    # Prepare and send report with graphs at the end of training.
-    def on_train_end(self, logs={}):
-
-        best_epoch = np.argmin(self.valid_loss)
-        val_loss = self.valid_loss[best_epoch]
-        train_loss = self.train_loss[best_epoch]
-        train_acc = self.train_acc[best_epoch]
-        val_acc = self.valid_acc[best_epoch]
-
-        training_logs = {'train_loss': self.train_loss, 'train_acc': self.train_acc, 'val_loss': self.valid_loss, 'val_acc': self.valid_acc}
-
-        message1 = f'Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}.'
-        message2 = f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
-
-        functions.Telegram.report_stats(token=self.token, channel=self.channel, text=message1, verbose=self.verbose)
-
-        functions.Telegram.report_stats(token=self.token, channel=self.channel, text=message2, verbose=self.verbose)
-
-        functions.Telegram.keras_plot_history(ModelName=self.ModelName,
-            export=self.export,
-            token=self.token,
-            channel=self.channel,
-            SendPlot=self.SendPlot,
-            training_logs=training_logs,
-            verbose=self.verbose)
+        # Expose old attribute names for backward compat
+        self.ModelName = ModelName
+        self.SendPlot = SendPlot
+        self.verbose = verbose
+        self.token = token
+        self.channel = client.chat_id
