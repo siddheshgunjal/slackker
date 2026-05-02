@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>slackker | Real-time Pipeline Notifications</title>
+  <meta name="description" content="Monitor any Python script, data pipeline, or ML training run in real-time via Slack and Telegram with slackker callbacks." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="assets/slackker_logo_medium_alpha.png" type="image/png" />
+</head>
+<body>
+  <div class="bg-aurora" aria-hidden="true"></div>
+
+  <header class="topbar glass">
+    <a class="brand" href="#home">
+      <img src="assets/slackker_logo_medium_alpha.png" alt="slackker logo" />
+      <span>slackker</span>
+    </a>
+    <button id="menuButton" class="menu-btn" aria-expanded="false" aria-controls="navLinks">Menu</button>
+    <nav id="navLinks" class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#examples">Examples</a>
+      <a href="#quickstart">Quick Start</a>
+      <a href="https://pypi.org/project/slackker/" target="_blank" rel="noreferrer">PyPI</a>
+    </nav>
+  </header>
+
+  <main id="home" class="site-main">
+    <section class="hero reveal center-text">
+      <p class="eyebrow">Real-time notifications for any Python pipeline</p>
+      <h1>Run anything.<br />Know instantly. Stay anywhere.</h1>
+      <p class="lead center-block">
+        slackker sends real-time notifications to Slack or Telegram for any Python script, data pipeline,
+        ML training run, or automation workflow — complete with metrics, outputs, and optional plots.
+      </p>
+      <div class="hero-cta center-wrap">
+        <a class="btn btn-primary" href="https://pypi.org/project/slackker/" target="_blank" rel="noreferrer">pip install slackker</a>
+        <a class="btn btn-ghost" href="https://github.com/siddheshgunjal/slackker" target="_blank" rel="noreferrer">
+          <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          View on GitHub
+        </a>
+      </div>
+      <div class="hero-code glass center-block">
+        <div class="ide-titlebar">
+          <span class="ide-dot dot-red"></span>
+          <span class="ide-dot dot-yellow"></span>
+          <span class="ide-dot dot-green"></span>
+          <span class="ide-filename">main.py</span>
+        </div>
+<pre><code>from slackker.callbacks.basic import SlackUpdate
+
+slackker = SlackUpdate(token="xoxb-...", channel="A04AAB77ABC")
+
+@slackker.notifier
+def train_model():
+    return "done"
+
+slackker.notify(event="training_complete", status="completed")</code></pre>
+      </div>
+    </section>
+
+    <section id="features" class="section reveal">
+      <div class="section-head center-text">
+        <p class="eyebrow">Why slackker</p>
+        <h2>Stay informed without staying glued to your screen</h2>
+      </div>
+      <div class="cards">
+        <article class="card glass center-text">
+          <h3>Any Python Function</h3>
+          <p>Decorator-based notifications for script execution with returned output summaries.</p>
+        </article>
+        <article class="card glass center-text">
+          <h3>Keras Callback</h3>
+          <p>Attach to model.fit and receive metric progress during epoch training.</p>
+        </article>
+        <article class="card glass center-text">
+          <h3>Lightning Callback</h3>
+          <p>Track train and validation logs with monitor-based best epoch updates.</p>
+        </article>
+        <article class="card glass center-text">
+          <h3>Plot Sharing</h3>
+          <p>Export and send history plots so you can check model behavior quickly on mobile.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="examples" class="section reveal">
+      <div class="section-head center-text">
+        <p class="eyebrow">Detailed callback usage</p>
+        <h2>Drop-in examples for real projects</h2>
+      </div>
+
+      <div class="example-switch center-wrap" role="tablist" aria-label="Callback examples">
+        <button class="example-tab active" data-target="example-basic" role="tab" aria-selected="true">Basic Script</button>
+        <button class="example-tab" data-target="example-keras" role="tab" aria-selected="false">Keras</button>
+        <button class="example-tab" data-target="example-lightning" role="tab" aria-selected="false">Lightning</button>
+      </div>
+
+      <div class="example-panels">
+        <article id="example-basic" class="example-panel glass active" role="tabpanel">
+          <div class="ide-titlebar">
+            <span class="ide-dot dot-red"></span>
+            <span class="ide-dot dot-yellow"></span>
+            <span class="ide-dot dot-green"></span>
+            <span class="ide-filename">pipeline.py</span>
+          </div>
+<pre><code>from slackker.callbacks.basic import SlackUpdate
+
+notify = SlackUpdate(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+
+@notify.notifier
+def run_data_pipeline(source_path: str):
+    rows_processed = 12500
+    status = "success"
+    return rows_processed, status
+
+if __name__ == "__main__":
+    rows, status = run_data_pipeline("./data/train.csv")
+    notify.notify(
+        event="pipeline_finished",
+        rows_processed=rows,
+        status=status,
+        attachment="./artifacts/summary.txt"
+    )</code></pre>
+        </article>
+
+        <article id="example-keras" class="example-panel glass" role="tabpanel" hidden>
+          <div class="ide-titlebar">
+            <span class="ide-dot dot-red"></span>
+            <span class="ide-dot dot-yellow"></span>
+            <span class="ide-dot dot-green"></span>
+            <span class="ide-filename">train_keras.py</span>
+          </div>
+<pre><code>from slackker.callbacks.keras import SlackUpdate
+
+slackker_cb = SlackUpdate(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    ModelName="ImageClassifierV1",
+    export="png",
+    SendPlot=True,
+    verbose=1
+)
+
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=20,
+    batch_size=32,
+    validation_data=(x_val, y_val),
+    callbacks=[slackker_cb]
+)</code></pre>
+        </article>
+
+        <article id="example-lightning" class="example-panel glass" role="tabpanel" hidden>
+          <div class="ide-titlebar">
+            <span class="ide-dot dot-red"></span>
+            <span class="ide-dot dot-yellow"></span>
+            <span class="ide-dot dot-green"></span>
+            <span class="ide-filename">train_lightning.py</span>
+          </div>
+<pre><code>from lightning.pytorch import Trainer
+from slackker.callbacks.lightning import SlackUpdate
+
+slackker_cb = SlackUpdate(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    ModelName="LightningClassifier",
+    TrackLogs=["train_loss", "train_acc", "val_loss", "val_acc"],
+    monitor="val_loss",
+    export="png",
+    SendPlot=True,
+    verbose=1
+)
+
+trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
+trainer.fit(model, train_loader, val_loader)</code></pre>
+        </article>
+      </div>
+    </section>
+
+    <section id="quickstart" class="section reveal quickstart-section">
+      <div class="section-head center-text">
+        <p class="eyebrow">Quick start</p>
+        <h2>From install to updates in four steps</h2>
+      </div>
+      <ol class="steps center-block">
+        <li class="glass"><span>1</span>Install package: <strong>pip install slackker</strong></li>
+        <li class="glass"><span>2</span>Setup Slack app token and channel, or Telegram token.</li>
+        <li class="glass"><span>3</span>Create callback object and attach notifier/decorator.</li>
+        <li class="glass"><span>4</span>Run training and receive updates plus optional exported plots.</li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-line"></div>
+    <div class="footer-bar">
+      <div class="footer-status">
+        <span class="footer-pulse"></span>
+        <span>slackker v1.2.38</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/siddheshgunjal/slackker" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://github.com/siddheshgunjal/slackker/issues" target="_blank" rel="noreferrer">Issues</a>
+        <a href="https://github.com/siddheshgunjal/slackker/blob/main/CONTRIBUTING.md" target="_blank" rel="noreferrer">Contributing</a>
+      </div>
+      <span class="footer-credit">Made by <a href="https://siddheshgunjal.github.io" target="_blank" rel="noreferrer">Siddhesh Gunjal</a></span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
