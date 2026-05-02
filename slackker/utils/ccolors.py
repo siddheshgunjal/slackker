@@ -1,3 +1,11 @@
+import warnings
+
+warnings.warn(
+    "slackker.utils.ccolors is deprecated. Use slackker.utils.logger instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
 class colors:
 	# Assign colors to logging statements
 	def prRed(sent):
