@@ -1,23 +1,28 @@
 # Introducing slackker! :fire:
 
 [![slackker-logo.png](https://i.postimg.cc/mgSDJPds/slackker-logo.png)](https://postimg.cc/RWN4nZ5s)
+<div align="center">
 
-Watching training metrics is a time killer and addictive. Have you ever found yourself walking back and forth to computer to monitor progress, only to find that the current epoch is not finished yet or that nothing has changed?
+![Tests](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/pr-tests.yml?style=for-the-badge&logo=checkmarx&label=Tests)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/publish-to-pypi.yml?style=for-the-badge&logo=python&logoColor=yellow&label=Build)
+[<img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fsiddheshgunjal.github.io%2Fslackker%2F&style=for-the-badge&logo=htmx">][website]
 
-When you're in front of your screen, you start to look for patterns in the metrics to judge the progress, this way training spills over into the rest of your live. All the time the models are training, your brain works at 50% at most. So, I made slackker to make your life easy :grin:
+</div>
 
 <div align="center">
 
 [<img alt="PyPI - Version" src="https://img.shields.io/pypi/v/slackker?style=for-the-badge&logo=python&logoColor=yellow&label=pip%20install%20slackker&color=teal" width="400">][py-pi]
 
-_Requirements: `slack_sdk>=3.19.0` and `matplotlib`_
-
 </div>
 
-`slackker` is a python package for monitoring your python script & ML model training status in real-time on Slack & Telegram.
+Watching training metrics is a time killer and addictive. Have you ever found yourself walking back and forth to computer to monitor progress, only to find that the current epoch is not finished yet or that nothing has changed?
+
+When you're in front of your screen, you start to look for patterns in the metrics to judge the progress, this way training spills over into the rest of your live. All the time the models are training, your brain works at 50% at most. So, I made slackker to make your life easy :grin:
+
+`slackker` is a python package for monitoring your pipeline & ML model training status in real-time on Slack & Telegram.
 Features:
-* **Integrate within any _.py_ function/script**: You can integrate slackker with any python script or function.
-* **Real-time updates**: Get updates on your training progress in real-time on Slack & Telegram.
+* **Integrate within any _.py_ function/script**: You can integrate slackker with any pipeline built in python
+* **Real-time updates**: Get updates on your progress in real-time on Slack & Telegram.
 * **Exported Plots**: Exported plots of training metrics and send it to your Slack channel.
 * **Customizable**: Customize the metrics you want to track and notify.
 * **Easy to use**: Just import the package, setup the slack/telegram and you are good to go.
@@ -36,10 +41,15 @@ So now you don't have to sit in front of the machine all the time. You can quick
 * [Maintainer](#maintainer-sunglasses)
 
 # Installation :arrow_down:
-* Install slackker from [PyPi][py-pi] is recommended. slackker is compatible with `Python >= 3.6` and runs on Linux, MacOS X and Windows. 
-* Installing slackker in your environment is easy. Just use below pip command:
+* Install slackker from [UV][uv] is recommended. slackker is compatible with `Python >= 3.10` and runs on Linux, MacOS X and Windows. 
+* Installing slackker in your environment is easy. Just use below command:
 
-```bash
+```sh
+uv add slackker
+```
+
+OR
+```
 pip install slackker
 ```
 
@@ -411,3 +421,5 @@ Please cite slackker in your publications if this is useful for your project/res
 [gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIBUTING.md
 [portfolio]: https://siddheshgunjal.github.io
 [GitHub]: https://github.com/siddheshgunjal
+[website]: https://siddheshgunjal.github.io/slackker/
+[uv]: https://docs.astral.sh/uv/

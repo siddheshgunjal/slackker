@@ -4,10 +4,10 @@ build-backend = "hatchling.build"
 
 [project]
 name = "slackker"
-version = "1.2.38"
+version = "1.2.39"
 description = "Python package for monitoring your python script & Model training status in real-time on slack & telegram."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     {name = "Siddhesh Gunjal", email = "siddhu19@live.com"},
 ]
@@ -56,7 +56,7 @@ explicit = true
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
-    "keras>=3.12.1",
+    "keras>=3.13.2",
     "lightning>=2.6.1",
     "scikit-learn>=1.7.2",
     "tensorflow>=2.21.0",
