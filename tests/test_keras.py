@@ -1,887 +1,381 @@
 """
-Comprehensive tests for slackker.callbacks.keras module
-Tests cover SlackUpdate and TelegramUpdate Keras callback classes
+Comprehensive tests for slackker.callbacks.keras module.
+Tests cover the new unified KerasCallback class and backward-compatible shims.
 """
 
 import pytest
-import argparse
+import warnings
 import numpy as np
-from unittest.mock import Mock, MagicMock, patch, call
-from datetime import datetime
-from slackker.callbacks.keras import SlackUpdate, TelegramUpdate
+from unittest.mock import AsyncMock, MagicMock, patch
+from slackker.callbacks.keras import KerasCallback, SlackUpdate, TelegramUpdate
+from slackker.core.client import BaseClient
 
 
-class TestSlackUpdateKerasInitialization:
-    """Test SlackUpdate Keras callback initialization"""
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    def test_slack_keras_init_success(self, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test successful SlackUpdate Keras callback initialization"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model",
-            export="png",
-            SendPlot=True,
-            verbose=0
-        )
-        
-        assert callback.ModelName == "Test_Model"
-        assert callback.export == "png"
-        assert callback.SendPlot == True
-        assert callback.verbose == 0
-        assert callback.n_epochs == 0
-        assert callback.train_loss == []
-        assert callback.train_acc == []
-        assert callback.valid_loss == []
-        assert callback.valid_acc == []
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    def test_slack_keras_init_with_all_formats(self, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test SlackUpdate initialization with different export formats"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        formats = ["png", "jpg", "pdf", "svg"]
-        for fmt in formats:
-            callback = SlackUpdate(
-                token="test_token",
-                channel="C123456",
-                ModelName="Test_Model",
-                export=fmt,
-                SendPlot=False
-            )
-            assert callback.export == fmt
-    
-    @patch('slackker.callbacks.keras.colors.prRed')
-    def test_slack_keras_init_no_token(self, mock_print_red):
-        """Test SlackUpdate initialization with None token"""
-        callback = SlackUpdate(
-            token=None,
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        mock_print_red.assert_called_once()
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    def test_slack_keras_init_no_internet(self, mock_slack_connect, mock_check_internet):
-        """Test SlackUpdate initialization without internet"""
-        mock_check_internet.return_value = False
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        mock_check_internet.assert_called_once_with(url="www.slack.com", verbose=0)
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    def test_slack_keras_init_invalid_export_format(self, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test SlackUpdate initialization with invalid export format"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        # This should pass during init, validation happens in __init__
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model",
-            export="png"
-        )
-        assert callback.export == "png"
+# ── Fixtures ──────────────────────────────────────────────────
+
+class MockClient(BaseClient):
+    """Concrete test client that records calls."""
+
+    def __init__(self, verbose=0, platform_name="mock"):
+        super().__init__(verbose=verbose)
+        self._platform_name = platform_name
+        self.messages = []
+        self.uploaded_files = []
+        self.uploaded_images = []
+
+    @property
+    def platform(self):
+        return self._platform_name
+
+    @property
+    def is_connected(self):
+        return True
+
+    async def send_message(self, text):
+        self.messages.append(text)
+
+    async def upload_file(self, filepath, comment=None):
+        self.uploaded_files.append((filepath, comment))
+
+    async def upload_image(self, filepath, comment=None):
+        self.uploaded_images.append((filepath, comment))
 
 
-class TestTelegramUpdateKerasInitialization:
-    """Test TelegramUpdate Keras callback initialization"""
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    def test_telegram_keras_init_success(self, mock_get_chat_id, mock_check_internet):
-        """Test successful TelegramUpdate Keras callback initialization"""
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        
-        callback = TelegramUpdate(
-            token="test_token",
-            ModelName="Keras_NN",
-            export="png",
-            SendPlot=True,
-            verbose=1
-        )
-        
-        assert callback.token == "test_token"
-        assert callback.channel == "123456789"
-        assert callback.ModelName == "Keras_NN"
-        assert callback.export == "png"
-        assert callback.SendPlot == True
-        assert callback.verbose == 1
-        assert callback.n_epochs == 0
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    def test_telegram_keras_init_default_params(self, mock_get_chat_id, mock_check_internet):
-        """Test TelegramUpdate initialization with default parameters"""
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        
-        callback = TelegramUpdate(
-            token="test_token",
-            ModelName="My_Model"
-        )
-        
-        assert callback.export == "png"  # Default
-        assert callback.SendPlot == False  # Default
-        assert callback.verbose == 0  # Default
-    
-    @patch('slackker.callbacks.keras.colors.prRed')
-    def test_telegram_keras_init_no_token(self, mock_print_red):
-        """Test TelegramUpdate initialization with None token"""
-        callback = TelegramUpdate(
-            token=None,
-            ModelName="Test_Model"
-        )
-        mock_print_red.assert_called_once()
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    def test_telegram_keras_init_no_internet(self, mock_get_chat_id, mock_check_internet):
-        """Test TelegramUpdate initialization without internet"""
-        mock_check_internet.return_value = False
-        mock_get_chat_id.return_value = "123456789"
-        
-        callback = TelegramUpdate(
-            token="test_token",
-            ModelName="Test_Model"
-        )
-        mock_check_internet.assert_called_once_with(url="www.telegram.org", verbose=0)
+def _make_callback(platform="slack", verbose=0, send_plot=False, export="png"):
+    client = MockClient(verbose=verbose, platform_name=platform)
+    cb = KerasCallback(
+        client=client,
+        model_name="TestModel",
+        export=export,
+        send_plot=send_plot,
+    )
+    return cb, client
 
 
-class TestSlackUpdateKerasCallbacks:
-    """Test SlackUpdate Keras callback methods"""
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    def test_on_train_begin(self, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test on_train_begin callback method"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        
-        callback.on_train_begin(logs={})
-        
-        mock_report.assert_called_once()
-        call_args = mock_report.call_args
-        message = call_args[1]['text']
-        assert "Test_Model" in message
-        assert "started at" in message
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    def test_on_epoch_end(self, mock_check_epoch, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test on_epoch_end callback method"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        mock_check_epoch.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        
-        logs = {
-            'accuracy': 0.85,
-            'loss': 0.45,
-            'val_accuracy': 0.80,
-            'val_loss': 0.50
-        }
-        
-        callback.on_epoch_end(batch=0, logs=logs)
-        
-        assert callback.n_epochs == 1
-        assert len(callback.train_loss) == 1
-        assert len(callback.train_acc) == 1
-        assert len(callback.valid_loss) == 1
-        assert len(callback.valid_acc) == 1
-        
-        # Verify report was called
-        assert mock_report.called
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    def test_multiple_epochs(self, mock_check_epoch, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test multiple epochs tracking"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        mock_check_epoch.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        
-        # Simulate 3 epochs
+# ── KerasCallback initialization ──────────────────────────────
+
+class TestKerasCallbackInit:
+    def test_init_stores_attributes(self):
+        cb, _ = _make_callback()
+        assert cb.model_name == "TestModel"
+        assert cb.export == "png"
+        assert cb.send_plot is False
+        assert cb.n_epochs == 0
+        assert cb.train_loss == []
+        assert cb.train_acc == []
+
+    def test_init_rejects_bad_format(self):
+        m = MockClient()
+        with pytest.raises(ValueError, match="Unsupported export format"):
+            KerasCallback(client=m, model_name="M", export="bmp")
+
+
+# ── on_train_begin ────────────────────────────────────────────
+
+class TestOnTrainBegin:
+    def test_posts_training_start(self):
+        cb, client = _make_callback()
+        cb.on_train_begin()
+        assert len(client.messages) == 1
+        assert "TestModel" in client.messages[0]
+        assert "started at" in client.messages[0]
+
+
+# ── on_epoch_end ──────────────────────────────────────────────
+
+class TestOnEpochEnd:
+    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    def test_tracks_metrics_and_reports(self, mock_check):
+        cb, client = _make_callback()
+        logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
+        cb.on_epoch_end(batch=0, logs=logs)
+
+        assert cb.n_epochs == 1
+        assert len(cb.train_loss) == 1
+        assert len(cb.valid_loss) == 1
+        assert len(client.messages) == 1
+        assert "Epoch: 0" in client.messages[0]
+
+    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=False)
+    def test_skips_report_without_internet(self, mock_check):
+        cb, client = _make_callback()
+        logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
+        cb.on_epoch_end(batch=0, logs=logs)
+
+        assert cb.n_epochs == 1
+        assert len(cb.train_loss) == 1
+        assert len(client.messages) == 0
+
+    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    def test_multiple_epochs(self, mock_check):
+        cb, client = _make_callback()
         epochs_logs = [
-            {'accuracy': 0.70, 'loss': 0.60, 'val_accuracy': 0.65, 'val_loss': 0.65},
-            {'accuracy': 0.80, 'loss': 0.45, 'val_accuracy': 0.75, 'val_loss': 0.50},
-            {'accuracy': 0.85, 'loss': 0.35, 'val_accuracy': 0.82, 'val_loss': 0.40},
+            {"accuracy": 0.70, "loss": 0.60, "val_accuracy": 0.65, "val_loss": 0.65},
+            {"accuracy": 0.80, "loss": 0.45, "val_accuracy": 0.75, "val_loss": 0.50},
+            {"accuracy": 0.85, "loss": 0.35, "val_accuracy": 0.82, "val_loss": 0.40},
         ]
-        
         for i, logs in enumerate(epochs_logs):
-            callback.on_epoch_end(batch=i, logs=logs)
-        
-        assert callback.n_epochs == 3
-        assert len(callback.train_loss) == 3
-        assert len(callback.valid_acc) == 3
-        assert callback.train_loss[-1] == 0.35
-        assert callback.valid_acc[-1] == 0.82
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    @patch('slackker.callbacks.keras.functions.Slack.keras_plot_history')
-    def test_on_train_end(self, mock_plot, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test on_train_end callback method"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model",
-            export="png",
-            SendPlot=True
-        )
-        
-        # Simulate training history
-        callback.train_loss = [0.60, 0.45, 0.35]
-        callback.train_acc = [0.70, 0.80, 0.85]
-        callback.valid_loss = [0.65, 0.50, 0.40]
-        callback.valid_acc = [0.65, 0.75, 0.82]
-        callback.n_epochs = 3
-        
-        callback.on_train_end(logs={})
-        
-        # Verify report was called with best epoch info
-        assert mock_report.call_count >= 2
-        
-        # Verify plot function was called
-        mock_plot.assert_called_once()
-        plot_call_args = mock_plot.call_args
-        training_logs = plot_call_args[1]['training_logs']
-        assert 'train_loss' in training_logs
-        assert 'train_acc' in training_logs
-        assert 'val_loss' in training_logs
-        assert 'val_acc' in training_logs
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    @patch('slackker.callbacks.keras.functions.Slack.keras_plot_history')
-    def test_best_epoch_calculation(self, mock_plot, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test best epoch calculation in on_train_end"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        
-        # Set training logs with known best epoch
-        callback.train_loss = [0.60, 0.45, 0.35, 0.40]  # Best at index 2
-        callback.train_acc = [0.70, 0.80, 0.85, 0.84]
-        callback.valid_loss = [0.65, 0.50, 0.38, 0.42]  # Best at index 2
-        callback.valid_acc = [0.65, 0.75, 0.82, 0.80]
-        callback.n_epochs = 4
-        
-        callback.on_train_end(logs={})
-        
-        # Check that the best epoch (2) was identified and reported
-        call_args_list = mock_report.call_args_list
-        # Find the call with best epoch info
-        found_best_epoch = False
-        for call_obj in call_args_list:
-            message = call_obj[1]['text']
-            if "Best epoch was 2" in message:
-                found_best_epoch = True
-                break
-        
-        assert found_best_epoch, "Best epoch information not found in report calls"
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    def test_epoch_end_no_internet(self, mock_check_epoch, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test epoch end callback when internet is unavailable"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        mock_check_epoch.return_value = False  # No internet
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        
-        logs = {
-            'accuracy': 0.85,
-            'loss': 0.45,
-            'val_accuracy': 0.80,
-            'val_loss': 0.50
-        }
-        
-        callback.on_epoch_end(batch=0, logs=logs)
-        
-        # Logs should still be recorded even without internet
-        assert callback.n_epochs == 1
-        assert len(callback.train_loss) == 1
+            cb.on_epoch_end(batch=i, logs=logs)
+
+        assert cb.n_epochs == 3
+        assert len(cb.train_loss) == 3
+        assert cb.train_loss[-1] == 0.35
+        assert cb.valid_acc[-1] == 0.82
 
 
-class TestTelegramUpdateKerasCallbacks:
-    """Test TelegramUpdate Keras callback methods"""
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    def test_telegram_on_train_begin(self, mock_report, mock_get_chat_id, mock_check_internet):
-        """Test Telegram on_train_begin callback"""
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        
-        callback = TelegramUpdate(
-            token="test_token",
-            ModelName="Keras_NN"
-        )
-        
-        callback.on_train_begin(logs={})
-        
-        mock_report.assert_called_once()
-        call_args = mock_report.call_args
-        message = call_args[1]['text']
-        assert "Keras_NN" in message
-        assert "started at" in message
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    def test_telegram_on_epoch_end(self, mock_check_epoch, mock_report, mock_get_chat_id, mock_check_internet):
-        """Test Telegram on_epoch_end callback"""
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        mock_check_epoch.return_value = True
-        
-        callback = TelegramUpdate(
-            token="test_token",
-            ModelName="Keras_NN"
-        )
-        
-        logs = {
-            'accuracy': 0.85,
-            'loss': 0.45,
-            'val_accuracy': 0.80,
-            'val_loss': 0.50
-        }
-        
-        callback.on_epoch_end(batch=0, logs=logs)
-        
-        assert callback.n_epochs == 1
-        assert mock_report.called
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    @patch('slackker.callbacks.keras.functions.Telegram.keras_plot_history')
-    def test_telegram_on_train_end(self, mock_plot, mock_report, mock_get_chat_id, mock_check_internet):
-        """Test Telegram on_train_end callback"""
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        
-        callback = TelegramUpdate(
-            token="test_token",
-            ModelName="Keras_NN",
-            export="png",
-            SendPlot=True
-        )
-        
-        callback.train_loss = [0.60, 0.45, 0.35]
-        callback.train_acc = [0.70, 0.80, 0.85]
-        callback.valid_loss = [0.65, 0.50, 0.40]
-        callback.valid_acc = [0.65, 0.75, 0.82]
-        callback.n_epochs = 3
-        
-        callback.on_train_end(logs={})
-        
-        assert mock_report.call_count >= 2
-        mock_plot.assert_called_once()
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    def test_telegram_multiple_epochs(self, mock_check_epoch, mock_report, mock_get_chat_id, mock_check_internet):
-        """Test Telegram callback with multiple epochs"""
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        mock_check_epoch.return_value = True
-        
-        callback = TelegramUpdate(
-            token="test_token",
-            ModelName="Keras_NN"
-        )
-        
-        epochs_logs = [
-            {'accuracy': 0.70, 'loss': 0.60, 'val_accuracy': 0.65, 'val_loss': 0.65},
-            {'accuracy': 0.80, 'loss': 0.45, 'val_accuracy': 0.75, 'val_loss': 0.50},
-            {'accuracy': 0.85, 'loss': 0.35, 'val_accuracy': 0.82, 'val_loss': 0.40},
-        ]
-        
-        for i, logs in enumerate(epochs_logs):
-            callback.on_epoch_end(batch=i, logs=logs)
-        
-        assert callback.n_epochs == 3
+# ── on_train_end ──────────────────────────────────────────────
+
+class TestOnTrainEnd:
+    def test_reports_best_epoch(self):
+        cb, client = _make_callback()
+        cb.train_loss = [0.60, 0.45, 0.35, 0.40]
+        cb.train_acc = [0.70, 0.80, 0.85, 0.84]
+        cb.valid_loss = [0.65, 0.50, 0.38, 0.42]
+        cb.valid_acc = [0.65, 0.75, 0.82, 0.80]
+        cb.n_epochs = 4
+
+        cb.on_train_end()
+
+        found_best = any("Best epoch was 2" in m for m in client.messages)
+        assert found_best
+
+    @patch("slackker.callbacks.keras.plotting.generate_and_get_plots", return_value=["/tmp/loss.png", "/tmp/acc.png"])
+    def test_uploads_plots_when_enabled(self, mock_plots):
+        cb, client = _make_callback(send_plot=True)
+        cb.train_loss = [0.6, 0.4]
+        cb.train_acc = [0.7, 0.8]
+        cb.valid_loss = [0.65, 0.45]
+        cb.valid_acc = [0.65, 0.78]
+        cb.n_epochs = 2
+
+        cb.on_train_end()
+
+        assert len(client.uploaded_images) == 2
+        mock_plots.assert_called_once()
+
+    def test_empty_valid_loss_skips_best(self):
+        cb, client = _make_callback()
+        cb.n_epochs = 0
+        cb.on_train_end()
+        # No messages about best epoch when no data
+        assert not any("Best epoch" in m for m in client.messages)
 
 
-class TestKerasCallbackIntegration:
-    """Integration tests for Keras callbacks"""
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    @patch('slackker.callbacks.keras.functions.Slack.keras_plot_history')
-    def test_slack_complete_training_workflow(self, mock_plot, mock_check_epoch, mock_report, 
-                                              mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test complete Slack training workflow"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        mock_check_epoch.return_value = True
-        
-        callback = SlackUpdate(
-            token="xoxb-test",
-            channel="C123456",
-            ModelName="Keras_NN",
-            export="png",
-            SendPlot=True
-        )
-        
-        # Training begins
-        callback.on_train_begin(logs={})
-        
-        # Simulate 5 epochs
-        for epoch in range(5):
-            logs = {
-                'accuracy': 0.70 + epoch * 0.03,
-                'loss': 0.60 - epoch * 0.05,
-                'val_accuracy': 0.65 + epoch * 0.03,
-                'val_loss': 0.65 - epoch * 0.05
-            }
-            callback.on_epoch_end(batch=epoch, logs=logs)
-        
-        # Training ends
-        callback.on_train_end(logs={})
-        
-        # Verify workflow
-        assert callback.n_epochs == 5
-        assert mock_report.call_count >= 2  # Begin + end
-        mock_plot.assert_called_once()
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    @patch('slackker.callbacks.keras.functions.Telegram.keras_plot_history')
-    def test_telegram_complete_training_workflow(self, mock_plot, mock_check_epoch, mock_report, 
-                                                 mock_get_chat_id, mock_check_internet):
-        """Test complete Telegram training workflow"""
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        mock_check_epoch.return_value = True
-        
-        callback = TelegramUpdate(
-            token="6703340847:AAECWu8qLPTIRMDGjXjzwT5UbK_9P13WdK8",
-            ModelName="Keras_NN",
-            export="png",
-            SendPlot=True
-        )
-        
-        # Training begins
-        callback.on_train_begin(logs={})
-        
-        # Simulate epochs
-        for epoch in range(3):
-            logs = {
-                'accuracy': 0.70 + epoch * 0.05,
-                'loss': 0.60 - epoch * 0.1,
-                'val_accuracy': 0.65 + epoch * 0.05,
-                'val_loss': 0.65 - epoch * 0.1
-            }
-            callback.on_epoch_end(batch=epoch, logs=logs)
-        
-        # Training ends
-        callback.on_train_end(logs={})
-        
-        assert callback.n_epochs == 3
-        mock_plot.assert_called_once()
+# ── Log ordering ──────────────────────────────────────────────
 
-
-class TestKerasCallbackEdgeCases:
-    """Test edge cases for Keras callbacks"""
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    def test_slack_single_epoch(self, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test Slack callback with single epoch"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        
-        logs = {
-            'accuracy': 0.85,
-            'loss': 0.45,
-            'val_accuracy': 0.80,
-            'val_loss': 0.50
-        }
-        
-        callback.on_epoch_end(batch=0, logs=logs)
-        assert callback.n_epochs == 1
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    @patch('slackker.callbacks.keras.functions.Slack.keras_plot_history')
-    def test_slack_logs_ordering(self, mock_plot, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test that logs are stored in correct order"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        
-        # Create multiple epochs with distinguishable values
+class TestLogOrdering:
+    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    def test_logs_stored_in_order(self, mock_check):
+        cb, _ = _make_callback()
         for i in range(3):
             logs = {
-                'accuracy': 0.5 + i * 0.1,
-                'loss': 0.9 - i * 0.1,
-                'val_accuracy': 0.4 + i * 0.1,
-                'val_loss': 1.0 - i * 0.1
+                "accuracy": 0.5 + i * 0.1,
+                "loss": 0.9 - i * 0.1,
+                "val_accuracy": 0.4 + i * 0.1,
+                "val_loss": 1.0 - i * 0.1,
             }
-            callback.on_epoch_end(batch=i, logs=logs)
-        
-        # Verify order is maintained
-        assert callback.train_acc == pytest.approx([0.5, 0.6, 0.7])
-        assert callback.train_loss == pytest.approx([0.9, 0.8, 0.7])
-        assert callback.valid_acc == pytest.approx([0.4, 0.5, 0.6])
-        assert callback.valid_loss == pytest.approx([1.0, 0.9, 0.8])
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    @patch('slackker.callbacks.keras.functions.Telegram.keras_plot_history')
-    def test_telegram_empty_training(self, mock_plot, mock_report, mock_get_chat_id, mock_check_internet):
-        """Test Telegram callback with no epochs"""
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        
-        callback = TelegramUpdate(
-            token="test_token",
-            ModelName="Test_Model"
-        )
-        
-        # Call on_train_end without any epochs
-        with pytest.raises(ValueError):
-            callback.on_train_end(logs={})
+            cb.on_epoch_end(batch=i, logs=logs)
+
+        assert cb.train_acc == pytest.approx([0.5, 0.6, 0.7])
+        assert cb.train_loss == pytest.approx([0.9, 0.8, 0.7])
+        assert cb.valid_acc == pytest.approx([0.4, 0.5, 0.6])
+        assert cb.valid_loss == pytest.approx([1.0, 0.9, 0.8])
 
 
-class TestKerasCallbackVerbosity:
-    """Test verbose logging for Keras callbacks"""
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    def test_slack_verbose_level_0(self, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test Slack callback with verbose=0 (silent)"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model",
-            verbose=0
-        )
-        
-        callback.on_train_begin(logs={})
-        assert mock_report.called
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    def test_slack_verbose_level_2(self, mock_report, mock_webclient, mock_slack_connect, mock_check_internet):
-        """Test Slack callback with verbose=2 (debug)"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model",
-            verbose=2
-        )
-        
-        callback.on_train_begin(logs={})
-        # Verify callback still works with higher verbosity
-        call_args = mock_report.call_args
-        assert call_args[1]['verbose'] == 2
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    def test_telegram_verbose_level_1(self, mock_report, mock_get_chat_id, mock_check_internet):
-        """Test Telegram callback with verbose=1 (info)"""
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        
-        callback = TelegramUpdate(
-            token="test_token",
-            ModelName="Test_Model",
-            verbose=1
-        )
-        
-        callback.on_train_begin(logs={})
-        call_args = mock_report.call_args
-        assert call_args[1]['verbose'] == 1
+# ── Complete workflow ─────────────────────────────────────────
+
+class TestCompleteWorkflow:
+    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    @patch("slackker.callbacks.keras.plotting.generate_and_get_plots", return_value=["/tmp/loss.png"])
+    def test_full_training(self, mock_plots, mock_check):
+        cb, client = _make_callback(send_plot=True)
+
+        cb.on_train_begin()
+        for epoch in range(5):
+            logs = {
+                "accuracy": 0.70 + epoch * 0.03,
+                "loss": 0.60 - epoch * 0.05,
+                "val_accuracy": 0.65 + epoch * 0.03,
+                "val_loss": 0.65 - epoch * 0.05,
+            }
+            cb.on_epoch_end(batch=epoch, logs=logs)
+        cb.on_train_end()
+
+        assert cb.n_epochs == 5
+        assert len(client.messages) >= 7  # 1 begin + 5 epochs + 2 end summaries
+
+
+# ── Backward-compat shim tests ───────────────────────────────
+
+class TestSlackUpdateShim:
+    @patch("slackker.callbacks.keras.SlackClient")
+    def test_init_deprecation_warning(self, mock_cls):
+        mock_client = MockClient()
+        mock_client.connect = AsyncMock(return_value=True)
+        mock_client._client = MagicMock()
+        mock_cls.return_value = mock_client
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            cb = SlackUpdate(token="xoxb-test", channel="C123", ModelName="M")
+            assert any(issubclass(x.category, DeprecationWarning) for x in w)
+
+    @patch("slackker.callbacks.keras.SlackClient")
+    def test_shim_preserves_old_attrs(self, mock_cls):
+        mock_client = MockClient()
+        mock_client.connect = AsyncMock(return_value=True)
+        mock_client._client = MagicMock()
+        mock_cls.return_value = mock_client
+
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            cb = SlackUpdate(token="xoxb-test", channel="C123", ModelName="M", SendPlot=True, verbose=2)
+
+        assert cb.ModelName == "M"
+        assert cb.SendPlot is True
+        assert cb.verbose == 2
+
+    def test_no_token(self):
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            cb = SlackUpdate(token=None, channel="C123", ModelName="M")
+        assert not hasattr(cb, "client")
+
+
+class TestTelegramUpdateShim:
+    @patch("slackker.callbacks.keras.TelegramClient")
+    def test_init_deprecation_warning(self, mock_cls):
+        mock_client = MockClient()
+        mock_client.connect = AsyncMock(return_value=True)
+        mock_client.chat_id = "99999"
+        mock_cls.return_value = mock_client
+
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            cb = TelegramUpdate(token="123:ABC", ModelName="M")
+            assert any(issubclass(x.category, DeprecationWarning) for x in w)
+
+    def test_no_token(self):
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            cb = TelegramUpdate(token=None, ModelName="M")
+        assert not hasattr(cb, "client")
 
 
 class TestKerasCallbackMessageFormatting:
-    """Test message formatting in Keras callbacks"""
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    def test_epoch_message_format(self, mock_check_epoch, mock_report, mock_webclient, 
-                                   mock_slack_connect, mock_check_internet):
-        """Test epoch message formatting"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        mock_check_epoch.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        
+    """Test message formatting in Keras callbacks using MockClient."""
+
+    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    def test_epoch_message_format(self, mock_check):
+        cb, client = _make_callback()
         logs = {
-            'accuracy': 0.8234,
-            'loss': 0.4567,
-            'val_accuracy': 0.7956,
-            'val_loss': 0.5123
+            "accuracy": 0.8234,
+            "loss": 0.4567,
+            "val_accuracy": 0.7956,
+            "val_loss": 0.5123,
         }
-        
-        callback.on_epoch_end(batch=0, logs=logs)
-        
-        call_args = mock_report.call_args
-        message = call_args[1]['text']
-        
-        # Verify message contains expected information
+        cb.on_epoch_end(batch=0, logs=logs)
+
+        assert len(client.messages) == 1
+        message = client.messages[0]
         assert "Epoch: 0" in message
         assert "Training Loss:" in message
         assert "Validation Loss:" in message
-    
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    @patch('slackker.callbacks.keras.functions.Slack.keras_plot_history')
-    def test_train_end_message_format(self, mock_plot, mock_report, mock_webclient, 
-                                       mock_slack_connect, mock_check_internet):
-        """Test train end message formatting"""
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        
-        callback = SlackUpdate(
-            token="test_token",
-            channel="C123456",
-            ModelName="Test_Model"
-        )
-        
-        callback.train_loss = [0.60, 0.45, 0.35]
-        callback.train_acc = [0.70, 0.80, 0.85]
-        callback.valid_loss = [0.65, 0.50, 0.40]
-        callback.valid_acc = [0.65, 0.75, 0.82]
-        callback.n_epochs = 3
-        
-        callback.on_train_end(logs={})
-        
-        # Verify messages contain training summary
-        call_args_list = mock_report.call_args_list
-        messages = [call_obj[1]['text'] for call_obj in call_args_list]
-        
-        # Should have at least 2 messages
-        assert len(messages) >= 2
-        # One should mention epochs
-        assert any("3 epochs" in msg for msg in messages)
+
+    @patch("slackker.callbacks.keras.plotting.generate_and_get_plots", return_value=["loss.png"])
+    def test_train_end_message_format(self, mock_plots):
+        cb, client = _make_callback(send_plot=True)
+        cb.train_loss = [0.60, 0.45, 0.35]
+        cb.train_acc = [0.70, 0.80, 0.85]
+        cb.valid_loss = [0.65, 0.50, 0.40]
+        cb.valid_acc = [0.65, 0.75, 0.82]
+        cb.n_epochs = 3
+
+        cb.on_train_end()
+
+        assert len(client.messages) >= 2
+        assert any("3 epochs" in m for m in client.messages)
 
 
 class TestKerasCallbackAdditionalBranches:
     """Extra branch coverage for init and lifecycle error paths."""
 
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    def test_slack_init_export_none_raises(self, mock_webclient, mock_slack_connect, mock_check_internet):
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
+    def test_init_export_none_raises(self):
+        m = MockClient()
+        with pytest.raises(ValueError, match="Unsupported export format"):
+            KerasCallback(client=m, model_name="M", export=None)
 
-        with pytest.raises(argparse.ArgumentTypeError):
-            SlackUpdate(
-                token="test_token",
-                channel="C123456",
-                ModelName="Test_Model",
-                export=None,
-            )
+    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    def test_on_epoch_end_incomplete_logs_skips_tracking(self, mock_check):
+        cb, client = _make_callback()
+        cb.on_epoch_end(batch=0, logs={"accuracy": 0.8, "loss": 0.2})
+        # With < 4 log values, metrics are not tracked but epoch still counts
+        assert cb.n_epochs == 1
+        assert cb.train_loss == []
 
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    def test_telegram_init_export_none_raises(self, mock_get_chat_id, mock_check_internet):
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-
-        with pytest.raises(argparse.ArgumentTypeError):
-            TelegramUpdate(
-                token="test_token",
-                ModelName="Test_Model",
-                export=None,
-            )
-
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.slack_connect')
-    @patch('slackker.callbacks.keras.WebClient')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    @patch('slackker.callbacks.keras.functions.Slack.report_stats')
-    def test_slack_on_epoch_end_incomplete_logs_raises(
-        self, mock_report, mock_check_epoch, mock_webclient, mock_slack_connect, mock_check_internet
-    ):
-        mock_check_internet.return_value = True
-        mock_slack_connect.return_value = True
-        mock_check_epoch.return_value = True
-
-        callback = SlackUpdate(token="test_token", channel="C123456", ModelName="Test_Model")
-
-        with pytest.raises(IndexError):
-            callback.on_epoch_end(batch=0, logs={'accuracy': 0.8, 'loss': 0.2})
-
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    def test_telegram_on_epoch_end_no_internet_still_tracks(
-        self, mock_report, mock_check_epoch, mock_get_chat_id, mock_check_internet
-    ):
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        mock_check_epoch.return_value = False
-
-        callback = TelegramUpdate(token="test_token", ModelName="Test_Model")
+    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=False)
+    def test_on_epoch_end_no_internet_still_tracks(self, mock_check):
+        cb, client = _make_callback()
         logs = {
-            'accuracy': 0.85,
-            'loss': 0.45,
-            'val_accuracy': 0.80,
-            'val_loss': 0.50,
+            "accuracy": 0.85,
+            "loss": 0.45,
+            "val_accuracy": 0.80,
+            "val_loss": 0.50,
         }
+        cb.on_epoch_end(batch=0, logs=logs)
 
-        callback.on_epoch_end(batch=0, logs=logs)
+        assert cb.n_epochs == 1
+        assert cb.valid_loss == [0.50]
+        assert len(client.messages) == 0
 
-        assert callback.n_epochs == 1
-        assert callback.valid_loss == [0.50]
-        mock_report.assert_not_called()
+    @patch("slackker.callbacks.keras.plotting.generate_and_get_plots", return_value=["loss.png"])
+    def test_train_end_message_contains_accuracy_percent(self, mock_plots):
+        cb, client = _make_callback(send_plot=True)
+        cb.train_loss = [0.60, 0.45, 0.35]
+        cb.train_acc = [0.70, 0.80, 0.85]
+        cb.valid_loss = [0.65, 0.50, 0.40]
+        cb.valid_acc = [0.65, 0.75, 0.82]
+        cb.n_epochs = 3
 
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.checkker.check_internet_epoch_end')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    def test_telegram_on_epoch_end_incomplete_logs_raises(
-        self, mock_report, mock_check_epoch, mock_get_chat_id, mock_check_internet
-    ):
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
-        mock_check_epoch.return_value = True
+        cb.on_train_end()
 
-        callback = TelegramUpdate(token="test_token", ModelName="Test_Model")
+        assert any("Best Accuracy =" in m and "%" in m for m in client.messages)
 
-        with pytest.raises(IndexError):
-            callback.on_epoch_end(batch=0, logs={'accuracy': 0.8, 'loss': 0.2})
 
-    @patch('slackker.callbacks.keras.checkker.check_internet')
-    @patch('slackker.callbacks.keras.checkker.get_telegram_chat_id')
-    @patch('slackker.callbacks.keras.functions.Telegram.report_stats')
-    @patch('slackker.callbacks.keras.functions.Telegram.keras_plot_history')
-    def test_telegram_train_end_message_contains_accuracy_percent(
-        self, mock_plot, mock_report, mock_get_chat_id, mock_check_internet
-    ):
-        mock_check_internet.return_value = True
-        mock_get_chat_id.return_value = "123456789"
+# ── Auto-connect tests ───────────────────────────────────────
 
-        callback = TelegramUpdate(token="test_token", ModelName="Keras_NN", SendPlot=True)
-        callback.train_loss = [0.60, 0.45, 0.35]
-        callback.train_acc = [0.70, 0.80, 0.85]
-        callback.valid_loss = [0.65, 0.50, 0.40]
-        callback.valid_acc = [0.65, 0.75, 0.82]
-        callback.n_epochs = 3
+class DisconnectedMockClient(MockClient):
+    """MockClient that starts disconnected and records connect() calls."""
 
-        callback.on_train_end(logs={})
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.connect_calls = 0
+        self._connected = False
 
-        messages = [c[1]['text'] for c in mock_report.call_args_list]
-        assert any("Best Accuracy =" in m and "%" in m for m in messages)
-        mock_plot.assert_called_once()
+    @property
+    def is_connected(self):
+        return self._connected
+
+    async def connect(self):
+        self.connect_calls += 1
+        self._connected = True
+        return True
+
+
+class TestAutoConnect:
+    """Verify that KerasCallback calls connect() when the client is not yet connected."""
+
+    def test_connects_when_not_connected(self):
+        client = DisconnectedMockClient()
+        assert not client.is_connected
+        KerasCallback(client=client, model_name="M", export="png")
+        assert client.connect_calls == 1
+        assert client.is_connected
+
+    def test_skips_connect_when_already_connected(self):
+        client = MockClient()          # is_connected always True
+        KerasCallback(client=client, model_name="M", export="png")
+        assert client.is_connected
 
 
 if __name__ == "__main__":
