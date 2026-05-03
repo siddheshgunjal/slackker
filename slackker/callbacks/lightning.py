@@ -67,8 +67,7 @@ class LightningCallback(Callback):
         parts = [f"{key}: {metrics[key]:.4f}" for key in self.track_logs]
         message = f"Epoch: {self.n_epochs}, {', '.join(parts)}"
 
-        url = "www.slack.com" if self.client.platform == "slack" else "www.telegram.org"
-        connected = _run_sync(network.check_connection_quick(url=url))
+        connected = _run_sync(network.check_connection_quick(url=self.client.connectivity_url))
         if connected:
             self.client.send_message_sync(message)
 

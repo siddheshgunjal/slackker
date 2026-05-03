@@ -39,6 +39,12 @@ class BaseClient(ABC):
         """Return True if the client has successfully connected (token verified, chat_id known, etc.)."""
         ...
 
+    @property
+    @abstractmethod
+    def connectivity_url(self) -> str:
+        """Return the hostname used to check platform reachability, e.g. 'www.slack.com'."""
+        ...
+
     @abstractmethod
     async def send_message(self, text: str) -> None:
         """Send a text message to the configured channel."""

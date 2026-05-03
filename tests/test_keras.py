@@ -28,6 +28,10 @@ class MockClient(BaseClient):
         return self._platform_name
 
     @property
+    def connectivity_url(self):
+        return "mock.example.com"
+
+    @property
     def is_connected(self):
         return True
 

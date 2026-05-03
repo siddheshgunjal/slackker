@@ -53,7 +53,7 @@ class KerasCallback(Callback):
             message += f", Validation Loss: {self.valid_loss[-1]:.4f}"
 
         connected = _run_sync(
-            network.check_connection_quick(url="www.slack.com" if self.client.platform == "slack" else "www.telegram.org")
+            network.check_connection_quick(url=self.client.connectivity_url)
         )
         if connected:
             self.client.send_message_sync(message)
