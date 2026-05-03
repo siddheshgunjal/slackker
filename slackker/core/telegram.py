@@ -27,6 +27,10 @@ class TelegramClient(BaseClient):
         return self._chat_id is not None
 
     @property
+    def connectivity_url(self) -> str:
+        return "www.telegram.org"
+
+    @property
     def chat_id(self) -> str | None:
         return self._chat_id
 
