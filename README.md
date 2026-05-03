@@ -43,7 +43,7 @@ So now you don't have to sit in front of the machine all the time. You can quick
 * [Maintainer](#maintainer-sunglasses)
 
 # Installation :arrow_down:
-* Install slackker from [UV][uv] is recommended. slackker is compatible with `Python >= 3.10` and runs on Linux, MacOS X and Windows. 
+* Install slackker from [UV][uv] is recommended. slackker is compatible with `Python >= 3.11` and runs on Linux, MacOS X and Windows. 
 * Installing slackker in your environment is easy. Just use below command:
 
 ```sh
@@ -51,7 +51,7 @@ uv add slackker
 ```
 
 OR
-```
+```sh
 pip install slackker
 ```
 
