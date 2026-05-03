@@ -82,6 +82,126 @@ async def get_telegram_chat_id(token: str, verbose: int = 2) -> str | None:
         return None
 
 
+async def get_teams_device_code(
+    app_id: str,
+    tenant_id: str,
+    scopes: list[str],
+    verbose: int = 2,
+) -> dict | None:
+    """Request a device code for interactive Microsoft Graph authentication.
+
+    Returns the device code response dict (contains ``user_code``,
+    ``device_code``, ``verification_uri``, ``message``, ``interval``,
+    ``expires_in``) on success, or ``None`` on failure.
+    """
+    url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/devicecode"
+    payload = {
+        "client_id": app_id,
+        "scope": " ".join(scopes),
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, data=payload, timeout=10)
+            resp.raise_for_status()
+            if verbose >= 2:
+                log.debug("Teams: Device code obtained successfully.")
+            return resp.json()
+    except httpx.HTTPStatusError as e:
+        log.error(f"Teams: Failed to get device code ({e.response.status_code}): {e.response.text}")
+        return None
+    except Exception as e:
+        log.error(f"Teams: Failed to get device code: {e}")
+        return None
+
+
+async def poll_teams_device_code_token(
+    app_id: str,
+    tenant_id: str,
+    device_code: str,
+    interval: int = 5,
+    verbose: int = 2,
+) -> dict | None:
+    """Poll for a token after the user completes device code authorisation.
+
+    Blocks (with async sleep) until the user authenticates, the code
+    expires, or authorisation is declined. Returns the token response dict
+    (contains ``access_token``, ``refresh_token``, ``expires_in``) on
+    success, or ``None`` on failure.
+    """
+    url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+    payload = {
+        "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+        "client_id": app_id,
+        "device_code": device_code,
+    }
+    poll_interval = max(interval, 5)
+    async with httpx.AsyncClient() as client:
+        while True:
+            await asyncio.sleep(poll_interval)
+            try:
+                resp = await client.post(url, data=payload, timeout=10)
+                data = resp.json()
+            except Exception as e:
+                log.error(f"Teams: Poll request failed: {e}")
+                return None
+
+            if "access_token" in data:
+                if verbose >= 2:
+                    log.debug("Teams: Device code authentication successful.")
+                return data
+
+            error = data.get("error", "")
+            if error == "authorization_pending":
+                continue
+            elif error == "slow_down":
+                poll_interval += 5
+                continue
+            else:
+                # authorization_declined, expired_token, bad_verification_code
+                log.error(f"Teams: Authentication failed: {data.get('error_description', error)}")
+                return None
+
+
+async def refresh_teams_access_token(
+    app_id: str,
+    tenant_id: str,
+    refresh_token: str,
+    scopes: list[str],
+    verbose: int = 2,
+) -> dict | None:
+    """Silently refresh a Microsoft Graph access token using a cached refresh token.
+
+    Returns the new token response dict on success, or ``None`` if the
+    refresh token is expired or invalid (caller should trigger a new device
+    code flow).
+    """
+    url = f"https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token"
+    payload = {
+        "grant_type": "refresh_token",
+        "client_id": app_id,
+        "refresh_token": refresh_token,
+        "scope": " ".join(scopes),
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, data=payload, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+            if "access_token" in data:
+                if verbose >= 2:
+                    log.debug("Teams: Access token refreshed silently.")
+                return data
+            log.error(f"Teams: Token refresh returned no access_token: {data}")
+            return None
+    except httpx.HTTPStatusError as e:
+        if verbose >= 1:
+            log.warning(f"Teams: Token refresh failed ({e.response.status_code}), re-authentication required.")
+        return None
+    except Exception as e:
+        log.error(f"Teams: Token refresh error: {e}")
+        return None
+
+
 # --- Sync wrappers ---
 
 def check_connection_sync(url: str, retries: int = 0, delay: float = 60, verbose: int = 2) -> bool:
@@ -98,3 +218,21 @@ def verify_slack_token_sync(token: str, verbose: int = 2) -> bool:
 
 def get_telegram_chat_id_sync(token: str, verbose: int = 2) -> str | None:
     return _run_sync(get_telegram_chat_id(token, verbose))
+
+
+def get_teams_device_code_sync(
+    app_id: str, tenant_id: str, scopes: list[str], verbose: int = 2
+) -> dict | None:
+    return _run_sync(get_teams_device_code(app_id, tenant_id, scopes, verbose))
+
+
+def poll_teams_device_code_token_sync(
+    app_id: str, tenant_id: str, device_code: str, interval: int = 5, verbose: int = 2
+) -> dict | None:
+    return _run_sync(poll_teams_device_code_token(app_id, tenant_id, device_code, interval, verbose))
+
+
+def refresh_teams_access_token_sync(
+    app_id: str, tenant_id: str, refresh_token: str, scopes: list[str], verbose: int = 2
+) -> dict | None:
+    return _run_sync(refresh_teams_access_token(app_id, tenant_id, refresh_token, scopes, verbose))
