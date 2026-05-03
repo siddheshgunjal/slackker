@@ -1,6 +1,8 @@
 """Tests for slackker.core client abstraction layer."""
 
+import os
 import pytest
+import httpx
 from unittest.mock import AsyncMock, patch, MagicMock
 from slackker.core.client import BaseClient, _run_sync
 from slackker.core.slack import SlackClient
@@ -188,6 +190,64 @@ class TestTeamsClient:
         client = TeamsClient(app_id="app-id-1234", chat_id="19:abc")
         assert client._tenant_id == "common"
 
+    def test_auth_headers(self):
+        client = TeamsClient(**self._INIT)
+        client._access_token = "abc123"
+        headers = client._auth_headers()
+        assert headers["Authorization"] == "Bearer abc123"
+        assert headers["Content-Type"] == "application/json"
+
+    @pytest.mark.asyncio
+    async def test_ensure_token_uses_existing_token(self):
+        client = TeamsClient(**self._INIT)
+        client._access_token = "cached-token"
+        client._token_expiry = 9_999_999_999
+        client.connect = AsyncMock()
+
+        result = await client._ensure_token()
+        assert result is True
+        client.connect.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_ensure_token_reconnects_when_expired(self):
+        client = TeamsClient(**self._INIT)
+        client._access_token = "expired-token"
+        client._token_expiry = 0
+        client.connect = AsyncMock(return_value=True)
+
+        result = await client._ensure_token()
+        assert result is True
+        client.connect.assert_awaited_once()
+
+    def test_token_cache_roundtrip(self, tmp_path):
+        cache_path = tmp_path / "teams_cache.json"
+        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path))
+
+        client._save_token_cache({"access_token": "a", "refresh_token": "r", "expires_at": 1})
+        assert os.path.isfile(cache_path)
+
+        loaded = client._load_token_cache()
+        assert loaded is not None
+        assert loaded["refresh_token"] == "r"
+
+    def test_load_token_cache_unreadable_returns_none(self, tmp_path):
+        cache_path = tmp_path / "teams_cache.json"
+        cache_path.write_text("{bad-json")
+        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path))
+
+        loaded = client._load_token_cache()
+        assert loaded is None
+
+    def test_apply_token_sets_connection_state_and_persists_cache(self):
+        client = TeamsClient(**self._INIT)
+        client._save_token_cache = MagicMock()
+
+        client._apply_token({"access_token": "tok", "refresh_token": "rt", "expires_in": 3600})
+
+        assert client._access_token == "tok"
+        assert client.is_connected is True
+        client._save_token_cache.assert_called_once()
+
     @pytest.mark.asyncio
     @patch("slackker.core.teams.network.check_connection", new_callable=AsyncMock, return_value=False)
     async def test_connect_no_internet(self, mock_check):
@@ -265,6 +325,15 @@ class TestTeamsClient:
             assert "chats/19:abc@thread.v2/messages" in mock_http.post.call_args.args[0]
 
     @pytest.mark.asyncio
+    async def test_send_message_when_not_connected(self):
+        client = TeamsClient(**self._INIT)
+        client._ensure_token = AsyncMock(return_value=False)
+
+        with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
+            await client.send_message("Hello Teams")
+            mock_cls.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_upload_file_invalid_path(self):
         client = TeamsClient(**self._INIT)
         client._access_token = "fake-token"
@@ -277,6 +346,76 @@ class TestTeamsClient:
 
             await client.upload_file("/nonexistent/file.txt")
             mock_http.put.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_upload_file_when_not_connected(self, tmp_path):
+        file_path = tmp_path / "sample.txt"
+        file_path.write_text("hello")
+
+        client = TeamsClient(**self._INIT)
+        client._ensure_token = AsyncMock(return_value=False)
+
+        with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
+            await client.upload_file(str(file_path))
+            mock_cls.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_upload_file_success_posts_link(self, tmp_path):
+        file_path = tmp_path / "sample.txt"
+        file_path.write_text("hello")
+
+        client = TeamsClient(**self._INIT)
+        client._access_token = "fake-token"
+        client._token_expiry = 9_999_999_999
+        client.send_message = AsyncMock()
+
+        with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
+            mock_response = MagicMock()
+            mock_response.raise_for_status = MagicMock()
+            mock_response.json = MagicMock(return_value={"webUrl": "https://example.com/file"})
+
+            mock_http = AsyncMock()
+            mock_http.put = AsyncMock(return_value=mock_response)
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+
+            await client.upload_file(str(file_path), comment="See file")
+
+            mock_http.put.assert_awaited_once()
+            client.send_message.assert_awaited_once_with("See file\nhttps://example.com/file")
+
+    @pytest.mark.asyncio
+    async def test_upload_file_http_error(self, tmp_path):
+        file_path = tmp_path / "sample.txt"
+        file_path.write_text("hello")
+
+        client = TeamsClient(**self._INIT)
+        client._access_token = "fake-token"
+        client._token_expiry = 9_999_999_999
+        client.send_message = AsyncMock()
+
+        request = httpx.Request("PUT", "https://graph.microsoft.com")
+        response = httpx.Response(500, request=request, text="oops")
+        http_error = httpx.HTTPStatusError("failed", request=request, response=response)
+
+        with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
+            mock_response = MagicMock()
+            mock_response.raise_for_status = MagicMock(side_effect=http_error)
+            mock_http = AsyncMock()
+            mock_http.put = AsyncMock(return_value=mock_response)
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+
+            await client.upload_file(str(file_path))
+            client.send_message.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    async def test_upload_image_delegates_to_upload_file(self):
+        client = TeamsClient(**self._INIT)
+        client.upload_file = AsyncMock()
+
+        await client.upload_image("image.png", comment="plot")
+        client.upload_file.assert_awaited_once_with("image.png", "plot")
 
     def test_send_message_sync(self):
         client = TeamsClient(**self._INIT)
