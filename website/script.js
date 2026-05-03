@@ -39,8 +39,8 @@ const revealObserver = new IntersectionObserver(
 
 revealElements.forEach((element) => revealObserver.observe(element));
 
-const tabs = document.querySelectorAll(".example-tab");
-const panels = document.querySelectorAll(".example-panel");
+const tabs = document.querySelectorAll(".example-tab:not(.setup-tab)");
+const panels = document.querySelectorAll(".example-panel:not(.setup-panel)");
 
 function activateTab(targetId) {
   tabs.forEach((tab) => {
@@ -363,6 +363,28 @@ trainer.fit(model, train_loader, val_loader)`,
   },
 };
 
+// ── Setup tab switcher ───────────────────────────────────────
+const setupTabs = document.querySelectorAll(".setup-tab");
+const setupPanels = document.querySelectorAll(".setup-panel");
+
+function activateSetupTab(targetId) {
+  setupTabs.forEach((tab) => {
+    const isActive = tab.dataset.target === targetId;
+    tab.classList.toggle("active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+  });
+  setupPanels.forEach((panel) => {
+    const isActive = panel.id === targetId;
+    panel.classList.toggle("active", isActive);
+    panel.hidden = !isActive;
+  });
+}
+
+setupTabs.forEach((tab) => {
+  tab.addEventListener("click", () => activateSetupTab(tab.dataset.target));
+});
+
+// ── Platform toggle ───────────────────────────────────────────
 document.querySelectorAll(".platform-toggle").forEach((toggle) => {
   toggle.querySelectorAll(".plt-btn").forEach((btn) => {
     btn.addEventListener("click", () => {

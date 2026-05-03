@@ -23,8 +23,8 @@
     <nav id="navLinks" class="nav-links">
       <a href="#features">Features</a>
       <a href="#quickstart">Quick Start</a>
+      <a href="#setup">Client Setup</a>
       <a href="#usage">Usage</a>
-      <a href="https://pypi.org/project/slackker/" target="_blank" rel="noreferrer">PyPI</a>
     </nav>
   </header>
 
@@ -137,6 +137,194 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
         <li class="glass"><span>4</span>Pass the client to <code>SimpleCallback</code>, <code>KerasCallback</code>, or <code>LightningCallback</code>.</li>
         <li class="glass"><span>5</span>Run training and receive updates plus optional exported plots.</li>
       </ol>
+    </section>
+
+    <section id="setup" class="section reveal">
+      <div class="section-head center-text">
+        <p class="eyebrow">Client setup</p>
+        <h2>Get your credentials in minutes</h2>
+        <p class="lead center-block" style="margin-top:0.5rem">Pick your platform and follow the one-time steps to obtain the credentials you'll pass to the client constructor.</p>
+      </div>
+
+      <div class="example-switch center-wrap" role="tablist" aria-label="Client setup guides">
+        <button class="example-tab setup-tab active" data-target="setup-telegram" role="tab" aria-selected="true">Telegram</button>
+        <button class="example-tab setup-tab" data-target="setup-slack" role="tab" aria-selected="false">Slack</button>
+        <button class="example-tab setup-tab" data-target="setup-teams" role="tab" aria-selected="false">Teams</button>
+      </div>
+
+      <div class="setup-panels">
+
+        <!-- ── Telegram ─────────────────────────────────────────── -->
+        <article id="setup-telegram" class="setup-panel glass active" role="tabpanel">
+          <div class="setup-panel-head">
+            <div class="setup-platform-badge badge-telegram">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.287 5.906q-1.168.486-4.666 2.01-.567.225-.595.442c-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.294q.39.01.868-.32 3.269-2.206 3.374-2.23c.05-.012.12-.026.166.016s.042.12.037.141c-.03.129-1.227 1.241-1.846 1.817-.193.18-.33.307-.358.336a8 8 0 0 1-.188.186c-.38.366-.664.64.015 1.088.327.216.589.393.85.571.284.194.568.387.936.629q.14.092.27.187c.331.236.63.448.997.414.214-.02.435-.22.547-.82.265-1.417.786-4.486.906-5.751a1.4 1.4 0 0 0-.013-.315.34.34 0 0 0-.114-.217.53.53 0 0 0-.31-.093c-.3.005-.763.166-2.984 1.09"/>
+              </svg>
+              Telegram
+            </div>
+            <p class="setup-platform-desc">Only a bot token is needed — slackker auto-discovers your chat ID from the first message you send the bot.</p>
+          </div>
+          <ol class="setup-steps">
+            <li>
+              <span class="setup-step-num">1</span>
+              <div>
+                <strong>Find BotFather on Telegram</strong>
+                <p>Open Telegram &nbsp; ➤ &nbsp; search for <code>@BotFather</code> — the official bot for creating custom bots.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">2</span>
+              <div>
+                <strong>Create your bot</strong>
+                <p>Send <code>/newbot</code> &nbsp; ➤ &nbsp; follow the prompts to give your bot a display name and a unique username (must end in <code>bot</code>)</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">3</span>
+              <div>
+                <strong>Copy the bot token</strong>
+                <p>BotFather replies with a token &nbsp; ➤ &nbsp; save it, this is your <code>token</code> parameter:</p>
+                <code class="setup-token">1234567890:AAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG</code>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">4</span>
+              <div>
+                <strong>Send your bot a message</strong>
+                <p>Open the bot's chat in Telegram &nbsp; ➤ &nbsp; send any message (e.g. <em>"Hello!"</em>) &nbsp; ➤ &nbsp; This lets slackker auto-discover your chat ID on first <code>connect()</code>, no manual lookup needed.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">5</span>
+              <div>
+                <strong>Use the token in your code</strong>
+                <code class="setup-token">TelegramClient(token="1234567890:AAAA_A111...")</code>
+              </div>
+            </li>
+          </ol>
+        </article>
+
+        <!-- ── Slack ─────────────────────────────────────────── -->
+        <article id="setup-slack" class="setup-panel glass" role="tabpanel" hidden>
+          <div class="setup-panel-head">
+            <div class="setup-platform-badge badge-slack">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 16 16">
+                <path fill="#36C5F0" d="M3.362 10.11c0 .926-.756 1.681-1.681 1.681S0 11.036 0 10.111.756 8.43 1.68 8.43h1.682zM4.208 10.11c0-.924.756-1.68 1.681-1.68s1.681.756 1.681 1.68v4.21c0 .924-.756 1.68-1.68 1.68a1.685 1.685 0 0 1-1.682-1.68z"/>
+                <path fill="#E01E5A" d="M5.89 3.362c-.926 0-1.682-.756-1.682-1.681S4.964 0 5.89 0s1.68.756 1.68 1.68v1.682zM5.89 4.208c.924 0 1.68.756 1.68 1.681S6.814 7.57 5.89 7.57H1.68C.757 7.57 0 6.814 0 5.89c0-.926.756-1.682 1.68-1.682z"/>
+                <path fill="#ECB22E" d="M12.639 5.89c0-.926.755-1.682 1.68-1.682S16 4.964 16 5.889s-.756 1.681-1.68 1.681h-1.681zM11.791 5.89c0 .924-.755 1.68-1.68 1.68A1.685 1.685 0 0 1 8.43 5.89V1.68C8.43.757 9.186 0 10.11 0c.926 0 1.681.756 1.681 1.68z"/>
+                <path fill="#2EB67D" d="M10.11 12.639c.926 0 1.682.756 1.682 1.681S11.036 16 10.11 16s-1.681-.756-1.681-1.68v-1.682h1.68zM10.11 11.792c-.924 0-1.68-.755-1.68-1.68s.756-1.681 1.68-1.681h4.21c.924 0 1.68.756 1.68 1.68 0 .926-.756 1.681-1.68 1.681z"/>
+              </svg>
+              Slack
+            </div>
+            <p class="setup-platform-desc">Create a Slack App, grant it bot token scopes, install it to your workspace, then grab your token and channel ID.</p>
+          </div>
+          <ol class="setup-steps">
+            <li>
+              <span class="setup-step-num">1</span>
+              <div>
+                <strong>Create a Slack App</strong>
+                <p>Go to <a href="https://api.slack.com/apps" target="_blank" rel="noreferrer"> api.slack.com/apps </a>&nbsp; ➤ &nbsp;<strong>Create New App</strong>&nbsp; ➤ &nbsp;<strong>From scratch</strong>. Name the app and select your workspace.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">2</span>
+              <div>
+                <strong>Add Bot Token Scopes</strong>
+                <p>Sidebar&nbsp; ➤ &nbsp;<strong>OAuth &amp; Permissions</strong>&nbsp; ➤ &nbsp;<strong>Bot Token Scopes</strong>&nbsp; ➤ &nbsp;add all four:</p>
+                <div class="setup-badges">
+                  <code>chat:write</code><code>chat:write.public</code><code>files:read</code><code>files:write</code>
+                </div>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">3</span>
+              <div>
+                <strong>Install the app to your workspace</strong>
+                <p>Go to <strong>Basic Information</strong>&nbsp; ➤ &nbsp;<strong>Install to Workspace</strong>&nbsp; ➤ &nbsp;authorize. The app appears under <em>Apps</em> in Slack.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">4</span>
+              <div>
+                <strong>Copy your Bot User OAuth Token</strong>
+                <p>Back in <strong>OAuth &amp; Permissions</strong>, copy the token that begins with <code>xoxb-</code>. This is your <code>token</code>:</p>
+                <code class="setup-token">xoxb-123234234235-123234234235-adedce74748c3844747aed48499bb</code>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">5</span>
+              <div>
+                <strong>Add the app to a channel &amp; get the Channel ID</strong>
+                <p>In Slack, open the target channel&nbsp; ➤ &nbsp;click the channel name&nbsp; ➤ &nbsp;<strong>Integrations</strong>&nbsp; ➤ &nbsp;<strong>Add an App</strong>. Then copy the Channel ID from the channel description (starts with <code>C</code>):</p>
+                <code class="setup-token">SlackClient(token="xoxb-...", channel="C04AAB77ABC")</code>
+              </div>
+            </li>
+          </ol>
+        </article>
+
+        <!-- ── Teams ─────────────────────────────────────────── -->
+        <article id="setup-teams" class="setup-panel glass" role="tabpanel" hidden>
+          <div class="setup-panel-head">
+            <div class="setup-platform-badge badge-teams">
+              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M9.186 4.797a2.42 2.42 0 1 0-2.86-2.448h1.178c.929 0 1.682.753 1.682 1.682zm-4.295 7.738h2.613c.929 0 1.682-.753 1.682-1.682V5.58h2.783a.7.7 0 0 1 .682.716v4.294a4.197 4.197 0 0 1-4.093 4.293c-1.618-.04-3-.99-3.667-2.35Zm10.737-9.372a1.674 1.674 0 1 1-3.349 0 1.674 1.674 0 0 1 3.349 0m-2.238 9.488-.12-.002a5.2 5.2 0 0 0 .381-2.07V6.306a1.7 1.7 0 0 0-.15-.725h1.792c.39 0 .707.317.707.707v3.765a2.6 2.6 0 0 1-2.598 2.598z"/>
+                <path d="M.682 3.349h6.822c.377 0 .682.305.682.682v6.822a.68.68 0 0 1-.682.682H.682A.68.68 0 0 1 0 10.853V4.03c0-.377.305-.682.682-.682Zm5.206 2.596v-.72h-3.59v.72h1.357V9.66h.87V5.945z"/>
+              </svg>
+              Microsoft Teams
+            </div>
+            <p class="setup-platform-desc">Register an Azure AD app (free, no admin consent), add Graph permissions, then sign in once interactively. The token is cached and refreshed silently on all future runs.</p>
+          </div>
+          <div class="setup-note setup-note-warn">
+            &#x26A0;&#xFE0F;&nbsp;<strong>Work account required.</strong> The Microsoft Graph Chat API requires a work or school Microsoft account. Personal Microsoft accounts (Outlook.com, Hotmail) are not supported by this API.
+          </div>
+          <ol class="setup-steps">
+            <li>
+              <span class="setup-step-num">1</span>
+              <div>
+                <strong>Register an Azure AD App</strong>
+                <p>Go to <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noreferrer">Azure App Registrations</a>&nbsp; ➤ &nbsp;<strong>New registration</strong>. Name it (e.g. <em>slackker</em>), set Supported account types to <em>"Accounts in any organizational directory and personal Microsoft accounts"</em>, click <strong>Register</strong>.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">2</span>
+              <div>
+                <strong>Copy your Application (client) ID</strong>
+                <p>On the app Overview page, copy the <strong>Application (client) ID</strong> — this is your <code>app_id</code>. No client secret is required for the device code flow.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">3</span>
+              <div>
+                <strong>Add delegated Microsoft Graph permissions</strong>
+                <p>Sidebar&nbsp; ➤ &nbsp;<strong>API permissions</strong>&nbsp; ➤ &nbsp;<strong>Add a permission</strong>&nbsp; ➤ &nbsp;<strong>Microsoft Graph</strong>&nbsp; ➤ &nbsp;<strong>Delegated permissions</strong>. Add all four:</p>
+                <div class="setup-badges">
+                  <code>Chat.ReadWrite</code><code>Files.ReadWrite</code><code>offline_access</code><code>User.Read</code>
+                </div>
+                <p style="margin-top:0.5rem">No admin consent is required for these delegated scopes.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">4</span>
+              <div>
+                <strong>Find your Chat ID</strong>
+                <p>Open <a href="https://developer.microsoft.com/graph/graph-explorer" target="_blank" rel="noreferrer">Graph Explorer</a>, sign in with your work account, then run:</p>
+                <code class="setup-token">GET https://graph.microsoft.com/v1.0/me/chats</code>
+                <p style="margin-top:0.5rem">Copy the <code>id</code> of the chat with yourself — it starts with <code>19:</code> and ends with <code>@thread.v2</code> or <code>@unq.gbl.spaces</code>.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">5</span>
+              <div>
+                <strong>Sign in once with the device code flow</strong>
+                <p>On first <code>connect()</code>, slackker prints a short URL and a one-time code. Visit the URL in any browser, enter the code, sign in with your work account. The token is then cached at <code>~/.slackker/teams_*.json</code> and refreshed silently on all future runs.</p>
+                <code class="setup-token">TeamsClient(app_id="YOUR_APP_ID", chat_id="19:...")</code>
+              </div>
+            </li>
+          </ol>
+        </article>
+
+      </div>
     </section>
 
     <section id="usage" class="section reveal">
@@ -305,7 +493,6 @@ trainer.fit(model, train_loader, val_loader)</code></pre>
     <section id="cta" class="section reveal cta-section">
       <div class="cta-card glass">
         <img src="assets/slackker_logo_medium_alpha.png" alt="slackker logo" class="cta-logo" />
-        <p class="eyebrow">Get started in 60 seconds</p>
         <h2>Your pipeline runs. Your phone <span class="highlight">notifies</span></h2>
         <p class="cta-sub">Stop babysitting terminal. Slackker keeps you informed so you can stay heads-down on what actually matters.</p>
         <div class="cta-actions center-wrap">

@@ -156,9 +156,9 @@ h2 {
 }
 
 .lead {
-  max-width: 70ch;
+  max-width: 85ch;
   color: var(--muted);
-  font-size: 1.04rem;
+  font-size: 1.05rem;
 }
 
 .hero-cta {
@@ -255,6 +255,7 @@ h2 {
   padding: 0.55rem 0.95rem;
   cursor: pointer;
   font-weight: 700;
+  font-size: 1rem;
 }
 
 .example-tab.active {
@@ -866,5 +867,182 @@ pre {
 
   .cta-card {
     padding: 2rem 1.4rem;
+  }
+}
+
+/* ── Client Setup Section ───────────────────────────────────── */
+.setup-panels {
+  max-width: 950px;
+  margin: 0 auto;
+}
+
+.setup-panel {
+  padding: 2rem 2.2rem;
+  display: none;
+}
+
+.setup-panel.active {
+  display: block;
+}
+
+.setup-panel-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding-bottom: 1.4rem;
+  margin-bottom: 1.6rem;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.setup-platform-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.badge-telegram { color: #29B6F6; }
+.badge-slack    { color: #E01E5A; }
+.badge-teams    { color: #7B83EB; }
+
+.setup-platform-desc {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 100%;
+  padding-top: 0.15rem;
+}
+
+.setup-note {
+  padding: 0.8rem 1rem;
+  border-radius: 0.65rem;
+  margin-bottom: 1.4rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.setup-note-warn {
+  background: rgba(232, 121, 42, 0.1);
+  border: 1px solid rgba(232, 121, 42, 0.3);
+  color: var(--text);
+}
+
+.setup-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.setup-steps li {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.setup-steps li > div {
+  min-width: 0;
+}
+
+.setup-steps li strong {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+  color: var(--text);
+}
+
+.setup-steps li p {
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 0.25rem 0 0;
+}
+
+.setup-steps li a {
+  font-size: 1rem;
+  color: var(--teal);
+  text-decoration: underline;
+}
+
+.setup-step-num {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--teal), var(--teal-2));
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.setup-token {
+  display: block;
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.9rem;
+  background: rgba(0, 0, 0, 0.75);
+  color: #a8ff78;
+  font-family: "JetBrains Mono", "CaskaydiaCove", monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  border-radius: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.setup-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.setup-badges code {
+  font-family: "JetBrains Mono", "CaskaydiaCove", monospace;
+  font-size: 0.8rem;
+  background: rgba(26, 171, 138, 0.12);
+  color: var(--text);
+  padding: 0.2em 0.55em;
+  border-radius: 4px;
+  border: 1px solid rgba(26, 171, 138, 0.25);
+}
+
+.setup-footer {
+  margin-top: 2rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--border);
+}
+
+.setup-article-link {
+  color: var(--teal);
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: opacity 0.2s ease;
+}
+
+.setup-article-link:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+@media (max-width: 760px) {
+  .setup-panel {
+    padding: 1.4rem 1.1rem;
+  }
+
+  .setup-token {
+    font-size: 0.72rem;
+    padding: 0.45rem 0.7rem;
+  }
+
+  .setup-steps {
+    gap: 1.1rem;
   }
 }
