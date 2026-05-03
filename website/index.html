@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>slackker — Real-time Pipeline Notifications</title>
-  <meta name="description" content="Monitor any Python script, data pipeline, or ML training run in real-time via Slack and Telegram with slackker callbacks." />
+  <meta name="description" content="Monitor any Python script, data pipeline, or ML training run in real-time via Slack, Telegram, and Microsoft Teams with slackker callbacks." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
@@ -33,7 +33,7 @@
       <p class="eyebrow">Real-time notifications for any Python pipeline</p>
       <h1>Run anything.<br />Know instantly. Stay anywhere.</h1>
       <p class="lead center-block">
-        slackker sends real-time notifications to Slack or Telegram for any Python script, data pipeline,
+        slackker sends real-time notifications to Slack, Telegram, or Microsoft Teams for any Python script, data pipeline,
         ML training run, or automation workflow — complete with metrics, outputs, and optional plots.
       </p>
       <div class="hero-cta center-wrap">
@@ -60,6 +60,7 @@
             <span class="platform-label">Client: </span>
             <button class="plt-btn active" data-platform="telegram">Telegram</button>
             <button class="plt-btn" data-platform="slack">Slack</button>
+            <button class="plt-btn" data-platform="teams">Teams</button>
           </div>
         </div>
 <pre><code class="code-python" data-snippet="hero">from slackker.core import TelegramClient
@@ -131,8 +132,8 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
       </div>
       <ol class="steps center-block">
         <li class="glass"><span>1</span>Install package: <code>pip install slackker</code></li>
-        <li class="glass"><span>2</span>Setup Slack app token and channel, or Telegram bot token.</li>
-        <li class="glass"><span>3</span>Create a <code>SlackClient</code> or <code>TelegramClient</code> with your credentials.</li>
+        <li class="glass"><span>2</span>Setup either Slack, Telegram, or Teams credentials.</li>
+        <li class="glass"><span>3</span>Create a <code>SlackClient</code>, <code>TelegramClient</code>, or <code>TeamsClient</code> with your credentials.</li>
         <li class="glass"><span>4</span>Pass the client to <code>SimpleCallback</code>, <code>KerasCallback</code>, or <code>LightningCallback</code>.</li>
         <li class="glass"><span>5</span>Run training and receive updates plus optional exported plots.</li>
       </ol>
@@ -161,6 +162,7 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
               <span class="platform-label">Client: </span>
               <button class="plt-btn active" data-platform="telegram">Telegram</button>
               <button class="plt-btn" data-platform="slack">Slack</button>
+              <button class="plt-btn" data-platform="teams">Teams</button>
             </div>
           </div>
 <pre><code class="code-python" data-snippet="basic">from slackker.core import TelegramClient
@@ -193,11 +195,12 @@ if __name__ == "__main__":
             <span class="ide-dot dot-red"></span>
             <span class="ide-dot dot-yellow"></span>
             <span class="ide-dot dot-green"></span>
-            <span class="ide-filename">train_keras.py</span>
+            <span class="ide-filename">keras.py</span>
             <div class="platform-toggle" role="group" aria-label="Switch client">
               <span class="platform-label">Client: </span>
               <button class="plt-btn active" data-platform="telegram">Telegram</button>
               <button class="plt-btn" data-platform="slack">Slack</button>
+              <button class="plt-btn" data-platform="teams">Teams</button>
             </div>
           </div>
 <pre><code class="code-python" data-snippet="keras">from slackker.core import TelegramClient
@@ -229,11 +232,12 @@ history = model.fit(
             <span class="ide-dot dot-red"></span>
             <span class="ide-dot dot-yellow"></span>
             <span class="ide-dot dot-green"></span>
-            <span class="ide-filename">train_lightning.py</span>
+            <span class="ide-filename">lightning.py</span>
             <div class="platform-toggle" role="group" aria-label="Switch client">
               <span class="platform-label">Client: </span>
               <button class="plt-btn active" data-platform="telegram">Telegram</button>
               <button class="plt-btn" data-platform="slack">Slack</button>
+              <button class="plt-btn" data-platform="teams">Teams</button>
             </div>
           </div>
 <pre><code class="code-python" data-snippet="lightning">from lightning.pytorch import Trainer
@@ -270,7 +274,7 @@ trainer.fit(model, train_loader, val_loader)</code></pre>
           <div class="hiw-icon">🔌</div>
           <div class="hiw-num">01</div>
           <h3>Connect</h3>
-          <p>Create a <strong>SlackClient</strong> or <strong>TelegramClient</strong> with your API token. slackker verifies connectivity and resolves your channel or chat ID automatically.</p>
+          <p>Create a <strong>SlackClient</strong>, <strong>TelegramClient</strong>, or <strong>TeamsClient</strong> with your credentials. slackker verifies connectivity and is ready to post updates to your channel or chat.</p>
         </div>
 
         <div class="hiw-arrow" aria-hidden="true">
