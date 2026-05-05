@@ -16,10 +16,18 @@ class TeamsClient(BaseClient):
     Uses OAuth 2.0 **device code flow** — no app secret or admin consent
     required. On the first call to ``connect()``, a one-time interactive
     login is triggered: a URL and short code are printed to stdout, the user
-    visits the URL, enters the code, and signs in with any Microsoft account
-    (personal or organisational). The resulting token is cached on disk and
+    visits the URL, enters the code, and signs in with a **work or school
+    Microsoft 365 account**. The resulting token is cached on disk and
     silently refreshed on subsequent runs — no login prompt after the first
     time.
+
+    .. note::
+        Personal Microsoft accounts (Outlook.com, Hotmail, Live.com) are
+        **not supported**. The Microsoft Graph Chat API
+        (``/chats/{id}/messages``) requires a work or school account backed
+        by an Entra ID (Azure AD) tenant. Attempting to authenticate with a
+        personal account will succeed at the OAuth step but fail with a 403
+        or 404 when posting to Teams chat.
 
     File uploads are stored in the authenticated user's OneDrive via
     Microsoft Graph and referenced as a link in the chat message.
@@ -33,7 +41,11 @@ class TeamsClient(BaseClient):
         (no admin consent required for these).
     tenant_id : str
         Azure AD tenant ID, or ``"common"`` *(default)* to accept both
-        personal Microsoft accounts and organisational accounts.
+        work/school and personal account sign-in flows at the OAuth level.
+        Note that even with ``"common"``, the Graph Chat API only works for
+        work or school accounts. If all your users are on a single tenant,
+        pass the tenant's ID or domain (e.g. ``"contoso.onmicrosoft.com"``)
+        to restrict sign-in to that organisation.
     chat_id : str
         The Teams personal chat ID (e.g. ``'19:..._...@unq.gbl.spaces'``).
         Retrieve via Microsoft Graph Explorer: ``GET /me/chats``.
