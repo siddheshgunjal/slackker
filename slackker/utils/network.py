@@ -55,7 +55,6 @@ async def verify_slack_token(token: str, verbose: int = 2) -> bool:
     try:
         client = AsyncWebClient(token=token)
         response = await client.api_test()
-        await client.close()
         if verbose >= 2:
             log.debug(f"Connection to Slack API successful! {response}")
         return True
