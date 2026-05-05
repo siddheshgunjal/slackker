@@ -70,4 +70,4 @@ class SlackClient(BaseClient):
         await self.upload_file(filepath, comment)
 
     async def close(self) -> None:
-        await self._client.close()
+        pass  # AsyncWebClient does not expose a close() method
