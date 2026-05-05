@@ -4,7 +4,7 @@
 <div align="center">
 
 ![Tests](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/pr-tests.yml?style=for-the-badge&logo=checkmarx&label=Tests)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/publish-to-pypi.yml?style=for-the-badge&logo=python&logoColor=yellow&label=Build)
+![Python Build](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/publish-to-pypi.yml?style=for-the-badge&logo=python&logoColor=yellow&label=Build)
 [<img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fsiddheshgunjal.github.io%2Fslackker%2F&style=for-the-badge&logo=htmx">][website]
 
 </div>
@@ -19,7 +19,7 @@ Watching training metrics is a time killer and addictive. Have you ever found yo
 
 When you're in front of your screen, you start to look for patterns in the metrics to judge the progress, this way training spills over into the rest of your live. All the time the models are training, your brain works at 50% at most. So, I made slackker to make your life easy :grin:
 
-`slackker` is a python package for monitoring your pipeline & ML model training status in real-time on Slack & Telegram.
+`slackker` provides a simple and flexible way to send notifications, updates, and even plots of your training metrics directly to your preferred messaging platform. Whether you're training a deep learning model or running a long-running script, slackker keeps you informed without the need to constantly check your terminal.
 Features:
 * **Integrate within any _.py_ function/script**: You can integrate slackker with any pipeline built in python
 * **Real-time updates**: Get updates on your progress in real-time on Slack & Telegram.
@@ -57,14 +57,13 @@ pip install slackker
 
 # Getting started with slackker callbacks
 ## Setup slackker
-* Slack: [How to setup slackker for your slack channel][setup-slack]
-* Telegram: [How to setup slackker for Telegram][setup-telegram]
+Refer to our [website](https://siddheshgunjal.github.io/slackker/#setup) for detailed setup instructions with Slack, Telegram, and Microsoft Teams
 
 ## Create a Client
 All slackker callbacks now use a **client** object. Create one for your platform first, then pass it to any callback.
 
 ```python
-from slackker.core import SlackClient, TelegramClient
+from slackker.core import SlackClient, TelegramClient, TeamsClient
 ```
 
 ### Slack
@@ -84,6 +83,17 @@ client = TelegramClient(
 )
 ```
 
+### Microsoft Teams
+```python
+client = TeamsClient(
+    app_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    chat_id="19:xxxxxxxxxxxxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxx@unq.gbl.spaces",
+    verbose=0,
+)
+```
+
+> **First-time setup:** On the first run, `TeamsClient` prints a short URL and a code. Visit the URL in any browser, enter the code, and sign in with your Microsoft account. The token is then cached at `~/.slackker/teams_<app_id[:8]>.json` and silently refreshed on every subsequent run — no login prompt after the first time.
+
 **Parameters (shared):**
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -92,12 +102,21 @@ client = TelegramClient(
 | `chat_id` | `str` | `None` _(Telegram only)_ | Telegram chat ID. Auto-discovered if omitted |
 | `verbose` | `int` | `0` | `0` = no logging, `1` = info, `2` = debug |
 
+**Teams-specific parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `app_id` | `str` | _required_ | Azure AD application (client) ID from your app registration |
+| `tenant_id` | `str` | `"common"` | Azure AD tenant ID, or `"common"` to accept personal and organisational accounts |
+| `chat_id` | `str` | _required_ | Teams personal chat ID (e.g. `19:..._...@unq.gbl.spaces`). Find via Graph Explorer: `GET /me/chats` |
+| `token_cache_path` | `str` | `~/.slackker/teams_<app_id[:8]>.json` | Path to cache the access/refresh token |
+| `verbose` | `int` | `0` | `0` = no logging, `1` = info, `2` = debug |
+
 ## Use slackker callbacks for any python functions
 ![python-banner](https://brandslogos.com/wp-content/uploads/images/large/python-logo-1.png)
 
 ### Import
 ```python
-from slackker.core import SlackClient          # or TelegramClient
+from slackker.core import SlackClient          # or TelegramClient, TeamsClient
 from slackker.callbacks.simple import SimpleCallback
 ```
 
@@ -195,7 +214,7 @@ slackker.notify(
 
 ### Import slackker for Keras
 ```python
-from slackker.core import SlackClient          # or TelegramClient
+from slackker.core import SlackClient          # or TelegramClient, TeamsClient
 from slackker.callbacks.keras import KerasCallback
 ```
 
@@ -291,7 +310,7 @@ history = model.fit(
 
 ### Import slackker for Lightning
 ```python
-from slackker.core import SlackClient          # or TelegramClient
+from slackker.core import SlackClient          # or TelegramClient, TeamsClient
 from slackker.callbacks.lightning import LightningCallback
 ```
 
@@ -519,13 +538,11 @@ Please cite slackker in your publications if this is useful for your project/res
 [<img alt="Static Badge" src="https://img.shields.io/badge/my_website-click_to_visit-informational?style=for-the-badge&logo=googlechrome&logoColor=white&color=black">][portfolio]
 
 <!-- Markdown link -->
-[slack-sdk]: https://github.com/slackapi/python-slack-sdk
 [license]: https://github.com/siddheshgunjal/slackker/blob/main/LICENSE
 [keras]: https://keras.io/
 [lightning]: https://lightning.ai/
 [setup-slack]: https://medium.com/@siddheshgunjal82/how-to-setup-slackker-to-monitor-keras-model-training-status-on-slack-9f67265dfabd
 [setup-telegram]: https://medium.com/@siddheshgunjal82/how-to-setup-slackker-with-telegram-to-monitor-keras-model-training-21b1ff0c1020
-[matplot-lib]: https://github.com/matplotlib/matplotlib
 [keras]: https://github.com/keras-team/keras
 [py-pi]: https://pypi.org/project/slackker/
 [slack-app]: https://api.slack.com/apps
