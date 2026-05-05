@@ -39,8 +39,8 @@ const revealObserver = new IntersectionObserver(
 
 revealElements.forEach((element) => revealObserver.observe(element));
 
-const tabs = document.querySelectorAll(".example-tab");
-const panels = document.querySelectorAll(".example-panel");
+const tabs = document.querySelectorAll(".example-tab:not(.setup-tab)");
+const panels = document.querySelectorAll(".example-panel:not(.setup-panel)");
 
 function activateTab(targetId) {
   tabs.forEach((tab) => {
@@ -130,6 +130,22 @@ def train_model():
     return "done"
 
 slackker.notify(event="training_complete", status="completed")`,
+  teams:
+`from slackker.core import TeamsClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TeamsClient(
+  app_id="YOUR_AZURE_APP_ID",
+  chat_id="19:abc@thread.v2",
+  verbose=1
+)
+slackker = SimpleCallback(client)
+
+@slackker.notifier
+def train_model():
+  return "done"
+
+slackker.notify(event="training_complete", status="completed")`,
   },
   basic: {
     telegram:
@@ -181,6 +197,32 @@ if __name__ == "__main__":
         status=status,
         attachment="./artifacts/summary.txt"
     )`,
+    teams:
+  `from slackker.core import TeamsClient
+  from slackker.callbacks.simple import SimpleCallback
+
+  client = TeamsClient(
+    app_id="YOUR_AZURE_APP_ID",
+    tenant_id="common",
+    chat_id="19:abc@thread.v2",
+    verbose=1
+  )
+  notify = SimpleCallback(client)
+
+  @notify.notifier
+  def run_data_pipeline(source_path: str):
+    rows_processed = 12500
+    status = "success"
+    return rows_processed, status
+
+  if __name__ == "__main__":
+    rows, status = run_data_pipeline("./data/train.csv")
+    notify.notify(
+      event="pipeline_finished",
+      rows_processed=rows,
+      status=status,
+      attachment="./artifacts/summary.txt"
+    )`,
   },
   keras: {
     telegram:
@@ -230,6 +272,30 @@ history = model.fit(
     validation_data=(x_val, y_val),
     callbacks=[slackker_cb]
 )`,
+  teams:
+`from slackker.core import TeamsClient
+from slackker.callbacks.keras import KerasCallback
+
+client = TeamsClient(
+  app_id="YOUR_AZURE_APP_ID",
+  chat_id="19:abc@thread.v2",
+  verbose=1
+)
+slackker_cb = KerasCallback(
+  client=client,
+  model_name="ImageClassifierV1",
+  export="png",
+  send_plot=True,
+)
+
+history = model.fit(
+  x_train,
+  y_train,
+  epochs=20,
+  batch_size=32,
+  validation_data=(x_val, y_val),
+  callbacks=[slackker_cb]
+)`,
   },
   lightning: {
     telegram:
@@ -273,9 +339,52 @@ slackker_cb = LightningCallback(
 
 trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
 trainer.fit(model, train_loader, val_loader)`,
+  teams:
+`from lightning.pytorch import Trainer
+from slackker.core import TeamsClient
+from slackker.callbacks.lightning import LightningCallback
+
+client = TeamsClient(
+  app_id="YOUR_AZURE_APP_ID",
+  chat_id="19:abc@thread.v2",
+  verbose=1
+)
+slackker_cb = LightningCallback(
+  client=client,
+  model_name="LightningClassifier",
+  track_logs=["train_loss", "train_acc", "val_loss", "val_acc"],
+  monitor="val_loss",
+  export="png",
+  send_plot=True,
+)
+
+trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
+trainer.fit(model, train_loader, val_loader)`,
   },
 };
 
+// ── Setup tab switcher ───────────────────────────────────────
+const setupTabs = document.querySelectorAll(".setup-tab");
+const setupPanels = document.querySelectorAll(".setup-panel");
+
+function activateSetupTab(targetId) {
+  setupTabs.forEach((tab) => {
+    const isActive = tab.dataset.target === targetId;
+    tab.classList.toggle("active", isActive);
+    tab.setAttribute("aria-selected", String(isActive));
+  });
+  setupPanels.forEach((panel) => {
+    const isActive = panel.id === targetId;
+    panel.classList.toggle("active", isActive);
+    panel.hidden = !isActive;
+  });
+}
+
+setupTabs.forEach((tab) => {
+  tab.addEventListener("click", () => activateSetupTab(tab.dataset.target));
+});
+
+// ── Platform toggle ───────────────────────────────────────────
 document.querySelectorAll(".platform-toggle").forEach((toggle) => {
   toggle.querySelectorAll(".plt-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
