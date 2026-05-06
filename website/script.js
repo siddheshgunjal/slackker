@@ -203,7 +203,6 @@ if __name__ == "__main__":
 
   client = TeamsClient(
     app_id="YOUR_AZURE_APP_ID",
-    tenant_id="common",
     chat_id="19:abc@thread.v2",
     verbose=1
   )
