@@ -31,7 +31,7 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://siddheshgunjal.github.io/slackker/"
+Homepage = "https://slackker.com/"
 Repository = "https://github.com/siddheshgunjal/slackker"
 Issues = "https://github.com/siddheshgunjal/slackker/issues"
 Changelog = "https://github.com/siddheshgunjal/slackker/releases"
