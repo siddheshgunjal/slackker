@@ -2308,7 +2308,7 @@ wheels = [
 
 [[package]]
 name = "slackker"
-version = "1.3.2"
+version = "1.3.5"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
