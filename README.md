@@ -5,7 +5,7 @@
 
 ![Tests](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/pr-tests.yml?style=for-the-badge&logo=checkmarx&label=Tests)
 ![Python Build](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/publish-to-pypi.yml?style=for-the-badge&logo=python&logoColor=yellow&label=Build)
-[<img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fsiddheshgunjal.github.io%2Fslackker%2F&style=for-the-badge&logo=htmx">][website]
+[<img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fslackker.com&style=for-the-badge&logo=htmx">][website]
 
 </div>
 
@@ -57,7 +57,7 @@ pip install slackker
 
 # Getting started with slackker callbacks
 ## Setup slackker
-Refer to our [website](https://siddheshgunjal.github.io/slackker/#setup) for detailed setup instructions with Slack, Telegram, and Microsoft Teams
+Refer to our [website](https://slackker.com/#setup) for detailed setup instructions with Slack, Telegram, and Microsoft Teams
 
 ## Create a Client
 All slackker callbacks now use a **client** object. Create one for your platform first, then pass it to any callback.
@@ -550,5 +550,5 @@ Please cite slackker in your publications if this is useful for your project/res
 [gh-contrib]: https://github.com/siddheshgunjal/slackker/blob/main/CONTRIBUTING.md
 [portfolio]: https://siddheshgunjal.github.io
 [GitHub]: https://github.com/siddheshgunjal
-[website]: https://siddheshgunjal.github.io/slackker/
+[website]: https://slackker.com
 [uv]: https://docs.astral.sh/uv/
