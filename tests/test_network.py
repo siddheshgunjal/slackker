@@ -188,3 +188,339 @@ class TestSyncWrappers:
             result = network.get_telegram_chat_id_sync("123:TOKEN", verbose=0)
         assert result == "999"
         mock_fn.assert_awaited_once()
+
+    def test_check_connection_quick_sync(self):
+        with patch("slackker.utils.network.check_connection_quick", new_callable=AsyncMock, return_value=True) as mock_fn:
+            result = network.check_connection_quick_sync("www.slack.com", max_retries=1, verbose=0)
+        assert result is True
+        mock_fn.assert_awaited_once()
+
+    def test_get_teams_device_code_sync(self):
+        payload = {"device_code": "dc", "user_code": "XY", "message": "go here"}
+        with patch("slackker.utils.network.get_teams_device_code", new_callable=AsyncMock, return_value=payload) as mock_fn:
+            result = network.get_teams_device_code_sync("app-id", "common", ["Chat.ReadWrite"], verbose=0)
+        assert result == payload
+        mock_fn.assert_awaited_once()
+
+    def test_poll_teams_device_code_token_sync(self):
+        token_data = {"access_token": "tok", "refresh_token": "rt"}
+        with patch("slackker.utils.network.poll_teams_device_code_token", new_callable=AsyncMock, return_value=token_data) as mock_fn:
+            result = network.poll_teams_device_code_token_sync("app-id", "common", "dev-code", verbose=0)
+        assert result == token_data
+        mock_fn.assert_awaited_once()
+
+    def test_refresh_teams_access_token_sync(self):
+        token_data = {"access_token": "new-tok"}
+        with patch("slackker.utils.network.refresh_teams_access_token", new_callable=AsyncMock, return_value=token_data) as mock_fn:
+            result = network.refresh_teams_access_token_sync("app-id", "common", "rt", ["Chat.ReadWrite"], verbose=0)
+        assert result == token_data
+        mock_fn.assert_awaited_once()
+
+
+# ── verbose logging paths ─────────────────────────────────────────────────────
+
+class TestVerbosePaths:
+    """Ensure verbose >= 2 debug branches are executed."""
+
+    @pytest.mark.asyncio
+    async def test_check_connection_verbose_success(self):
+        mock_response = MagicMock()
+        mock_client = AsyncMock()
+        mock_client.head = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.check_connection("www.slack.com", retries=1, verbose=2)
+
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_verify_slack_token_verbose(self):
+        mock_web_client = AsyncMock()
+        mock_web_client.api_test = AsyncMock(return_value={"ok": True})
+
+        with patch("slackker.utils.network.AsyncWebClient", return_value=mock_web_client):
+            result = await network.verify_slack_token("xoxb-valid", verbose=2)
+
+        assert result is True
+
+    @pytest.mark.asyncio
+    async def test_get_telegram_chat_id_verbose(self):
+        mock_response = MagicMock()
+        mock_response.json = MagicMock(
+            return_value={"result": [{"message": {"chat": {"id": 99}}}]}
+        )
+        mock_http = AsyncMock()
+        mock_http.get = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.get_telegram_chat_id("123:TOKEN", verbose=2)
+
+        assert result == "99"
+
+    @pytest.mark.asyncio
+    async def test_check_connection_verbose_final_failure_warning(self):
+        """Final-failure warning branch (verbose >= 1, all retries exhausted)."""
+        import httpx as _httpx
+
+        mock_client = AsyncMock()
+        mock_client.head = AsyncMock(side_effect=_httpx.RequestError("timeout"))
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                result = await network.check_connection(
+                    "www.slack.com", retries=2, delay=0, verbose=1
+                )
+
+        assert result is False
+
+
+# ── check_connection_quick ────────────────────────────────────────────────────
+
+class TestCheckConnectionQuick:
+    @pytest.mark.asyncio
+    async def test_delegates_to_check_connection(self):
+        mock_response = MagicMock()
+        mock_client = AsyncMock()
+        mock_client.head = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.check_connection_quick("www.slack.com", max_retries=1, verbose=0)
+
+        assert result is True
+
+
+# ── get_teams_device_code ─────────────────────────────────────────────────────
+
+class TestGetTeamsDeviceCode:
+    @pytest.mark.asyncio
+    async def test_returns_payload_on_success(self):
+        payload = {
+            "device_code": "dc123",
+            "user_code": "ABCD-1234",
+            "verification_uri": "https://microsoft.com/devicelogin",
+            "message": "Go to …",
+            "interval": 5,
+            "expires_in": 900,
+        }
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json = MagicMock(return_value=payload)
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.get_teams_device_code("app-id", "common", ["Chat.ReadWrite"], verbose=2)
+
+        assert result == payload
+
+    @pytest.mark.asyncio
+    async def test_returns_none_on_http_error(self):
+        import httpx as _httpx
+
+        request = _httpx.Request("POST", "https://login.microsoftonline.com")
+        response = _httpx.Response(400, request=request, text="Bad Request")
+        http_error = _httpx.HTTPStatusError("bad", request=request, response=response)
+
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(side_effect=http_error)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.get_teams_device_code("app-id", "common", ["Chat.ReadWrite"], verbose=0)
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_returns_none_on_general_exception(self):
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(side_effect=Exception("network error"))
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.get_teams_device_code("app-id", "common", ["Chat.ReadWrite"], verbose=0)
+
+        assert result is None
+
+
+# ── poll_teams_device_code_token ──────────────────────────────────────────────
+
+class TestPollTeamsDeviceCodeToken:
+    @pytest.mark.asyncio
+    async def test_returns_token_on_success(self):
+        token_data = {"access_token": "tok", "refresh_token": "rt", "expires_in": 3600}
+        mock_response = MagicMock()
+        mock_response.json = MagicMock(return_value=token_data)
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                result = await network.poll_teams_device_code_token(
+                    "app-id", "common", "dev-code", interval=0, verbose=2
+                )
+
+        assert result == token_data
+
+    @pytest.mark.asyncio
+    async def test_pending_then_success(self):
+        """authorization_pending is retried until success."""
+        pending = {"error": "authorization_pending"}
+        token_data = {"access_token": "tok", "refresh_token": "rt", "expires_in": 3600}
+
+        mock_response = MagicMock()
+        mock_response.json = MagicMock(side_effect=[pending, pending, token_data])
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                result = await network.poll_teams_device_code_token(
+                    "app-id", "common", "dev-code", interval=0, verbose=0
+                )
+
+        assert result == token_data
+        assert mock_http.post.call_count == 3
+
+    @pytest.mark.asyncio
+    async def test_slow_down_increases_interval(self):
+        """slow_down increases the polling interval, then succeeds."""
+        slow = {"error": "slow_down"}
+        token_data = {"access_token": "tok", "expires_in": 3600}
+
+        mock_response = MagicMock()
+        mock_response.json = MagicMock(side_effect=[slow, token_data])
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                result = await network.poll_teams_device_code_token(
+                    "app-id", "common", "dev-code", interval=0, verbose=0
+                )
+
+        assert result == token_data
+
+    @pytest.mark.asyncio
+    async def test_returns_none_on_declined(self):
+        """authorization_declined returns None."""
+        declined = {"error": "authorization_declined", "error_description": "User declined"}
+        mock_response = MagicMock()
+        mock_response.json = MagicMock(return_value=declined)
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                result = await network.poll_teams_device_code_token(
+                    "app-id", "common", "dev-code", interval=0, verbose=0
+                )
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_returns_none_on_request_exception(self):
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(side_effect=Exception("network fail"))
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            with patch("asyncio.sleep", new_callable=AsyncMock):
+                result = await network.poll_teams_device_code_token(
+                    "app-id", "common", "dev-code", interval=0, verbose=0
+                )
+
+        assert result is None
+
+
+# ── refresh_teams_access_token ────────────────────────────────────────────────
+
+class TestRefreshTeamsAccessToken:
+    @pytest.mark.asyncio
+    async def test_returns_token_on_success(self):
+        token_data = {"access_token": "new-tok", "refresh_token": "rt", "expires_in": 3600}
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json = MagicMock(return_value=token_data)
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.refresh_teams_access_token(
+                "app-id", "common", "old-rt", ["Chat.ReadWrite"], verbose=2
+            )
+
+        assert result == token_data
+
+    @pytest.mark.asyncio
+    async def test_returns_none_on_http_error(self):
+        import httpx as _httpx
+
+        request = _httpx.Request("POST", "https://login.microsoftonline.com")
+        response = _httpx.Response(400, request=request, text="invalid_grant")
+        http_error = _httpx.HTTPStatusError("expired", request=request, response=response)
+
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(side_effect=http_error)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.refresh_teams_access_token(
+                "app-id", "common", "bad-rt", ["Chat.ReadWrite"], verbose=1
+            )
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_returns_none_when_no_access_token_in_response(self):
+        mock_response = MagicMock()
+        mock_response.raise_for_status = MagicMock()
+        mock_response.json = MagicMock(return_value={"error": "something"})
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(return_value=mock_response)
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.refresh_teams_access_token(
+                "app-id", "common", "rt", ["Chat.ReadWrite"], verbose=0
+            )
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_returns_none_on_general_exception(self):
+        mock_http = AsyncMock()
+        mock_http.post = AsyncMock(side_effect=Exception("connection refused"))
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            result = await network.refresh_teams_access_token(
+                "app-id", "common", "rt", ["Chat.ReadWrite"], verbose=0
+            )
+
+        assert result is None
