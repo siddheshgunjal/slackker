@@ -129,8 +129,4 @@ dmypy.json
 .pyre/
 
 # skip these dev test files & folders
-model-keras.py
-model-lightning.py
-simple_func.py
-lightning_logs/
-MNIST/
+/test_scripts/
