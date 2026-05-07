@@ -89,12 +89,13 @@ client = TelegramClient(
 ```python
 client = TeamsClient(
     app_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-    chat_id="19:xxxxxxxxxxxxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxx@unq.gbl.spaces",
+    tenant_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    chat_id="19:xxxxxxxxxxxxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxx@thread.v2",
     verbose=0,
 )
 ```
 
-> **First-time setup:** On the first run, `TeamsClient` prints a short URL and a code. Visit the URL in any browser, enter the code, and sign in with your Microsoft account. The token is then cached at `~/.slackker/teams_<app_id[:8]>.json` and silently refreshed on every subsequent run — no login prompt after the first time.
+> **First-time setup:** On the first run, `TeamsClient` prints a short URL and a code. Visit the URL in any browser, enter the code, and sign in with your Microsoft account. The token is then cached and silently refreshed on every subsequent run — no login prompt after the first time.
 
 **Parameters (shared):**
 | Parameter | Type | Default | Description |
@@ -109,7 +110,7 @@ client = TeamsClient(
 |-----------|------|---------|-------------|
 | `app_id` | `str` | _required_ | Azure AD application (client) ID from your app registration |
 | `tenant_id` | `str` | `"common"` | Azure AD tenant ID, or `"common"` to accept personal and organisational accounts |
-| `chat_id` | `str` | _required_ | Teams personal chat ID (e.g. `19:..._...@unq.gbl.spaces`). Find via Graph Explorer: `GET /me/chats` |
+| `chat_id` | `str` | _required_ | Teams personal chat ID (e.g. `19:..._...@thread.v2`). In Teams, right-click a message in the target chat, choose `Copy link to message`, and extract the chat ID from the URL |
 | `token_cache_path` | `str` | `~/.slackker/teams_<app_id[:8]>.json` | Path to cache the access/refresh token |
 | `verbose` | `int` | `0` | `0` = no logging, `1` = info, `2` = debug |
 

@@ -47,8 +47,10 @@ class TeamsClient(BaseClient):
         pass the tenant's ID or domain (e.g. ``"contoso.onmicrosoft.com"``)
         to restrict sign-in to that organisation.
     chat_id : str
-        The Teams personal chat ID (e.g. ``'19:..._...@unq.gbl.spaces'``).
-        Retrieve via Microsoft Graph Explorer: ``GET /me/chats``.
+        The Teams personal chat ID (e.g. ``'19:..._...@thread.v2'``).
+        In Microsoft Teams, right-click a message in the target chat and
+        choose "Copy link to message". The chat ID is embedded in the URL
+        and typically starts with ``19:`` and ends with ``@thread.v2``.
     token_cache_path : str, optional
         Path to a JSON file for caching the access/refresh token.
         Defaults to ``~/.slackker/teams_<first-8-chars-of-app_id>.json``.
@@ -72,7 +74,9 @@ class TeamsClient(BaseClient):
         if not chat_id:
             raise ValueError(
                 "Microsoft Teams chat_id is required. "
-                "Find it via Graph Explorer: GET https://graph.microsoft.com/v1.0/me/chats"
+                "In Teams, right-click a message in the target chat and use "
+                "'Copy link to message'; extract the chat ID from the URL "
+                "(usually starts with '19:' and ends with '@thread.v2')."
             )
 
         self._app_id = app_id

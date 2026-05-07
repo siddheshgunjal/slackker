@@ -283,14 +283,14 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
               <span class="setup-step-num">1</span>
               <div>
                 <strong>Register an Azure AD App</strong>
-                <p>Go to <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noreferrer">Azure App Registrations</a>&nbsp; ➤ &nbsp;<strong>New registration</strong>. Name it (e.g. <em>slackker</em>), set Supported account types to <em>"Accounts in any organizational directory and personal Microsoft accounts"</em>, click <strong>Register</strong>.</p>
+                <p>Go to <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noreferrer">Azure App Registrations</a>&nbsp; ➤ &nbsp;<strong>New registration</strong>. Name it (e.g. <em>slackker</em>), set Supported account types to <em>"Any Entra ID Tenant + Personal Microsoft accounts"</em>, click <strong>Register</strong>.</p>
               </div>
             </li>
             <li>
               <span class="setup-step-num">2</span>
               <div>
-                <strong>Copy your Application (client) ID</strong>
-                <p>On the app Overview page, copy the <strong>Application (client) ID</strong> — this is your <code>app_id</code>. No client secret is required for the device code flow.</p>
+                <strong>Copy Application Credentials</strong>
+                <p>On the app Overview page&nbsp; ➤ &nbsp;Copy <strong>Application (client) ID</strong> — this is your <code>app_id</code>&nbsp; ➤ &nbsp;Copy <strong>Directory (tenant) ID</strong> — this is your <code>tenant_id</code></p>
               </div>
             </li>
             <li>
@@ -308,16 +308,14 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
               <span class="setup-step-num">4</span>
               <div>
                 <strong>Find your Chat ID</strong>
-                <p>Open <a href="https://developer.microsoft.com/graph/graph-explorer" target="_blank" rel="noreferrer">Graph Explorer</a>, sign in with your work account, then run:</p>
-                <code class="setup-token">GET https://graph.microsoft.com/v1.0/me/chats</code>
-                <p style="margin-top:0.5rem">Copy the <code>id</code> of the chat with yourself — it starts with <code>19:</code> and ends with <code>@thread.v2</code> or <code>@unq.gbl.spaces</code>.</p>
+                <p>In Microsoft Teams, open the chat you want to use&nbsp; ➤ &nbsp;right-click any message&nbsp; ➤ &nbsp;<strong>Copy link to message</strong>&nbsp; ➤ &nbsp;Extract chat ID embedded in the URL — typically starts with <code>19:</code> and ends with <code>@thread.v2</code>.</p>
               </div>
             </li>
             <li>
               <span class="setup-step-num">5</span>
               <div>
                 <strong>Sign in once with the device code flow</strong>
-                <p>On first <code>connect()</code>, slackker prints a short URL and a one-time code. Visit the URL in any browser, enter the code, sign in with your work account. The token is then cached at <code>~/.slackker/teams_*.json</code> and refreshed silently on all future runs.</p>
+                <p>On first <code>connect()</code>, slackker prints a short URL and a one-time code&nbsp; ➤ &nbsp;Visit the URL in any browser&nbsp; ➤ &nbsp;enter the code&nbsp; ➤ &nbsp;sign in with your work account&nbsp; ➤ &nbsp;The token is then cached and refreshed silently on all future runs.</p>
                 <code class="setup-token">TeamsClient(app_id="YOUR_APP_ID", chat_id="19:...")</code>
               </div>
             </li>
