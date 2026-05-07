@@ -9,6 +9,28 @@ class TestCheckConnection:
     """Test check_connection (the real async implementation)."""
 
     @pytest.mark.asyncio
+    async def test_retries_sleep_is_called_between_attempts(self):
+        """asyncio.sleep is called between failed attempts when retries are not exhausted.
+        Also covers the verbose retry-warning log (line before the sleep call).
+        """
+        import httpx as _httpx
+
+        mock_client = AsyncMock()
+        mock_client.head = AsyncMock(side_effect=_httpx.RequestError("timeout"))
+
+        with patch("slackker.utils.network.httpx.AsyncClient") as mock_cls:
+            mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
+            mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
+            with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+                result = await network.check_connection(
+                    "www.slack.com", retries=2, delay=5, verbose=1
+                )
+
+        assert result is False
+        # Sleep called once: after attempt 1 (attempt 2 exhausts retries and returns)
+        mock_sleep.assert_awaited_once_with(5)
+
+    @pytest.mark.asyncio
     async def test_returns_true_on_success(self):
         mock_response = MagicMock()
         mock_response.status_code = 200
