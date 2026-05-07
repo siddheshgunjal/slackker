@@ -29,6 +29,8 @@ Features:
 
 So now you don't have to sit in front of the machine all the time. You can quickly go and grab coffee :coffee: downstairs or run some errands and still keep tracking the progress while on the move without loosing your peace of mind.
 
+https://github.com/user-attachments/assets/41ab1ee9-4d3c-44d0-82b2-3194acbf7727
+
 # Table of contents :notebook:
 * [Installation](#installation-arrow_down)
 * [Getting started with slackker callbacks](#getting-started-with-slackker-callbacks)
