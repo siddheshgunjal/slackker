@@ -4,7 +4,7 @@ from slackker.callbacks.simple import SimpleCallback
 
 __author__ = 'Siddhesh Gunjal'
 __email__ = 'siddhu19@live.com'
-__version__ = '1.3.5'
+__version__ = '1.4.0'
 
 # module level doc-string
 __doc__ = """
