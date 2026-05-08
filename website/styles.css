@@ -95,6 +95,10 @@ body {
   color: var(--teal);
 }
 
+.nav-links a:focus-visible {
+  color: var(--teal);
+}
+
 .menu-btn {
   display: none;
   border: 1px solid var(--border);
@@ -183,6 +187,10 @@ h2 {
   transform: translateY(-2px);
 }
 
+.btn:focus-visible {
+  transform: translateY(-2px);
+}
+
 .btn-primary {
   color: #ffffff;
   background: linear-gradient(135deg, var(--teal), var(--teal-2));
@@ -263,6 +271,11 @@ h2 {
   color: #ffffff;
 }
 
+.example-tab:focus-visible {
+  background: linear-gradient(135deg, var(--teal), var(--teal-2));
+  color: #ffffff;
+}
+
 .example-panels {
   max-width: 950px;
   margin: 0 auto;
@@ -331,6 +344,11 @@ h2 {
 }
 
 .plt-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.plt-btn:focus-visible {
   background: rgba(255, 255, 255, 0.22);
   color: rgba(255, 255, 255, 0.9);
 }
@@ -443,7 +461,7 @@ pre {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--teal), var(--accent));
+  background: linear-gradient(135deg, var(--teal), var(--teal-2));
   color: #ffffff;
   font-size: 0.85rem;
   font-weight: 800;
@@ -517,6 +535,10 @@ pre {
   color: var(--text);
 }
 
+.footer-links a:focus-visible {
+  color: var(--text);
+}
+
 .footer-credit {
   color: var(--muted);
 }
@@ -528,6 +550,23 @@ pre {
 
 .footer-credit a:hover {
   text-decoration: underline;
+}
+
+.footer-credit a:focus-visible {
+  text-decoration: underline;
+}
+
+/* Keyboard-visible focus ring for all primary interactive controls */
+a:focus-visible,
+button:focus-visible,
+.menu-btn:focus-visible,
+.example-tab:focus-visible,
+.plt-btn:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid rgba(26, 171, 138, 0.7);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(232, 121, 42, 0.25);
+  border-radius: 0.6rem;
 }
 
 .glass {
