@@ -352,5 +352,41 @@ class TestAutoConnect:
         assert client.is_connected
 
 
+class TestLightningShimConnectFails:
+    """Cover the connect-failed error log branches in SlackUpdate and TelegramUpdate."""
+
+    @patch("slackker.callbacks.lightning.SlackClient")
+    def test_slack_update_connect_fails_no_client_attr(self, mock_cls):
+        mock_client = MockClient()
+        mock_client.connect = AsyncMock(return_value=False)
+        mock_client._client = MagicMock()
+        mock_cls.return_value = mock_client
+
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            obj = SlackUpdate(
+                token="xoxb-test", channel="C123", ModelName="M",
+                TrackLogs=["train_loss"], monitor="train_loss",
+            )
+
+        assert not hasattr(obj, "client")
+
+    @patch("slackker.callbacks.lightning.TelegramClient")
+    def test_telegram_update_connect_fails_no_client_attr(self, mock_cls):
+        mock_client = MockClient()
+        mock_client.connect = AsyncMock(return_value=False)
+        mock_client.chat_id = None
+        mock_cls.return_value = mock_client
+
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always")
+            obj = TelegramUpdate(
+                token="123:ABC", ModelName="M",
+                TrackLogs=["train_loss"], monitor="train_loss",
+            )
+
+        assert not hasattr(obj, "client")
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

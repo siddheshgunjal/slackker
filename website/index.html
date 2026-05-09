@@ -6,19 +6,19 @@
   <title>slackker — Real-time Pipeline Notifications</title>
   <link rel="canonical" href="https://slackker.com/" />
   <!-- Meta tags for SEO and social sharing -->
-  <meta name="description" content="Monitor any Python script, data pipeline, or ML training run in real-time via Slack, Telegram, and Microsoft Teams with slackker callbacks." />
+  <meta name="description" content="Monitor any Python pipeline & AI training run in real-time via Slack, Telegram and Microsoft Teams with slackker." />
   <meta name="keywords" content="python notifications, slack notifications, telegram notifications, teams notifications, ml pipeline monitoring, keras callback, pytorch lightning callback, data pipeline alerts, slackker" />
   <meta name="author" content="Siddhesh Gunjal" />
   <meta name="robots" content="index, follow" />
   <meta property="og:title" content="slackker — Real-time Pipeline Notifications">
-  <meta property="og:description" content="Monitor any Python script, data pipeline, or ML training run in real-time via Slack, Telegram, and Microsoft Teams with slackker callbacks.">
+  <meta property="og:description" content="Monitor any Python pipeline & AI training run in real-time via Slack, Telegram,and Microsoft Teams with slackker.">
   <meta property="og:image" content="https://raw.githubusercontent.com/siddheshgunjal/slackker/refs/heads/main/website/assets/slackker_logo_wide.webp">
   <meta property="og:url" content="https://slackker.com/">
   <meta property="og:site_name" content="slackker">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="slackker — Real-time Pipeline Notifications">
-  <meta name="twitter:description" content="Monitor any Python script, data pipeline, or ML training run in real-time via Slack, Telegram, and Microsoft Teams with slackker callbacks.">
+  <meta name="twitter:description" content="Monitor any Python pipeline & AI training run in real-time via Slack, Telegram and Microsoft Teams with slackker.">
   <meta name="twitter:image" content="https://raw.githubusercontent.com/siddheshgunjal/slackker/refs/heads/main/website/assets/slackker_logo_wide.webp">
   <meta name="twitter:site" content="@gunjal_siddhesh">
   <meta name="twitter:creator" content="@gunjal_siddhesh">
@@ -41,7 +41,7 @@
           "@type": "WebSite",
           "name": "slackker",
           "url": "https://slackker.com/",
-          "description": "Monitor any Python script, data pipeline, or ML training run in real-time via Slack, Telegram, and Microsoft Teams with slackker callbacks.",
+          "description": "Monitor any Python pipeline & AI training run in real-time via Slack, Telegram and Microsoft Teams with slackker.",
           "publisher": {
             "@type": "Person",
             "name": "Siddhesh Gunjal"
@@ -52,15 +52,16 @@
           "name": "slackker",
           "applicationCategory": "DeveloperApplication",
           "operatingSystem": "Linux, macOS, Windows",
-          "softwareVersion": "1.3.5",
+          "softwareVersion": "1.4.0",
           "description": "Python package for monitoring your pipeline and model training status in real-time on Slack, Telegram, and Microsoft Teams.",
           "url": "https://slackker.com/",
           "downloadUrl": "https://pypi.org/project/slackker/",
           "codeRepository": "https://github.com/siddheshgunjal/slackker",
+          "license": "https://github.com/siddheshgunjal/slackker/blob/main/LICENSE",
+          "isAccessibleForFree": true,
           "offers": {
             "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD"
+            "price": "0"
           },
           "creator": {
             "@type": "Person",
@@ -102,7 +103,7 @@
       <p class="eyebrow">Real-time notifications for any Python pipeline</p>
       <h1>Run anything.<br />Know instantly. Stay anywhere.</h1>
       <p class="lead center-block">
-        slackker sends real-time notifications to Slack, Telegram, or Microsoft Teams for any Python script, data pipeline,
+        slackker sends real-time notifications to Slack, Telegram, or Microsoft Teams for any Python pipeline,
         ML training run, or automation workflow — complete with metrics, outputs, and optional plots.
       </p>
       <div class="hero-cta center-wrap">
@@ -174,7 +175,7 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
         </article>
         <article class="card glass center-text">
           <div class="card-icon" aria-hidden="true">
-            <img src="https://miro.medium.com/v2/1*f1Y6xXw2Uab_-T2Q0C02Zg.png" alt="PyTorch Lightning" width="48" height="48" loading="lazy" />
+            <img src="assets/pytorch-lightning.webp" alt="PyTorch Lightning" width="48" height="48" loading="lazy" />
           </div>
           <h3>Lightning Callback</h3>
           <p>Track train and validation logs with monitor-based best epoch updates.</p>
@@ -352,14 +353,14 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
               <span class="setup-step-num">1</span>
               <div>
                 <strong>Register an Azure AD App</strong>
-                <p>Go to <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noreferrer">Azure App Registrations</a>&nbsp; ➤ &nbsp;<strong>New registration</strong>. Name it (e.g. <em>slackker</em>), set Supported account types to <em>"Accounts in any organizational directory and personal Microsoft accounts"</em>, click <strong>Register</strong>.</p>
+                <p>Go to <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank" rel="noreferrer">Azure App Registrations</a>&nbsp; ➤ &nbsp;<strong>New registration</strong>. Name it (e.g. <em>slackker</em>), set Supported account types to <em>"Any Entra ID Tenant + Personal Microsoft accounts"</em>, click <strong>Register</strong>.</p>
               </div>
             </li>
             <li>
               <span class="setup-step-num">2</span>
               <div>
-                <strong>Copy your Application (client) ID</strong>
-                <p>On the app Overview page, copy the <strong>Application (client) ID</strong> — this is your <code>app_id</code>. No client secret is required for the device code flow.</p>
+                <strong>Copy Application Credentials</strong>
+                <p>On the app Overview page&nbsp; ➤ &nbsp;Copy <strong>Application (client) ID</strong> — this is your <code>app_id</code>&nbsp; ➤ &nbsp;Copy <strong>Directory (tenant) ID</strong> — this is your <code>tenant_id</code></p>
               </div>
             </li>
             <li>
@@ -377,17 +378,15 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
               <span class="setup-step-num">4</span>
               <div>
                 <strong>Find your Chat ID</strong>
-                <p>Open <a href="https://developer.microsoft.com/graph/graph-explorer" target="_blank" rel="noreferrer">Graph Explorer</a>, sign in with your work account, then run:</p>
-                <code class="setup-token">GET https://graph.microsoft.com/v1.0/me/chats</code>
-                <p style="margin-top:0.5rem">Copy the <code>id</code> of the chat with yourself — it starts with <code>19:</code> and ends with <code>@thread.v2</code> or <code>@unq.gbl.spaces</code>.</p>
+                <p>In Microsoft Teams, open the chat you want to use&nbsp; ➤ &nbsp;right-click any message&nbsp; ➤ &nbsp;<strong>Copy link to message</strong>&nbsp; ➤ &nbsp;Extract chat ID embedded in the URL — typically starts with <code>19:</code> and ends with <code>@thread.v2</code>.</p>
               </div>
             </li>
             <li>
               <span class="setup-step-num">5</span>
               <div>
                 <strong>Sign in once with the device code flow</strong>
-                <p>On first <code>connect()</code>, slackker prints a short URL and a one-time code. Visit the URL in any browser, enter the code, sign in with your work account. The token is then cached at <code>~/.slackker/teams_*.json</code> and refreshed silently on all future runs.</p>
-                <code class="setup-token">TeamsClient(app_id="YOUR_APP_ID", chat_id="19:...")</code>
+                <p>On first <code>connect()</code>, slackker prints a short URL and a one-time code&nbsp; ➤ &nbsp;Visit the URL in any browser&nbsp; ➤ &nbsp;enter the code&nbsp; ➤ &nbsp;sign in with your work account&nbsp; ➤ &nbsp;The token is then cached and refreshed silently on all future runs.</p>
+                <code class="setup-token">TeamsClient(app_id="YOUR_APP_ID", tenant_id="YOUR_TENANT_ID", chat_id="19:...")</code>
               </div>
             </li>
           </ol>
@@ -531,7 +530,7 @@ trainer.fit(model, train_loader, val_loader)</code></pre>
           <div class="hiw-icon">🔌</div>
           <div class="hiw-num">01</div>
           <h3>Connect</h3>
-          <p>Create a <strong>SlackClient</strong>, <strong>TelegramClient</strong>, or <strong>TeamsClient</strong> with your credentials. slackker verifies connectivity and is ready to post updates to your channel or chat.</p>
+          <p>Create a <strong>SlackClient</strong>, <strong>TelegramClient</strong>, or <strong>TeamsClient</strong> with your credentials. slackker verifies connectivity and is ready to post updates.</p>
         </div>
 
         <div class="hiw-arrow" aria-hidden="true">
@@ -561,7 +560,7 @@ trainer.fit(model, train_loader, val_loader)</code></pre>
 
     <section id="cta" class="section reveal cta-section">
       <div class="cta-card glass">
-        <img src="assets/slackker_logo_medium_alpha.png" alt="slackker logo" class="cta-logo" width="84" height="84" loading="lazy" />
+        <img src="assets/slackker_logo_medium_alpha.webp" alt="slackker logo" class="cta-logo" width="84" height="84" loading="lazy" />
         <h2>Your pipeline runs. Your phone <span class="highlight">notifies</span></h2>
         <p class="cta-sub">Stop babysitting terminal. Slackker keeps you informed so you can stay heads-down on what actually matters.</p>
         <div class="cta-actions center-wrap">
@@ -580,7 +579,7 @@ trainer.fit(model, train_loader, val_loader)</code></pre>
     <div class="footer-bar">
       <div class="footer-status">
         <span class="footer-pulse"></span>
-        <span>slackker v1.3.5</span>
+        <span>slackker v1.4.0</span>
       </div>
       <div class="footer-links">
         <a href="https://github.com/siddheshgunjal/slackker" target="_blank" rel="noreferrer">GitHub</a>

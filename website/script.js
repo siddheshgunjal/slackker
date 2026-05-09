@@ -136,6 +136,7 @@ from slackker.callbacks.simple import SimpleCallback
 
 client = TeamsClient(
   app_id="YOUR_AZURE_APP_ID",
+  tenant_id="YOUR_TENANT_ID",
   chat_id="19:abc@thread.v2",
   verbose=1
 )
@@ -203,6 +204,7 @@ if __name__ == "__main__":
 
   client = TeamsClient(
     app_id="YOUR_AZURE_APP_ID",
+    tenant_id="YOUR_TENANT_ID",
     chat_id="19:abc@thread.v2",
     verbose=1
   )
@@ -277,6 +279,7 @@ from slackker.callbacks.keras import KerasCallback
 
 client = TeamsClient(
   app_id="YOUR_AZURE_APP_ID",
+  tenant_id="YOUR_TENANT_ID",
   chat_id="19:abc@thread.v2",
   verbose=1
 )
@@ -345,6 +348,7 @@ from slackker.callbacks.lightning import LightningCallback
 
 client = TeamsClient(
   app_id="YOUR_AZURE_APP_ID",
+  tenant_id="YOUR_TENANT_ID",
   chat_id="19:abc@thread.v2",
   verbose=1
 )
