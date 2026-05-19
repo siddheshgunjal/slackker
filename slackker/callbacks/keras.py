@@ -1,21 +1,45 @@
 import warnings
 from datetime import datetime
+
 import numpy as np
 from keras.callbacks import Callback
+
 from slackker.core.client import BaseClient, _run_sync
-from slackker.utils.logger import log
 from slackker.utils import network, plotting
+from slackker.utils.logger import log
 
 
 class KerasCallback(Callback):
     """Unified Keras training callback that works with any client backend."""
 
-    SUPPORTED_FORMATS = ("eps", "jpeg", "jpg", "pdf", "pgf", "png", "ps", "raw", "rgba", "svg", "svgz", "tif", "tiff")
+    SUPPORTED_FORMATS = (
+        "eps",
+        "jpeg",
+        "jpg",
+        "pdf",
+        "pgf",
+        "png",
+        "ps",
+        "raw",
+        "rgba",
+        "svg",
+        "svgz",
+        "tif",
+        "tiff",
+    )
 
-    def __init__(self, client: BaseClient, model_name: str, export: str = "png", send_plot: bool = False):
+    def __init__(
+        self,
+        client: BaseClient,
+        model_name: str,
+        export: str = "png",
+        send_plot: bool = False,
+    ):
         super().__init__()
         if export not in self.SUPPORTED_FORMATS:
-            raise ValueError(f"Unsupported export format '{export}'. Supported: {self.SUPPORTED_FORMATS}")
+            raise ValueError(
+                f"Unsupported export format '{export}'. Supported: {self.SUPPORTED_FORMATS}"
+            )
 
         self.client = client
         self.model_name = model_name
@@ -72,7 +96,7 @@ class KerasCallback(Callback):
                 f"Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}."
             )
             self.client.send_message_sync(
-                f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100*val_acc:.4f}%"
+                f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100 * val_acc:.4f}%"
             )
 
         training_logs = {
@@ -83,7 +107,9 @@ class KerasCallback(Callback):
         }
 
         if self.send_plot:
-            paths = plotting.generate_and_get_plots(self.model_name, self.export, training_logs)
+            paths = plotting.generate_and_get_plots(
+                self.model_name, self.export, training_logs
+            )
             for path in paths:
                 self.client.upload_image_sync(path, comment=f"{self.model_name} 📎")
 
@@ -99,7 +125,9 @@ from slackker.core.telegram import TelegramClient
 class SlackUpdate(KerasCallback):
     """Deprecated: Use KerasCallback(SlackClient(...), ...) instead."""
 
-    def __init__(self, token, channel, ModelName, export="png", SendPlot=False, verbose=0):
+    def __init__(
+        self, token, channel, ModelName, export="png", SendPlot=False, verbose=0
+    ):
         warnings.warn(
             "SlackUpdate is deprecated. Use KerasCallback(SlackClient(token, channel), model_name) instead.",
             DeprecationWarning,
@@ -115,7 +143,9 @@ class SlackUpdate(KerasCallback):
             log.error("Failed to connect to Slack.")
             return
 
-        super().__init__(client=client, model_name=ModelName, export=export, send_plot=SendPlot)
+        super().__init__(
+            client=client, model_name=ModelName, export=export, send_plot=SendPlot
+        )
 
         # Expose old attribute names for backward compat
         self.ModelName = ModelName
@@ -144,7 +174,9 @@ class TelegramUpdate(KerasCallback):
             log.error("Failed to connect to Telegram.")
             return
 
-        super().__init__(client=client, model_name=ModelName, export=export, send_plot=SendPlot)
+        super().__init__(
+            client=client, model_name=ModelName, export=export, send_plot=SendPlot
+        )
 
         # Expose old attribute names for backward compat
         self.ModelName = ModelName

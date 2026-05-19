@@ -1,10 +1,10 @@
 from slackker import callbacks
-from slackker.core import SlackClient, TelegramClient, TeamsClient, BaseClient
 from slackker.callbacks.simple import SimpleCallback
+from slackker.core import BaseClient, SlackClient, TeamsClient, TelegramClient
 
-__author__ = 'Siddhesh Gunjal'
-__email__ = 'siddhu19@live.com'
-__version__ = '1.4.1'
+__author__ = "Siddhesh Gunjal"
+__email__ = "siddhu19@live.com"
+__version__ = "1.4.4"
 
 # module level doc-string
 __doc__ = """

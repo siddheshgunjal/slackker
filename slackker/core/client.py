@@ -11,6 +11,7 @@ def _run_sync(coro):
 
     if loop and loop.is_running():
         import nest_asyncio
+
         nest_asyncio.apply()
         return loop.run_until_complete(coro)
     else:

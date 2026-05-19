@@ -1,8 +1,10 @@
 import os
+
 import httpx
+
 from slackker.core.client import BaseClient
-from slackker.utils.logger import log
 from slackker.utils import network
+from slackker.utils.logger import log
 
 
 class TelegramClient(BaseClient):
@@ -36,7 +38,9 @@ class TelegramClient(BaseClient):
 
     async def connect(self) -> bool:
         """Verify server connectivity and discover chat_id if not provided."""
-        server = await network.check_connection(url="api.telegram.org", verbose=self._verbose)
+        server = await network.check_connection(
+            url="api.telegram.org", verbose=self._verbose
+        )
         if not server:
             return False
 
@@ -49,12 +53,16 @@ class TelegramClient(BaseClient):
 
     async def send_message(self, text: str) -> None:
         if not self._chat_id:
-            log.error("chat_id is not set. Call `await client.connect()` before sending messages.")
+            log.error(
+                "chat_id is not set. Call `await client.connect()` before sending messages."
+            )
             return
         url = f"{self._base_url}/sendMessage"
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(url, params={"chat_id": self._chat_id, "text": text})
+            async with network._make_async_client() as client:
+                response = await client.post(
+                    url, params={"chat_id": self._chat_id, "text": text}
+                )
                 response.raise_for_status()
             if self._verbose >= 1:
                 log.debug("Posted update on Telegram")
@@ -65,7 +73,9 @@ class TelegramClient(BaseClient):
 
     async def upload_file(self, filepath: str, comment: str | None = None) -> None:
         if not self._chat_id:
-            log.error("chat_id is not set. Call `await client.connect()` before uploading files.")
+            log.error(
+                "chat_id is not set. Call `await client.connect()` before uploading files."
+            )
             return
         url = f"{self._base_url}/sendDocument"
         try:
@@ -73,7 +83,7 @@ class TelegramClient(BaseClient):
                 log.error(f"Invalid file path: {filepath}")
                 return
             caption = comment or "Attachment 📎"
-            async with httpx.AsyncClient() as client:
+            async with network._make_async_client() as client:
                 with open(filepath, "rb") as f:
                     response = await client.post(
                         url,
@@ -90,7 +100,9 @@ class TelegramClient(BaseClient):
 
     async def upload_image(self, filepath: str, comment: str | None = None) -> None:
         if not self._chat_id:
-            log.error("chat_id is not set. Call `await client.connect()` before uploading images.")
+            log.error(
+                "chat_id is not set. Call `await client.connect()` before uploading images."
+            )
             return
         url = f"{self._base_url}/sendPhoto"
         try:
@@ -98,7 +110,7 @@ class TelegramClient(BaseClient):
                 log.error(f"Invalid file path: {filepath}")
                 return
             caption = comment or "Attachment 📎"
-            async with httpx.AsyncClient() as client:
+            async with network._make_async_client() as client:
                 with open(filepath, "rb") as f:
                     response = await client.post(
                         url,

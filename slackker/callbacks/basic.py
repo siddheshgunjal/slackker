@@ -5,6 +5,7 @@ This module is kept for backward compatibility only.
 """
 
 import warnings
+
 from slackker.callbacks.simple import SimpleCallback
 from slackker.core.client import _run_sync as _sync
 from slackker.core.slack import SlackClient
@@ -27,6 +28,7 @@ class Update(SimpleCallback):
 # ──────────────────────────────────────────────
 # Backward-compatible shims (deprecated)
 # ──────────────────────────────────────────────
+
 
 class SlackUpdate(SimpleCallback):
     """Deprecated: Use SimpleCallback(SlackClient(...)) instead."""
