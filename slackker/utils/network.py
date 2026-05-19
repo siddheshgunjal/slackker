@@ -1,7 +1,9 @@
-import os
 import asyncio
+import os
+
 import httpx
 from slack_sdk.web.async_client import AsyncWebClient
+
 from slackker.utils.logger import log
 
 
@@ -35,22 +37,29 @@ def _run_sync(coro):
 
     if loop and loop.is_running():
         import nest_asyncio
+
         nest_asyncio.apply()
         return loop.run_until_complete(coro)
     else:
         return asyncio.run(coro)
 
 
-async def check_connection(url: str, retries: int = 3, delay: float = 30, verbose: int = 2) -> bool:
+async def check_connection(
+    url: str, retries: int = 3, delay: float = 30, verbose: int = 2
+) -> bool:
     """Check if a server is reachable. Retries indefinitely if retries=0, else up to `retries` times."""
     attempt = 0
     async with _make_async_client() as client:
         while True:
             attempt += 1
             try:
-                resp = await client.head(f"https://{url}", timeout=10, follow_redirects=True)
+                resp = await client.head(
+                    f"https://{url}", timeout=10, follow_redirects=True
+                )
                 if verbose >= 2:
-                    log.debug(f"Connection to '{url}' server successful! [{_ip_mode()}]")
+                    log.debug(
+                        f"Connection to '{url}' server successful! [{_ip_mode()}]"
+                    )
                 return True
             except (httpx.RequestError, httpx.HTTPStatusError) as e:
                 if retries > 0 and attempt >= retries:
@@ -69,9 +78,13 @@ async def check_connection(url: str, retries: int = 3, delay: float = 30, verbos
                 await asyncio.sleep(delay)
 
 
-async def check_connection_quick(url: str, max_retries: int = 3, delay: float = 10, verbose: int = 1) -> bool:
+async def check_connection_quick(
+    url: str, max_retries: int = 3, delay: float = 10, verbose: int = 1
+) -> bool:
     """Quick connectivity check with limited retries (for use during training epochs)."""
-    return await check_connection(url=url, retries=max_retries, delay=delay, verbose=verbose)
+    return await check_connection(
+        url=url, retries=max_retries, delay=delay, verbose=verbose
+    )
 
 
 async def verify_slack_token(token: str, verbose: int = 2) -> bool:
@@ -79,8 +92,12 @@ async def verify_slack_token(token: str, verbose: int = 2) -> bool:
     session = None
     if os.environ.get("SLACKKER_FORCE_IPV4", "").lower() in ("1", "true"):
         import socket
+
         import aiohttp
-        session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(family=socket.AF_INET))
+
+        session = aiohttp.ClientSession(
+            connector=aiohttp.TCPConnector(family=socket.AF_INET)
+        )
     try:
         if session:
             client = AsyncWebClient(token=token, session=session)
@@ -112,7 +129,9 @@ async def get_telegram_chat_id(token: str, verbose: int = 2) -> str | None:
             return chat_id
     except Exception as e:
         log.error(f"Could not connect to Telegram API: {e} [{_ip_mode()}]")
-        log.warning("Please send 'Hello' once to your bot to make it discoverable to slackker")
+        log.warning(
+            "Please send 'Hello' once to your bot to make it discoverable to slackker"
+        )
         return None
 
 
@@ -141,7 +160,9 @@ async def get_teams_device_code(
                 log.debug("Teams: Device code obtained successfully.")
             return resp.json()
     except httpx.HTTPStatusError as e:
-        log.error(f"Teams: Failed to get device code ({e.response.status_code}): {e.response.text}")
+        log.error(
+            f"Teams: Failed to get device code ({e.response.status_code}): {e.response.text}"
+        )
         return None
     except Exception as e:
         log.error(f"Teams: Failed to get device code: {e}")
@@ -192,7 +213,9 @@ async def poll_teams_device_code_token(
                 continue
             else:
                 # authorization_declined, expired_token, bad_verification_code
-                log.error(f"Teams: Authentication failed: {data.get('error_description', error)}")
+                log.error(
+                    f"Teams: Authentication failed: {data.get('error_description', error)}"
+                )
                 return None
 
 
@@ -229,7 +252,9 @@ async def refresh_teams_access_token(
             return None
     except httpx.HTTPStatusError as e:
         if verbose >= 1:
-            log.warning(f"Teams: Token refresh failed ({e.response.status_code}), re-authentication required.")
+            log.warning(
+                f"Teams: Token refresh failed ({e.response.status_code}), re-authentication required."
+            )
         return None
     except Exception as e:
         log.error(f"Teams: Token refresh error: {e}")
@@ -238,11 +263,16 @@ async def refresh_teams_access_token(
 
 # --- Sync wrappers ---
 
-def check_connection_sync(url: str, retries: int = 3, delay: float = 30, verbose: int = 2) -> bool:
+
+def check_connection_sync(
+    url: str, retries: int = 3, delay: float = 30, verbose: int = 2
+) -> bool:
     return _run_sync(check_connection(url, retries, delay, verbose))
 
 
-def check_connection_quick_sync(url: str, max_retries: int = 3, delay: float = 10, verbose: int = 1) -> bool:
+def check_connection_quick_sync(
+    url: str, max_retries: int = 3, delay: float = 10, verbose: int = 1
+) -> bool:
     return _run_sync(check_connection_quick(url, max_retries, delay, verbose))
 
 
@@ -263,10 +293,14 @@ def get_teams_device_code_sync(
 def poll_teams_device_code_token_sync(
     app_id: str, tenant_id: str, device_code: str, interval: int = 5, verbose: int = 2
 ) -> dict | None:
-    return _run_sync(poll_teams_device_code_token(app_id, tenant_id, device_code, interval, verbose))
+    return _run_sync(
+        poll_teams_device_code_token(app_id, tenant_id, device_code, interval, verbose)
+    )
 
 
 def refresh_teams_access_token_sync(
     app_id: str, tenant_id: str, refresh_token: str, scopes: list[str], verbose: int = 2
 ) -> dict | None:
-    return _run_sync(refresh_teams_access_token(app_id, tenant_id, refresh_token, scopes, verbose))
+    return _run_sync(
+        refresh_teams_access_token(app_id, tenant_id, refresh_token, scopes, verbose)
+    )

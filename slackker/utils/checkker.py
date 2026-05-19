@@ -1,11 +1,12 @@
 """Deprecated: Use slackker.utils.network instead."""
 
 import warnings
+
 from slackker.utils.network import (
-    check_connection_sync,
     check_connection_quick_sync,
-    verify_slack_token_sync,
+    check_connection_sync,
     get_telegram_chat_id_sync,
+    verify_slack_token_sync,
 )
 
 warnings.warn(
