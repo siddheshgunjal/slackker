@@ -19,7 +19,7 @@ def _run_sync(coro):
         return asyncio.run(coro)
 
 
-async def check_connection(url: str, retries: int = 0, delay: float = 60, verbose: int = 2) -> bool:
+async def check_connection(url: str, retries: int = 3, delay: float = 30, verbose: int = 2) -> bool:
     """Check if a server is reachable. Retries indefinitely if retries=0, else up to `retries` times."""
     attempt = 0
     async with httpx.AsyncClient() as client:
@@ -203,7 +203,7 @@ async def refresh_teams_access_token(
 
 # --- Sync wrappers ---
 
-def check_connection_sync(url: str, retries: int = 0, delay: float = 60, verbose: int = 2) -> bool:
+def check_connection_sync(url: str, retries: int = 3, delay: float = 30, verbose: int = 2) -> bool:
     return _run_sync(check_connection(url, retries, delay, verbose))
 
 

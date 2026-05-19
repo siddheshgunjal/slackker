@@ -16,7 +16,7 @@ warnings.warn(
 
 
 def check_internet(url, verbose=2):
-    return check_connection_sync(url=url, retries=0, delay=60, verbose=verbose)
+    return check_connection_sync(url=url, retries=3, delay=30, verbose=verbose)
 
 
 def check_internet_epoch_end(url):
