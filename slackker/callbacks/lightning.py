@@ -1,17 +1,33 @@
 import sys
 import warnings
 from datetime import datetime
+
 import numpy as np
 from lightning.pytorch.callbacks import Callback
+
 from slackker.core.client import BaseClient, _run_sync
-from slackker.utils.logger import log
 from slackker.utils import network, plotting
+from slackker.utils.logger import log
 
 
 class LightningCallback(Callback):
     """Unified Lightning training callback that works with any client backend."""
 
-    SUPPORTED_FORMATS = ("eps", "jpeg", "jpg", "pdf", "pgf", "png", "ps", "raw", "rgba", "svg", "svgz", "tif", "tiff")
+    SUPPORTED_FORMATS = (
+        "eps",
+        "jpeg",
+        "jpg",
+        "pdf",
+        "pgf",
+        "png",
+        "ps",
+        "raw",
+        "rgba",
+        "svg",
+        "svgz",
+        "tif",
+        "tiff",
+    )
 
     def __init__(
         self,
@@ -24,7 +40,9 @@ class LightningCallback(Callback):
     ):
         super().__init__()
         if export not in self.SUPPORTED_FORMATS:
-            raise ValueError(f"Unsupported export format '{export}'. Supported: {self.SUPPORTED_FORMATS}")
+            raise ValueError(
+                f"Unsupported export format '{export}'. Supported: {self.SUPPORTED_FORMATS}"
+            )
 
         if track_logs is None:
             log.error("Provide at least 1 log type for sending update.")
@@ -67,7 +85,9 @@ class LightningCallback(Callback):
         parts = [f"{key}: {metrics[key]:.4f}" for key in self.track_logs]
         message = f"Epoch: {self.n_epochs}, {', '.join(parts)}"
 
-        connected = _run_sync(network.check_connection_quick(url=self.client.connectivity_url))
+        connected = _run_sync(
+            network.check_connection_quick(url=self.client.connectivity_url)
+        )
         if connected:
             self.client.send_message_sync(message)
 
@@ -91,7 +111,9 @@ class LightningCallback(Callback):
         self.client.send_message_sync(message)
 
         if self.send_plot:
-            paths = plotting.generate_and_get_plots(self.model_name, self.export, self.training_logs)
+            paths = plotting.generate_and_get_plots(
+                self.model_name, self.export, self.training_logs
+            )
             for path in paths:
                 self.client.upload_image_sync(path, comment=f"{self.model_name} 📎")
 
@@ -107,7 +129,17 @@ from slackker.core.telegram import TelegramClient
 class SlackUpdate(LightningCallback):
     """Deprecated: Use LightningCallback(SlackClient(...), ...) instead."""
 
-    def __init__(self, token, channel, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=False, verbose=0):
+    def __init__(
+        self,
+        token,
+        channel,
+        ModelName,
+        TrackLogs=None,
+        monitor=None,
+        export="png",
+        SendPlot=False,
+        verbose=0,
+    ):
         warnings.warn(
             "SlackUpdate is deprecated. Use LightningCallback(SlackClient(token, channel), ...) instead.",
             DeprecationWarning,
@@ -144,7 +176,16 @@ class SlackUpdate(LightningCallback):
 class TelegramUpdate(LightningCallback):
     """Deprecated: Use LightningCallback(TelegramClient(...), ...) instead."""
 
-    def __init__(self, token, ModelName, TrackLogs=None, monitor=None, export="png", SendPlot=False, verbose=0):
+    def __init__(
+        self,
+        token,
+        ModelName,
+        TrackLogs=None,
+        monitor=None,
+        export="png",
+        SendPlot=False,
+        verbose=0,
+    ):
         warnings.warn(
             "TelegramUpdate is deprecated. Use LightningCallback(TelegramClient(token), ...) instead.",
             DeprecationWarning,

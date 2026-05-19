@@ -1,7 +1,8 @@
-import time
 import os
-from inspect import stack
+import time
 from datetime import datetime
+from inspect import stack
+
 from slackker.core.client import BaseClient, _run_sync
 from slackker.utils.logger import log
 
@@ -20,9 +21,12 @@ class SimpleCallback:
 
     def notifier(self, function):
         """Decorator to log function calls and send execution reports."""
+
         def wrapper(*args, **kwargs):
             if self.client.verbose > 0:
-                log.info(f"Calling {function.__name__} with args: {args}, kwargs: {kwargs}")
+                log.info(
+                    f"Calling {function.__name__} with args: {args}, kwargs: {kwargs}"
+                )
 
             start_time = time.time()
             result = function(*args, **kwargs)
@@ -43,9 +47,12 @@ class SimpleCallback:
 
             self.client.send_message_sync(message)
             return result
+
         return wrapper
 
-    async def async_notify(self, event: str | None = None, attachment: str | None = None, **kwargs):
+    async def async_notify(
+        self, event: str | None = None, attachment: str | None = None, **kwargs
+    ):
         """Async notification method."""
         script = stack()[1].filename
         text = f"Notification: {event or os.path.basename(script)} at {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}"
