@@ -1,7 +1,22 @@
+import os
 import asyncio
 import httpx
 from slack_sdk.web.async_client import AsyncWebClient
 from slackker.utils.logger import log
+
+
+def _make_async_client(**kwargs) -> httpx.AsyncClient:
+    """Create an httpx.AsyncClient, optionally forced to IPv4.
+
+    Set ``SLACKKER_FORCE_IPV4=1`` in the environment to bind all outbound
+    connections to an IPv4 socket (AF_INET). This is useful in Docker
+    containers where the internal DNS resolver returns IPv6 addresses first
+    but the container has no IPv6 outbound route configured.
+    """
+    if os.environ.get("SLACKKER_FORCE_IPV4", "").lower() in ("1", "true"):
+        transport = httpx.AsyncHTTPTransport(local_address="0.0.0.0", retries=3)
+        return httpx.AsyncClient(transport=transport, **kwargs)
+    return httpx.AsyncClient(**kwargs)
 
 
 def _run_sync(coro):
@@ -22,7 +37,7 @@ def _run_sync(coro):
 async def check_connection(url: str, retries: int = 3, delay: float = 30, verbose: int = 2) -> bool:
     """Check if a server is reachable. Retries indefinitely if retries=0, else up to `retries` times."""
     attempt = 0
-    async with httpx.AsyncClient() as client:
+    async with _make_async_client() as client:
         while True:
             attempt += 1
             try:
@@ -54,8 +69,16 @@ async def check_connection_quick(url: str, max_retries: int = 3, delay: float = 
 
 async def verify_slack_token(token: str, verbose: int = 2) -> bool:
     """Verify a Slack API token by calling api.test."""
+    session = None
+    if os.environ.get("SLACKKER_FORCE_IPV4", "").lower() in ("1", "true"):
+        import socket
+        import aiohttp
+        session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(family=socket.AF_INET))
     try:
-        client = AsyncWebClient(token=token)
+        if session:
+            client = AsyncWebClient(token=token, session=session)
+        else:
+            client = AsyncWebClient(token=token)
         response = await client.api_test()
         if verbose >= 2:
             log.debug(f"Connection to Slack API successful! {response}")
@@ -63,13 +86,16 @@ async def verify_slack_token(token: str, verbose: int = 2) -> bool:
     except Exception as e:
         log.error(f"Invalid Slack API token: {e}")
         return False
+    finally:
+        if session:
+            await session.close()
 
 
 async def get_telegram_chat_id(token: str, verbose: int = 2) -> str | None:
     """Retrieve the chat_id from the first message sent to the Telegram bot."""
     url = f"https://api.telegram.org/bot{token}/getUpdates"
     try:
-        async with httpx.AsyncClient() as client:
+        async with _make_async_client() as client:
             resp = await client.get(url)
             data = resp.json()
             chat_id = str(data["result"][0]["message"]["chat"]["id"])
@@ -101,7 +127,7 @@ async def get_teams_device_code(
         "scope": " ".join(scopes),
     }
     try:
-        async with httpx.AsyncClient() as client:
+        async with _make_async_client() as client:
             resp = await client.post(url, data=payload, timeout=10)
             resp.raise_for_status()
             if verbose >= 2:
@@ -136,7 +162,7 @@ async def poll_teams_device_code_token(
         "device_code": device_code,
     }
     poll_interval = max(interval, 5)
-    async with httpx.AsyncClient() as client:
+    async with _make_async_client() as client:
         while True:
             await asyncio.sleep(poll_interval)
             try:
@@ -184,7 +210,7 @@ async def refresh_teams_access_token(
         "scope": " ".join(scopes),
     }
     try:
-        async with httpx.AsyncClient() as client:
+        async with _make_async_client() as client:
             resp = await client.post(url, data=payload, timeout=10)
             resp.raise_for_status()
             data = resp.json()
