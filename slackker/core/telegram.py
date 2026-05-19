@@ -28,7 +28,7 @@ class TelegramClient(BaseClient):
 
     @property
     def connectivity_url(self) -> str:
-        return "www.telegram.org"
+        return "api.telegram.org"
 
     @property
     def chat_id(self) -> str | None:
@@ -36,7 +36,7 @@ class TelegramClient(BaseClient):
 
     async def connect(self) -> bool:
         """Verify server connectivity and discover chat_id if not provided."""
-        server = await network.check_connection(url="www.telegram.org", verbose=self._verbose)
+        server = await network.check_connection(url="api.telegram.org", verbose=self._verbose)
         if not server:
             return False
 

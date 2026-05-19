@@ -26,21 +26,23 @@ async def check_connection(url: str, retries: int = 3, delay: float = 30, verbos
         while True:
             attempt += 1
             try:
-                resp = await client.head(f"https://{url}", timeout=5)
+                resp = await client.head(f"https://{url}", timeout=10, follow_redirects=True)
                 if verbose >= 2:
                     log.debug(f"Connection to '{url}' server successful!")
                 return True
-            except (httpx.RequestError, httpx.HTTPStatusError):
+            except (httpx.RequestError, httpx.HTTPStatusError) as e:
                 if retries > 0 and attempt >= retries:
                     if verbose >= 1:
                         log.warning(
-                            f"Connection to '{url}' server failed after {attempt} attempts."
+                            f"Connection to '{url}' server failed after {attempt} attempts. "
+                            f"Reason: {e}"
                         )
                     return False
                 if verbose >= 1:
                     log.warning(
                         f"Connection to '{url}' server failed. "
-                        f"Trying again in {delay}s.. [attempt {attempt}]"
+                        f"Trying again in {delay}s.. [attempt {attempt}] "
+                        f"Reason: {e}"
                     )
                 await asyncio.sleep(delay)
 
