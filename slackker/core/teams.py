@@ -229,7 +229,7 @@ class TeamsClient(BaseClient):
         url = f"{_GRAPH_BASE}/chats/{self._chat_id}/messages"
         payload = {"body": {"contentType": "text", "content": text}}
         try:
-            async with httpx.AsyncClient() as client:
+            async with network._make_async_client() as client:
                 resp = await client.post(url, json=payload, headers=self._auth_headers(), timeout=10)
                 resp.raise_for_status()
             if self._verbose >= 1:
@@ -262,7 +262,7 @@ class TeamsClient(BaseClient):
             with open(filepath, "rb") as f:
                 file_bytes = f.read()
 
-            async with httpx.AsyncClient() as client:
+            async with network._make_async_client() as client:
                 resp = await client.put(
                     upload_url,
                     content=file_bytes,

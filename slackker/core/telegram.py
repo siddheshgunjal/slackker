@@ -53,7 +53,7 @@ class TelegramClient(BaseClient):
             return
         url = f"{self._base_url}/sendMessage"
         try:
-            async with httpx.AsyncClient() as client:
+            async with network._make_async_client() as client:
                 response = await client.post(url, params={"chat_id": self._chat_id, "text": text})
                 response.raise_for_status()
             if self._verbose >= 1:
@@ -73,7 +73,7 @@ class TelegramClient(BaseClient):
                 log.error(f"Invalid file path: {filepath}")
                 return
             caption = comment or "Attachment 📎"
-            async with httpx.AsyncClient() as client:
+            async with network._make_async_client() as client:
                 with open(filepath, "rb") as f:
                     response = await client.post(
                         url,
@@ -98,7 +98,7 @@ class TelegramClient(BaseClient):
                 log.error(f"Invalid file path: {filepath}")
                 return
             caption = comment or "Attachment 📎"
-            async with httpx.AsyncClient() as client:
+            async with network._make_async_client() as client:
                 with open(filepath, "rb") as f:
                     response = await client.post(
                         url,
