@@ -19,28 +19,30 @@ def _run_sync(coro):
         return asyncio.run(coro)
 
 
-async def check_connection(url: str, retries: int = 0, delay: float = 60, verbose: int = 2) -> bool:
+async def check_connection(url: str, retries: int = 3, delay: float = 30, verbose: int = 2) -> bool:
     """Check if a server is reachable. Retries indefinitely if retries=0, else up to `retries` times."""
     attempt = 0
     async with httpx.AsyncClient() as client:
         while True:
             attempt += 1
             try:
-                resp = await client.head(f"https://{url}", timeout=5)
+                resp = await client.head(f"https://{url}", timeout=10, follow_redirects=True)
                 if verbose >= 2:
                     log.debug(f"Connection to '{url}' server successful!")
                 return True
-            except (httpx.RequestError, httpx.HTTPStatusError):
+            except (httpx.RequestError, httpx.HTTPStatusError) as e:
                 if retries > 0 and attempt >= retries:
                     if verbose >= 1:
                         log.warning(
-                            f"Connection to '{url}' server failed after {attempt} attempts."
+                            f"Connection to '{url}' server failed after {attempt} attempts. "
+                            f"Reason: {e}"
                         )
                     return False
                 if verbose >= 1:
                     log.warning(
                         f"Connection to '{url}' server failed. "
-                        f"Trying again in {delay}s.. [attempt {attempt}]"
+                        f"Trying again in {delay}s.. [attempt {attempt}] "
+                        f"Reason: {e}"
                     )
                 await asyncio.sleep(delay)
 
@@ -203,7 +205,7 @@ async def refresh_teams_access_token(
 
 # --- Sync wrappers ---
 
-def check_connection_sync(url: str, retries: int = 0, delay: float = 60, verbose: int = 2) -> bool:
+def check_connection_sync(url: str, retries: int = 3, delay: float = 30, verbose: int = 2) -> bool:
     return _run_sync(check_connection(url, retries, delay, verbose))
 
 

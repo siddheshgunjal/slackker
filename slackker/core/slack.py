@@ -32,11 +32,11 @@ class SlackClient(BaseClient):
 
     @property
     def connectivity_url(self) -> str:
-        return "www.slack.com"
+        return "api.slack.com"
 
     async def connect(self) -> bool:
         """Verify server connectivity and API token. Returns True on success."""
-        server = await network.check_connection(url="www.slack.com", verbose=self._verbose)
+        server = await network.check_connection(url="api.slack.com", verbose=self._verbose)
         api = await network.verify_slack_token(token=self._token, verbose=self._verbose)
         self._connected = server and api
         return self._connected
