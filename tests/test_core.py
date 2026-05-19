@@ -624,7 +624,7 @@ class TestSlackClientCoverage:
 
     def test_connectivity_url(self):
         client = SlackClient(token="xoxb-test", channel="C123")
-        assert client.connectivity_url == "www.slack.com"
+        assert client.connectivity_url == "api.slack.com"
 
     @pytest.mark.asyncio
     async def test_send_message_verbose_log(self):
@@ -717,7 +717,7 @@ class TestTelegramClientCoverage:
 
     def test_connectivity_url(self):
         client = TelegramClient(token="123:ABC")
-        assert client.connectivity_url == "www.telegram.org"
+        assert client.connectivity_url == "api.telegram.org"
 
     def test_is_connected_true_when_chat_id_set(self):
         client = TelegramClient(token="123:ABC", chat_id="99999")
