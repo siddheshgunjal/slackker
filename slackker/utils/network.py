@@ -19,6 +19,13 @@ def _make_async_client(**kwargs) -> httpx.AsyncClient:
     return httpx.AsyncClient(**kwargs)
 
 
+def _ip_mode() -> str:
+    """Return a short label for the active IP stack mode shown in log messages."""
+    if os.environ.get("SLACKKER_FORCE_IPV4", "").lower() in ("1", "true"):
+        return "IPv4"
+    return "IPv4/IPv6"
+
+
 def _run_sync(coro):
     """Run an async coroutine synchronously, handling already-running event loops (e.g. Jupyter)."""
     try:
@@ -43,21 +50,21 @@ async def check_connection(url: str, retries: int = 3, delay: float = 30, verbos
             try:
                 resp = await client.head(f"https://{url}", timeout=10, follow_redirects=True)
                 if verbose >= 2:
-                    log.debug(f"Connection to '{url}' server successful!")
+                    log.debug(f"Connection to '{url}' server successful! [{_ip_mode()}]")
                 return True
             except (httpx.RequestError, httpx.HTTPStatusError) as e:
                 if retries > 0 and attempt >= retries:
                     if verbose >= 1:
                         log.warning(
                             f"Connection to '{url}' server failed after {attempt} attempts. "
-                            f"Reason: {e}"
+                            f"Reason: {e} [{_ip_mode()}]"
                         )
                     return False
                 if verbose >= 1:
                     log.warning(
                         f"Connection to '{url}' server failed. "
                         f"Trying again in {delay}s.. [attempt {attempt}] "
-                        f"Reason: {e}"
+                        f"Reason: {e} [{_ip_mode()}]"
                     )
                 await asyncio.sleep(delay)
 
@@ -81,10 +88,10 @@ async def verify_slack_token(token: str, verbose: int = 2) -> bool:
             client = AsyncWebClient(token=token)
         response = await client.api_test()
         if verbose >= 2:
-            log.debug(f"Connection to Slack API successful! {response}")
+            log.debug(f"Connection to Slack API successful! [{_ip_mode()}]")
         return True
     except Exception as e:
-        log.error(f"Invalid Slack API token: {e}")
+        log.error(f"Invalid Slack API token: {e} [{_ip_mode()}]")
         return False
     finally:
         if session:
@@ -100,11 +107,11 @@ async def get_telegram_chat_id(token: str, verbose: int = 2) -> str | None:
             data = resp.json()
             chat_id = str(data["result"][0]["message"]["chat"]["id"])
             if verbose >= 2:
-                log.debug("Connection to Telegram API successful!")
+                log.debug(f"Connection to Telegram API successful! [{_ip_mode()}]")
                 log.debug(f"Found chat with 'chat_id'={chat_id}")
             return chat_id
     except Exception as e:
-        log.error(f"Could not connect to Telegram API: {e}")
+        log.error(f"Could not connect to Telegram API: {e} [{_ip_mode()}]")
         log.warning("Please send 'Hello' once to your bot to make it discoverable to slackker")
         return None
 
