@@ -1,9 +1,11 @@
 import os
-from slack_sdk.web.async_client import AsyncWebClient
+
 from slack_sdk.errors import SlackApiError
+from slack_sdk.web.async_client import AsyncWebClient
+
 from slackker.core.client import BaseClient
-from slackker.utils.logger import log
 from slackker.utils import network
+from slackker.utils.logger import log
 
 
 class SlackClient(BaseClient):
@@ -36,7 +38,9 @@ class SlackClient(BaseClient):
 
     async def connect(self) -> bool:
         """Verify server connectivity and API token. Returns True on success."""
-        server = await network.check_connection(url="api.slack.com", verbose=self._verbose)
+        server = await network.check_connection(
+            url="api.slack.com", verbose=self._verbose
+        )
         api = await network.verify_slack_token(token=self._token, verbose=self._verbose)
         self._connected = server and api
         return self._connected

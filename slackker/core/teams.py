@@ -1,11 +1,13 @@
 import json
 import os
 import time
-import httpx
 from pathlib import Path
+
+import httpx
+
 from slackker.core.client import BaseClient
-from slackker.utils.logger import log
 from slackker.utils import network
+from slackker.utils.logger import log
 
 _GRAPH_BASE = "https://graph.microsoft.com/v1.0"
 
@@ -137,11 +139,13 @@ class TeamsClient(BaseClient):
         self._access_token = token_data["access_token"]
         expires_in = int(token_data.get("expires_in", 3600))
         self._token_expiry = time.time() + expires_in - 300  # 5-min safety buffer
-        self._save_token_cache({
-            "access_token": token_data["access_token"],
-            "refresh_token": token_data.get("refresh_token", ""),
-            "expires_at": self._token_expiry,
-        })
+        self._save_token_cache(
+            {
+                "access_token": token_data["access_token"],
+                "refresh_token": token_data.get("refresh_token", ""),
+                "expires_at": self._token_expiry,
+            }
+        )
 
     # ── Connection ──────────────────────────────────────────────────────────
 
@@ -156,7 +160,9 @@ class TeamsClient(BaseClient):
            b. Poll until the user authenticates or the code expires.
         4. Cache the resulting token for future silent refreshes.
         """
-        server = await network.check_connection(url="graph.microsoft.com", verbose=self._verbose)
+        server = await network.check_connection(
+            url="graph.microsoft.com", verbose=self._verbose
+        )
         if not server:
             return False
 
@@ -230,12 +236,16 @@ class TeamsClient(BaseClient):
         payload = {"body": {"contentType": "text", "content": text}}
         try:
             async with network._make_async_client() as client:
-                resp = await client.post(url, json=payload, headers=self._auth_headers(), timeout=10)
+                resp = await client.post(
+                    url, json=payload, headers=self._auth_headers(), timeout=10
+                )
                 resp.raise_for_status()
             if self._verbose >= 1:
                 log.info("Teams: Message posted to personal chat.")
         except httpx.HTTPStatusError as e:
-            log.error(f"Teams: Error posting message ({e.response.status_code}): {e.response.text}")
+            log.error(
+                f"Teams: Error posting message ({e.response.status_code}): {e.response.text}"
+            )
         except Exception as e:
             log.error(f"Teams: Error posting message: {e}")
 
@@ -283,7 +293,9 @@ class TeamsClient(BaseClient):
             await self.send_message(message_text)
 
         except httpx.HTTPStatusError as e:
-            log.error(f"Teams: Error uploading file ({e.response.status_code}): {e.response.text}")
+            log.error(
+                f"Teams: Error uploading file ({e.response.status_code}): {e.response.text}"
+            )
         except Exception as e:
             log.error(f"Teams: Error uploading file: {e}")
 
