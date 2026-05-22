@@ -1,13 +1,16 @@
 """Tests for slackker.core client abstraction layer."""
 
 import os
-import pytest
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
-from unittest.mock import AsyncMock, patch, MagicMock
+import pytest
+
 from slackker.core.client import BaseClient, _run_sync
+from slackker.core.discord import DiscordClient
 from slackker.core.slack import SlackClient
-from slackker.core.telegram import TelegramClient
 from slackker.core.teams import TeamsClient
+from slackker.core.telegram import TelegramClient
 
 
 class TestBaseClient:
@@ -41,8 +44,16 @@ class TestSlackClient:
         assert client.verbose == 2
 
     @pytest.mark.asyncio
-    @patch("slackker.core.slack.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.slack.network.verify_slack_token", new_callable=AsyncMock, return_value=True)
+    @patch(
+        "slackker.core.slack.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.slack.network.verify_slack_token",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
     async def test_connect_success(self, mock_verify, mock_check):
         client = SlackClient(token="xoxb-test", channel="C123")
         result = await client.connect()
@@ -51,16 +62,32 @@ class TestSlackClient:
         mock_verify.assert_awaited_once()
 
     @pytest.mark.asyncio
-    @patch("slackker.core.slack.network.check_connection", new_callable=AsyncMock, return_value=False)
-    @patch("slackker.core.slack.network.verify_slack_token", new_callable=AsyncMock, return_value=True)
+    @patch(
+        "slackker.core.slack.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=False,
+    )
+    @patch(
+        "slackker.core.slack.network.verify_slack_token",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
     async def test_connect_no_internet(self, mock_verify, mock_check):
         client = SlackClient(token="xoxb-test", channel="C123")
         result = await client.connect()
         assert result is False
 
     @pytest.mark.asyncio
-    @patch("slackker.core.slack.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.slack.network.verify_slack_token", new_callable=AsyncMock, return_value=False)
+    @patch(
+        "slackker.core.slack.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.slack.network.verify_slack_token",
+        new_callable=AsyncMock,
+        return_value=False,
+    )
     async def test_connect_invalid_token(self, mock_verify, mock_check):
         client = SlackClient(token="xoxb-bad", channel="C123")
         result = await client.connect()
@@ -73,7 +100,9 @@ class TestSlackClient:
         client._client.chat_postMessage = AsyncMock()
 
         await client.send_message("Hello")
-        client._client.chat_postMessage.assert_awaited_once_with(channel="C123", text="Hello")
+        client._client.chat_postMessage.assert_awaited_once_with(
+            channel="C123", text="Hello"
+        )
 
     @pytest.mark.asyncio
     async def test_upload_file_invalid_path(self):
@@ -90,6 +119,190 @@ class TestSlackClient:
         client.send_message = AsyncMock()
         client.send_message_sync("Hello sync")
         client.send_message.assert_awaited_once_with("Hello sync")
+
+
+class TestDiscordClient:
+    """Test the Discord client backend."""
+
+    def test_init_requires_token(self):
+        with pytest.raises(ValueError, match="Discord Bot token is required."):
+            DiscordClient(token="", channel_id="123")
+
+    def test_init_requires_channel_id(self):
+        with pytest.raises(ValueError, match="Discord channel_id is required."):
+            DiscordClient(token="tok", channel_id="")
+
+    def test_init_stores_attributes(self):
+        client = DiscordClient(token="tok", channel_id="123", verbose=2)
+        assert client._token == "tok"
+        assert client._channel_id == "123"
+        assert client.verbose == 2
+
+    def test_properties(self):
+        client = DiscordClient(token="tok", channel_id="123")
+        assert client.platform == "discord"
+        assert client.connectivity_url == "discord.com"
+        assert client.channel_id == "123"
+        assert client.is_connected is False
+
+    @pytest.mark.asyncio
+    @patch(
+        "slackker.core.discord.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.discord.network.verify_discord_token",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    async def test_connect_success(self, mock_verify, mock_check):
+        client = DiscordClient(token="tok", channel_id="123")
+        result = await client.connect()
+        assert result is True
+        assert client.is_connected is True
+        mock_check.assert_awaited_once()
+        mock_verify.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    @patch(
+        "slackker.core.discord.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=False,
+    )
+    @patch(
+        "slackker.core.discord.network.verify_discord_token",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    async def test_connect_no_internet(self, mock_verify, mock_check):
+        client = DiscordClient(token="tok", channel_id="123")
+        result = await client.connect()
+        assert result is False
+        assert client.is_connected is False
+
+    @pytest.mark.asyncio
+    @patch(
+        "slackker.core.discord.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.discord.network.verify_discord_token",
+        new_callable=AsyncMock,
+        return_value=False,
+    )
+    async def test_connect_invalid_token(self, mock_verify, mock_check):
+        client = DiscordClient(token="bad", channel_id="123")
+        result = await client.connect()
+        assert result is False
+        assert client.is_connected is False
+
+    @pytest.mark.asyncio
+    async def test_send_message_success(self):
+        client = DiscordClient(token="tok", channel_id="123", verbose=0)
+        with patch(
+            "slackker.core.discord.network._make_async_client"
+        ) as mock_make_client:
+            mock_http = AsyncMock()
+            mock_resp = MagicMock()
+            mock_resp.raise_for_status = MagicMock()
+            mock_http.post = AsyncMock(return_value=mock_resp)
+            mock_http.__aenter__.return_value = mock_http
+
+            mock_make_client.return_value = mock_http
+
+            await client.send_message("Hello Discord")
+
+            mock_http.post.assert_awaited_once()
+            args, kwargs = mock_http.post.call_args
+            assert "channels/123/messages" in args[0]
+            assert kwargs["json"] == {"content": "Hello Discord"}
+            assert kwargs["headers"]["Authorization"] == "Bot tok"
+
+    @pytest.mark.asyncio
+    async def test_send_message_http_error(self):
+        client = DiscordClient(token="tok", channel_id="123", verbose=0)
+        with patch(
+            "slackker.core.discord.network._make_async_client"
+        ) as mock_make_client:
+            mock_http = AsyncMock()
+            mock_resp = MagicMock()
+            mock_resp.raise_for_status.side_effect = httpx.HTTPStatusError(
+                "Error",
+                request=MagicMock(),
+                response=MagicMock(status_code=403, text="Forbidden"),
+            )
+            mock_http.post = AsyncMock(return_value=mock_resp)
+            mock_http.__aenter__.return_value = mock_http
+            mock_make_client.return_value = mock_http
+
+            # Should not raise
+            await client.send_message("Hello")
+
+    @pytest.mark.asyncio
+    async def test_upload_file_invalid_path(self):
+        client = DiscordClient(token="tok", channel_id="123", verbose=0)
+        await client.upload_file("non_existent_file.txt")
+        # No network call should be made
+        with patch("slackker.core.discord.network._make_async_client") as mock_make:
+            assert not mock_make.called
+
+    @pytest.mark.asyncio
+    async def test_upload_file_success(self, tmp_path):
+        file_path = tmp_path / "test.txt"
+        file_path.write_text("hello world")
+
+        client = DiscordClient(token="tok", channel_id="123", verbose=0)
+        with patch(
+            "slackker.core.discord.network._make_async_client"
+        ) as mock_make_client:
+            mock_http = AsyncMock()
+            mock_resp = MagicMock()
+            mock_resp.raise_for_status = MagicMock()
+            mock_http.post = AsyncMock(return_value=mock_resp)
+            mock_http.__aenter__.return_value = mock_http
+            mock_make_client.return_value = mock_http
+
+            await client.upload_file(str(file_path), comment="My file")
+
+            mock_http.post.assert_awaited_once()
+            args, kwargs = mock_http.post.call_args
+            assert "channels/123/messages" in args[0]
+            assert "payload_json" in kwargs["data"]
+            assert "file" in kwargs["files"]
+
+    @pytest.mark.asyncio
+    async def test_upload_image_delegates_to_upload_file(self):
+        client = DiscordClient(token="tok", channel_id="123")
+        client.upload_file = AsyncMock()
+        await client.upload_image("img.png", comment="my plot")
+        client.upload_file.assert_awaited_once_with("img.png", "my plot")
+
+    def test_send_message_sync(self):
+        client = DiscordClient(token="tok", channel_id="123")
+        client.send_message = AsyncMock()
+        client.send_message_sync("Hello sync")
+        client.send_message.assert_awaited_once_with("Hello sync")
+
+    @pytest.mark.asyncio
+    async def test_send_message_verbose_log(self):
+        client = DiscordClient(token="tok", channel_id="123", verbose=1)
+        with patch(
+            "slackker.core.discord.network._make_async_client"
+        ) as mock_make_client:
+            mock_http = AsyncMock()
+            mock_resp = MagicMock()
+            mock_resp.raise_for_status = MagicMock()
+            mock_http.post = AsyncMock(return_value=mock_resp)
+            mock_http.__aenter__.return_value = mock_http
+            mock_make_client.return_value = mock_http
+
+            with patch("slackker.core.discord.log.info") as mock_log_info:
+                await client.send_message("Hello")
+                mock_log_info.assert_called_once_with(
+                    "Posted update to Discord channel 123"
+                )
 
 
 class TestTelegramClient:
@@ -110,8 +323,16 @@ class TestTelegramClient:
         assert client.chat_id == "99999"
 
     @pytest.mark.asyncio
-    @patch("slackker.core.telegram.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.telegram.network.get_telegram_chat_id", new_callable=AsyncMock, return_value="12345")
+    @patch(
+        "slackker.core.telegram.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.telegram.network.get_telegram_chat_id",
+        new_callable=AsyncMock,
+        return_value="12345",
+    )
     async def test_connect_discovers_chat_id(self, mock_get_id, mock_check):
         client = TelegramClient(token="123:ABC", verbose=0)
         result = await client.connect()
@@ -119,15 +340,27 @@ class TestTelegramClient:
         assert client.chat_id == "12345"
 
     @pytest.mark.asyncio
-    @patch("slackker.core.telegram.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.telegram.network.get_telegram_chat_id", new_callable=AsyncMock, return_value=None)
+    @patch(
+        "slackker.core.telegram.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.telegram.network.get_telegram_chat_id",
+        new_callable=AsyncMock,
+        return_value=None,
+    )
     async def test_connect_no_chat_id(self, mock_get_id, mock_check):
         client = TelegramClient(token="123:ABC", verbose=0)
         result = await client.connect()
         assert result is False
 
     @pytest.mark.asyncio
-    @patch("slackker.core.telegram.network.check_connection", new_callable=AsyncMock, return_value=False)
+    @patch(
+        "slackker.core.telegram.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=False,
+    )
     async def test_connect_no_internet(self, mock_check):
         client = TelegramClient(token="123:ABC", verbose=0)
         result = await client.connect()
@@ -191,7 +424,7 @@ class TestTeamsClient:
         assert client._tenant_id == "common"
 
     def test_auth_headers(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "abc123"
         headers = client._auth_headers()
         assert headers["Authorization"] == "Bearer abc123"
@@ -199,7 +432,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_ensure_token_uses_existing_token(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "cached-token"
         client._token_expiry = 9_999_999_999
         client.connect = AsyncMock()
@@ -210,7 +443,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_ensure_token_reconnects_when_expired(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "expired-token"
         client._token_expiry = 0
         client.connect = AsyncMock(return_value=True)
@@ -221,9 +454,11 @@ class TestTeamsClient:
 
     def test_token_cache_roundtrip(self, tmp_path):
         cache_path = tmp_path / "teams_cache.json"
-        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path))
+        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path), verbose=1)
 
-        client._save_token_cache({"access_token": "a", "refresh_token": "r", "expires_at": 1})
+        client._save_token_cache(
+            {"access_token": "a", "refresh_token": "r", "expires_at": 1}
+        )
         assert os.path.isfile(cache_path)
 
         loaded = client._load_token_cache()
@@ -233,35 +468,51 @@ class TestTeamsClient:
     def test_load_token_cache_unreadable_returns_none(self, tmp_path):
         cache_path = tmp_path / "teams_cache.json"
         cache_path.write_text("{bad-json")
-        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path))
+        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path), verbose=1)
 
         loaded = client._load_token_cache()
         assert loaded is None
 
     def test_apply_token_sets_connection_state_and_persists_cache(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._save_token_cache = MagicMock()
 
-        client._apply_token({"access_token": "tok", "refresh_token": "rt", "expires_in": 3600})
+        client._apply_token(
+            {"access_token": "tok", "refresh_token": "rt", "expires_in": 3600}
+        )
 
         assert client._access_token == "tok"
         assert client.is_connected is True
         client._save_token_cache.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("slackker.core.teams.network.check_connection", new_callable=AsyncMock, return_value=False)
+    @patch(
+        "slackker.core.teams.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=False,
+    )
     async def test_connect_no_internet(self, mock_check):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         result = await client.connect()
         assert result is False
         assert client.is_connected is False
 
     @pytest.mark.asyncio
-    @patch("slackker.core.teams.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.teams.network.refresh_teams_access_token", new_callable=AsyncMock)
+    @patch(
+        "slackker.core.teams.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.teams.network.refresh_teams_access_token", new_callable=AsyncMock
+    )
     async def test_connect_via_cached_token(self, mock_refresh, mock_check):
-        mock_refresh.return_value = {"access_token": "fresh-tok", "refresh_token": "rt", "expires_in": 3600}
-        client = TeamsClient(**self._INIT)
+        mock_refresh.return_value = {
+            "access_token": "fresh-tok",
+            "refresh_token": "rt",
+            "expires_in": 3600,
+        }
+        client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value={"refresh_token": "old-rt"})
         client._save_token_cache = MagicMock()
 
@@ -271,11 +522,24 @@ class TestTeamsClient:
         mock_refresh.assert_awaited_once()
 
     @pytest.mark.asyncio
-    @patch("slackker.core.teams.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.teams.network.refresh_teams_access_token", new_callable=AsyncMock, return_value=None)
+    @patch(
+        "slackker.core.teams.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.teams.network.refresh_teams_access_token",
+        new_callable=AsyncMock,
+        return_value=None,
+    )
     @patch("slackker.core.teams.network.get_teams_device_code", new_callable=AsyncMock)
-    @patch("slackker.core.teams.network.poll_teams_device_code_token", new_callable=AsyncMock)
-    async def test_connect_via_device_code(self, mock_poll, mock_device, mock_refresh, mock_check):
+    @patch(
+        "slackker.core.teams.network.poll_teams_device_code_token",
+        new_callable=AsyncMock,
+    )
+    async def test_connect_via_device_code(
+        self, mock_poll, mock_device, mock_refresh, mock_check
+    ):
         mock_device.return_value = {
             "device_code": "dev-code",
             "user_code": "ABCD1234",
@@ -284,8 +548,12 @@ class TestTeamsClient:
             "interval": 5,
             "expires_in": 900,
         }
-        mock_poll.return_value = {"access_token": "new-tok", "refresh_token": "rt", "expires_in": 3600}
-        client = TeamsClient(**self._INIT)
+        mock_poll.return_value = {
+            "access_token": "new-tok",
+            "refresh_token": "rt",
+            "expires_in": 3600,
+        }
+        client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value=None)
         client._save_token_cache = MagicMock()
 
@@ -296,11 +564,25 @@ class TestTeamsClient:
         mock_poll.assert_awaited_once()
 
     @pytest.mark.asyncio
-    @patch("slackker.core.teams.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.teams.network.refresh_teams_access_token", new_callable=AsyncMock, return_value=None)
-    @patch("slackker.core.teams.network.get_teams_device_code", new_callable=AsyncMock, return_value=None)
-    async def test_connect_device_code_failed(self, mock_device, mock_refresh, mock_check):
-        client = TeamsClient(**self._INIT)
+    @patch(
+        "slackker.core.teams.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.teams.network.refresh_teams_access_token",
+        new_callable=AsyncMock,
+        return_value=None,
+    )
+    @patch(
+        "slackker.core.teams.network.get_teams_device_code",
+        new_callable=AsyncMock,
+        return_value=None,
+    )
+    async def test_connect_device_code_failed(
+        self, mock_device, mock_refresh, mock_check
+    ):
+        client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value=None)
         result = await client.connect()
         assert result is False
@@ -308,7 +590,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_send_message(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "fake-token"
         client._token_expiry = 9_999_999_999
 
@@ -326,7 +608,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_send_message_when_not_connected(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._ensure_token = AsyncMock(return_value=False)
 
         with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
@@ -335,7 +617,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_upload_file_invalid_path(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "fake-token"
         client._token_expiry = 9_999_999_999
 
@@ -352,7 +634,7 @@ class TestTeamsClient:
         file_path = tmp_path / "sample.txt"
         file_path.write_text("hello")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._ensure_token = AsyncMock(return_value=False)
 
         with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
@@ -364,7 +646,7 @@ class TestTeamsClient:
         file_path = tmp_path / "sample.txt"
         file_path.write_text("hello")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "fake-token"
         client._token_expiry = 9_999_999_999
         client.send_message = AsyncMock()
@@ -372,7 +654,9 @@ class TestTeamsClient:
         with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
             mock_response = MagicMock()
             mock_response.raise_for_status = MagicMock()
-            mock_response.json = MagicMock(return_value={"webUrl": "https://example.com/file"})
+            mock_response.json = MagicMock(
+                return_value={"webUrl": "https://example.com/file"}
+            )
 
             mock_http = AsyncMock()
             mock_http.put = AsyncMock(return_value=mock_response)
@@ -382,14 +666,16 @@ class TestTeamsClient:
             await client.upload_file(str(file_path), comment="See file")
 
             mock_http.put.assert_awaited_once()
-            client.send_message.assert_awaited_once_with("See file\nhttps://example.com/file")
+            client.send_message.assert_awaited_once_with(
+                "See file\nhttps://example.com/file"
+            )
 
     @pytest.mark.asyncio
     async def test_upload_file_http_error(self, tmp_path):
         file_path = tmp_path / "sample.txt"
         file_path.write_text("hello")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "fake-token"
         client._token_expiry = 9_999_999_999
         client.send_message = AsyncMock()
@@ -411,24 +697,34 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_upload_image_delegates_to_upload_file(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client.upload_file = AsyncMock()
 
         await client.upload_image("image.png", comment="plot")
         client.upload_file.assert_awaited_once_with("image.png", "plot")
 
     def test_send_message_sync(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client.send_message = AsyncMock()
         client.send_message_sync("Hello sync")
         client.send_message.assert_awaited_once_with("Hello sync")
 
     @pytest.mark.asyncio
-    @patch("slackker.core.teams.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.teams.network.refresh_teams_access_token", new_callable=AsyncMock)
+    @patch(
+        "slackker.core.teams.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.teams.network.refresh_teams_access_token", new_callable=AsyncMock
+    )
     async def test_connect_via_cached_token_verbose_log(self, mock_refresh, mock_check):
         """Verify the verbose >= 1 log line after successful silent refresh."""
-        mock_refresh.return_value = {"access_token": "t", "refresh_token": "rt", "expires_in": 3600}
+        mock_refresh.return_value = {
+            "access_token": "t",
+            "refresh_token": "rt",
+            "expires_in": 3600,
+        }
         client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value={"refresh_token": "old-rt"})
         client._save_token_cache = MagicMock()
@@ -437,18 +733,35 @@ class TestTeamsClient:
         assert result is True
 
     @pytest.mark.asyncio
-    @patch("slackker.core.teams.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.teams.network.refresh_teams_access_token", new_callable=AsyncMock, return_value=None)
+    @patch(
+        "slackker.core.teams.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.teams.network.refresh_teams_access_token",
+        new_callable=AsyncMock,
+        return_value=None,
+    )
     @patch("slackker.core.teams.network.get_teams_device_code", new_callable=AsyncMock)
-    @patch("slackker.core.teams.network.poll_teams_device_code_token", new_callable=AsyncMock)
-    async def test_connect_device_code_verbose_log(self, mock_poll, mock_device, mock_refresh, mock_check):
+    @patch(
+        "slackker.core.teams.network.poll_teams_device_code_token",
+        new_callable=AsyncMock,
+    )
+    async def test_connect_device_code_verbose_log(
+        self, mock_poll, mock_device, mock_refresh, mock_check
+    ):
         """Verify the verbose >= 1 log line after device code success."""
         mock_device.return_value = {
             "device_code": "dc",
             "message": "Visit https://microsoft.com/devicelogin",
             "interval": 0,
         }
-        mock_poll.return_value = {"access_token": "new-tok", "refresh_token": "rt", "expires_in": 3600}
+        mock_poll.return_value = {
+            "access_token": "new-tok",
+            "refresh_token": "rt",
+            "expires_in": 3600,
+        }
         client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value=None)
         client._save_token_cache = MagicMock()
@@ -457,17 +770,31 @@ class TestTeamsClient:
         assert result is True
 
     @pytest.mark.asyncio
-    @patch("slackker.core.teams.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.teams.network.refresh_teams_access_token", new_callable=AsyncMock, return_value=None)
+    @patch(
+        "slackker.core.teams.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.teams.network.refresh_teams_access_token",
+        new_callable=AsyncMock,
+        return_value=None,
+    )
     @patch("slackker.core.teams.network.get_teams_device_code", new_callable=AsyncMock)
-    @patch("slackker.core.teams.network.poll_teams_device_code_token", new_callable=AsyncMock, return_value=None)
-    async def test_connect_poll_returns_none(self, mock_poll, mock_device, mock_refresh, mock_check):
+    @patch(
+        "slackker.core.teams.network.poll_teams_device_code_token",
+        new_callable=AsyncMock,
+        return_value=None,
+    )
+    async def test_connect_poll_returns_none(
+        self, mock_poll, mock_device, mock_refresh, mock_check
+    ):
         mock_device.return_value = {
             "device_code": "dc",
             "message": "Visit https://microsoft.com/devicelogin",
             "interval": 0,
         }
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value=None)
 
         result = await client.connect()
@@ -475,7 +802,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_ensure_token_returns_false_when_connect_fails(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client.connect = AsyncMock(return_value=False)
 
         result = await client._ensure_token()
@@ -484,9 +811,13 @@ class TestTeamsClient:
 
     def test_save_token_cache_exception_logs_warning(self, tmp_path):
         """If the directory cannot be created, a warning is logged (no raise)."""
-        client = TeamsClient(**self._INIT, token_cache_path="/dev/null/impossible/path.json")
+        client = TeamsClient(
+            **self._INIT, token_cache_path="/dev/null/impossible/path.json", verbose=1
+        )
         # Should not raise — exception is caught internally
-        client._save_token_cache({"access_token": "t", "refresh_token": "rt", "expires_at": 0})
+        client._save_token_cache(
+            {"access_token": "t", "refresh_token": "rt", "expires_at": 0}
+        )
 
     @pytest.mark.asyncio
     async def test_send_message_verbose_log(self):
@@ -507,7 +838,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_send_message_http_error(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "tok"
         client._token_expiry = 9_999_999_999
 
@@ -528,7 +859,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_send_message_general_exception(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "tok"
         client._token_expiry = 9_999_999_999
 
@@ -553,7 +884,9 @@ class TestTeamsClient:
         with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
             mock_response = MagicMock()
             mock_response.raise_for_status = MagicMock()
-            mock_response.json = MagicMock(return_value={"webUrl": "https://example.com/f"})
+            mock_response.json = MagicMock(
+                return_value={"webUrl": "https://example.com/f"}
+            )
             mock_http = AsyncMock()
             mock_http.put = AsyncMock(return_value=mock_response)
             mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_http)
@@ -567,7 +900,7 @@ class TestTeamsClient:
         file_path = tmp_path / "f.txt"
         file_path.write_text("data")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "tok"
         client._token_expiry = 9_999_999_999
         client.send_message = AsyncMock()
@@ -587,7 +920,7 @@ class TestTeamsClient:
         file_path = tmp_path / "f.txt"
         file_path.write_text("data")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "tok"
         client._token_expiry = 9_999_999_999
         client.send_message = AsyncMock()
@@ -607,6 +940,7 @@ class TestTeamsClient:
 
 # ── Additional SlackClient coverage ──────────────────────────────────────────
 
+
 class TestSlackClientCoverage:
     """Tests for lines not covered by TestSlackClient."""
 
@@ -615,8 +949,16 @@ class TestSlackClientCoverage:
         assert client.is_connected is False
 
     @pytest.mark.asyncio
-    @patch("slackker.core.slack.network.check_connection", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.core.slack.network.verify_slack_token", new_callable=AsyncMock, return_value=True)
+    @patch(
+        "slackker.core.slack.network.check_connection",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.core.slack.network.verify_slack_token",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
     async def test_is_connected_true_after_connect(self, mock_verify, mock_check):
         client = SlackClient(token="xoxb-test", channel="C123")
         await client.connect()
@@ -711,6 +1053,7 @@ class TestSlackClientCoverage:
 
 
 # ── Additional TelegramClient coverage ───────────────────────────────────────
+
 
 class TestTelegramClientCoverage:
     """Tests for lines not covered by TestTelegramClient."""
@@ -924,6 +1267,7 @@ class TestTelegramClientCoverage:
 
 
 # ── _run_sync nest_asyncio path ───────────────────────────────────────────────
+
 
 class TestRunSyncNestAsyncio:
     """Cover the already-running-loop branch of _run_sync."""

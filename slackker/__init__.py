@@ -4,7 +4,7 @@ from slackker.core import BaseClient, SlackClient, TeamsClient, TelegramClient
 
 __author__ = "Siddhesh Gunjal"
 __email__ = "siddhu19@live.com"
-__version__ = "1.4.4"
+__version__ = "1.4.5"
 
 # module level doc-string
 __doc__ = """

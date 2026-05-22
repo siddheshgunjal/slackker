@@ -103,7 +103,7 @@
       <p class="eyebrow">Real-time notifications for any Python pipeline</p>
       <h1>Run anything.<br />Know instantly. Stay anywhere.</h1>
       <p class="lead center-block">
-        slackker sends real-time notifications to Slack, Telegram, or Microsoft Teams for any Python pipeline,
+        slackker sends real-time notifications to Slack, Telegram, Discord, or Microsoft Teams for any Python pipeline,
         ML training run, or automation workflow — complete with metrics, outputs, and optional plots.
       </p>
       <div class="hero-cta center-wrap">
@@ -130,7 +130,14 @@
             <span class="platform-label">Client: </span>
             <button class="plt-btn active" data-platform="telegram">Telegram</button>
             <button class="plt-btn" data-platform="slack">Slack</button>
+            <button class="plt-btn" data-platform="discord">Discord</button>
             <button class="plt-btn" data-platform="teams">Teams</button>
+            <select class="plt-select" aria-label="Switch client">
+              <option value="telegram">Telegram</option>
+              <option value="slack">Slack</option>
+              <option value="discord">Discord</option>
+              <option value="teams">Teams</option>
+            </select>
           </div>
         </div>
 <pre><code class="code-python" data-snippet="hero">from slackker.core import TelegramClient
@@ -219,6 +226,7 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
       <div class="example-switch center-wrap" role="tablist" aria-label="Client setup guides">
         <button class="example-tab setup-tab active" data-target="setup-telegram" role="tab" aria-selected="true">Telegram</button>
         <button class="example-tab setup-tab" data-target="setup-slack" role="tab" aria-selected="false">Slack</button>
+        <button class="example-tab setup-tab" data-target="setup-discord" role="tab" aria-selected="false">Discord</button>
         <button class="example-tab setup-tab" data-target="setup-teams" role="tab" aria-selected="false">Teams</button>
       </div>
 
@@ -392,6 +400,58 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
           </ol>
         </article>
 
+        <!-- ── Discord ─────────────────────────────────────────── -->
+        <article id="setup-discord" class="setup-panel glass" role="tabpanel" hidden>
+          <div class="setup-panel-head">
+            <div class="setup-platform-badge badge-discord">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/>
+                </svg>
+              Discord
+            </div>
+            <p class="setup-platform-desc">Create a Discord bot, invite it to your server, and grab your bot token and channel ID.</p>
+          </div>
+          <ol class="setup-steps">
+            <li>
+              <span class="setup-step-num">1</span>
+              <div>
+                <strong>Create a Discord Application</strong>
+                <p>Go to the <a href="https://discord.com/developers/applications" target="_blank" rel="noreferrer">Discord Developer Portal</a>&nbsp; ➤ &nbsp;<strong>New Application</strong>. Name your bot and create the app.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">2</span>
+              <div>
+                <strong>Get your Bot Token</strong>
+                <p>Sidebar&nbsp; ➤ &nbsp;<strong>Bot</strong>&nbsp; ➤ &nbsp;<strong>Reset Token</strong> (or copy existing). This is your <code>token</code>:</p>
+                <code class="setup-token">MTIzNDU2Nzg5MDEyMzQ1Njc4OToxMjM0NTY3ODkwMTIzNDU2Nzg5MDEy...</code>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">3</span>
+              <div>
+                <strong>Invite the Bot to your Server</strong>
+                <p>Sidebar&nbsp; ➤ &nbsp;<strong>OAuth2</strong>&nbsp; ➤ &nbsp;<strong>URL Generator</strong>&nbsp; ➤ &nbsp;Select <code>bot</code> scope&nbsp; ➤ &nbsp;Set permissions <code>Send Messages</code> &amp; <code>Attach Files</code>.&nbsp; ➤ &nbsp;Visit the generated URL to invite the bot.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">4</span>
+              <div>
+                <strong>Enable Developer Mode</strong>
+                <p>Go to <strong>User Settings</strong> &nbsp; ➤ &nbsp; <strong>Developer</strong>&nbsp; ➤ &nbsp;Toggle <strong>Developer Mode</strong> to ON.</p>
+              </div>
+            </li>
+            <li>
+              <span class="setup-step-num">5</span>
+              <div>
+                <strong>Get the Channel ID</strong>
+                <p>Right-click your target channel &nbsp; ➤ &nbsp;<strong>Copy Channel ID</strong>:</p>
+                <code class="setup-token">DiscordClient(token="MTIz...", channel_id="123456789012345678")</code>
+              </div>
+            </li>
+          </ol>
+        </article>
+
       </div>
     </section>
 
@@ -418,7 +478,14 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
               <span class="platform-label">Client: </span>
               <button class="plt-btn active" data-platform="telegram">Telegram</button>
               <button class="plt-btn" data-platform="slack">Slack</button>
+              <button class="plt-btn" data-platform="discord">Discord</button>
               <button class="plt-btn" data-platform="teams">Teams</button>
+              <select class="plt-select" aria-label="Switch client">
+                <option value="telegram">Telegram</option>
+                <option value="slack">Slack</option>
+                <option value="discord">Discord</option>
+                <option value="teams">Teams</option>
+              </select>
             </div>
           </div>
 <pre><code class="code-python" data-snippet="basic">from slackker.core import TelegramClient
@@ -456,7 +523,14 @@ if __name__ == "__main__":
               <span class="platform-label">Client: </span>
               <button class="plt-btn active" data-platform="telegram">Telegram</button>
               <button class="plt-btn" data-platform="slack">Slack</button>
+              <button class="plt-btn" data-platform="discord">Discord</button>
               <button class="plt-btn" data-platform="teams">Teams</button>
+              <select class="plt-select" aria-label="Switch client">
+                <option value="telegram">Telegram</option>
+                <option value="slack">Slack</option>
+                <option value="discord">Discord</option>
+                <option value="teams">Teams</option>
+              </select>
             </div>
           </div>
 <pre><code class="code-python" data-snippet="keras">from slackker.core import TelegramClient
@@ -493,7 +567,14 @@ history = model.fit(
               <span class="platform-label">Client: </span>
               <button class="plt-btn active" data-platform="telegram">Telegram</button>
               <button class="plt-btn" data-platform="slack">Slack</button>
+              <button class="plt-btn" data-platform="discord">Discord</button>
               <button class="plt-btn" data-platform="teams">Teams</button>
+              <select class="plt-select" aria-label="Switch client">
+                <option value="telegram">Telegram</option>
+                <option value="slack">Slack</option>
+                <option value="discord">Discord</option>
+                <option value="teams">Teams</option>
+              </select>
             </div>
           </div>
 <pre><code class="code-python" data-snippet="lightning">from lightning.pytorch import Trainer
@@ -579,7 +660,7 @@ trainer.fit(model, train_loader, val_loader)</code></pre>
     <div class="footer-bar">
       <div class="footer-status">
         <span class="footer-pulse"></span>
-        <span>slackker v1.4.4</span>
+        <span>slackker v1.4.5</span>
       </div>
       <div class="footer-links">
         <a href="https://github.com/siddheshgunjal/slackker" target="_blank" rel="noreferrer">GitHub</a>

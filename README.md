@@ -65,7 +65,7 @@ Refer to our [website](https://slackker.com/#setup) for detailed setup instructi
 All slackker callbacks now use a **client** object. Create one for your platform first, then pass it to any callback.
 
 ```python
-from slackker.core import SlackClient, TelegramClient, TeamsClient
+from slackker.core import SlackClient, TelegramClient, TeamsClient, DiscordClient
 ```
 
 ### Slack
@@ -91,6 +91,15 @@ client = TeamsClient(
     app_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     tenant_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     chat_id="19:xxxxxxxxxxxxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxx@thread.v2",
+    verbose=0,
+)
+```
+
+### Discord
+```python
+client = DiscordClient(
+    token="your_bot_token_here",
+    channel_id="123456789012345678",
     verbose=0,
 )
 ```

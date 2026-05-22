@@ -34,7 +34,7 @@ const revealObserver = new IntersectionObserver(
       }
     });
   },
-  { threshold: 0.15 }
+  { threshold: 0.15 },
 );
 
 revealElements.forEach((element) => revealObserver.observe(element));
@@ -73,22 +73,41 @@ function highlightPython(codeText) {
 
   const stash = (regex, tokenClass) => {
     code = code.replace(regex, (match) => {
-      const idx = placeholders.push(`<span class="${tokenClass}">${match}</span>`) - 1;
+      const idx =
+        placeholders.push(`<span class="${tokenClass}">${match}</span>`) - 1;
       return `@@HL${idx}@@`;
     });
   };
 
   // Protect strings/comments from later substitutions.
-  stash(/("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g, "tok-string");
+  stash(
+    /("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g,
+    "tok-string",
+  );
   stash(/#.*/g, "tok-comment");
 
-  code = code.replace(/(^\s*)(@[A-Za-z_][\w.]*)/gm, "$1<span class=\"tok-decorator\">$2</span>");
-  code = code.replace(/\b(def|class)\s+([A-Za-z_][A-Za-z0-9_]*)\b/g, (m, kw, name) => {
-    return `<span class="tok-keyword">${kw}</span> <span class="tok-function">${name}</span>`;
-  });
-  code = code.replace(/\b(from|import|as|if|elif|else|for|while|return|try|except|finally|with|in|pass|raise|break|continue|lambda|and|or|not|is|yield|await|async|global|nonlocal|assert|del)\b/g, "<span class=\"tok-keyword\">$1</span>");
-  code = code.replace(/\b(True|False|None|self)\b/g, "<span class=\"tok-builtin\">$1</span>");
-  code = code.replace(/\b\d+(?:\.\d+)?\b/g, "<span class=\"tok-number\">$&</span>");
+  code = code.replace(
+    /(^\s*)(@[A-Za-z_][\w.]*)/gm,
+    '$1<span class="tok-decorator">$2</span>',
+  );
+  code = code.replace(
+    /\b(def|class)\s+([A-Za-z_][A-Za-z0-9_]*)\b/g,
+    (m, kw, name) => {
+      return `<span class="tok-keyword">${kw}</span> <span class="tok-function">${name}</span>`;
+    },
+  );
+  code = code.replace(
+    /\b(from|import|as|if|elif|else|for|while|return|try|except|finally|with|in|pass|raise|break|continue|lambda|and|or|not|is|yield|await|async|global|nonlocal|assert|del)\b/g,
+    '<span class="tok-keyword">$1</span>',
+  );
+  code = code.replace(
+    /\b(True|False|None|self)\b/g,
+    '<span class="tok-builtin">$1</span>',
+  );
+  code = code.replace(
+    /\b\d+(?:\.\d+)?\b/g,
+    '<span class="tok-number">$&</span>',
+  );
 
   code = code.replace(/@@HL(\d+)@@/g, (_, idx) => placeholders[Number(idx)]);
   return code;
@@ -106,8 +125,7 @@ applyPythonHighlighting();
 
 const CODE_SNIPPETS = {
   hero: {
-    telegram:
-`from slackker.core import TelegramClient
+    telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
 client = TelegramClient(token="123456:ABC-DEF...")
@@ -118,8 +136,7 @@ def train_model():
     return "done"
 
 slackker.notify(event="training_complete", status="completed")`,
-    slack:
-`from slackker.core import SlackClient
+    slack: `from slackker.core import SlackClient
 from slackker.callbacks.simple import SimpleCallback
 
 client = SlackClient(token="xoxb-...", channel="A04AAB77ABC")
@@ -130,8 +147,7 @@ def train_model():
     return "done"
 
 slackker.notify(event="training_complete", status="completed")`,
-  teams:
-`from slackker.core import TeamsClient
+    teams: `from slackker.core import TeamsClient
 from slackker.callbacks.simple import SimpleCallback
 
 client = TeamsClient(
@@ -147,10 +163,24 @@ def train_model():
   return "done"
 
 slackker.notify(event="training_complete", status="completed")`,
+    discord: `from slackker.core import DiscordClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = DiscordClient(
+  token="MTIz...",
+  channel_id="123456789012345678",
+  verbose=1
+)
+slackker = SimpleCallback(client)
+
+@slackker.notifier
+def train_model():
+  return "done"
+
+slackker.notify(event="training_complete", status="completed")`,
   },
   basic: {
-    telegram:
-`from slackker.core import TelegramClient
+    telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
 client = TelegramClient(
@@ -173,8 +203,7 @@ if __name__ == "__main__":
         status=status,
         attachment="./artifacts/summary.txt"
     )`,
-    slack:
-`from slackker.core import SlackClient
+    slack: `from slackker.core import SlackClient
 from slackker.callbacks.simple import SimpleCallback
 
 client = SlackClient(
@@ -198,8 +227,7 @@ if __name__ == "__main__":
         status=status,
         attachment="./artifacts/summary.txt"
     )`,
-    teams:
-  `from slackker.core import TeamsClient
+    teams: `from slackker.core import TeamsClient
   from slackker.callbacks.simple import SimpleCallback
 
   client = TeamsClient(
@@ -224,10 +252,33 @@ if __name__ == "__main__":
       status=status,
       attachment="./artifacts/summary.txt"
     )`,
+    discord: `from slackker.core import DiscordClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = DiscordClient(
+    token="your_bot_token",
+    channel_id="123456789012345678",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def run_data_pipeline(source_path: str):
+    rows_processed = 12500
+    status = "success"
+    return rows_processed, status
+
+if __name__ == "__main__":
+    rows, status = run_data_pipeline("./data/train.csv")
+    notify.notify(
+        event="pipeline_finished",
+        rows_processed=rows,
+        status=status,
+        attachment="./artifacts/summary.txt"
+    )`,
   },
   keras: {
-    telegram:
-`from slackker.core import TelegramClient
+    telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.keras import KerasCallback
 
 client = TelegramClient(
@@ -249,8 +300,7 @@ history = model.fit(
     validation_data=(x_val, y_val),
     callbacks=[slackker_cb]
 )`,
-    slack:
-`from slackker.core import SlackClient
+    slack: `from slackker.core import SlackClient
 from slackker.callbacks.keras import KerasCallback
 
 client = SlackClient(
@@ -273,8 +323,7 @@ history = model.fit(
     validation_data=(x_val, y_val),
     callbacks=[slackker_cb]
 )`,
-  teams:
-`from slackker.core import TeamsClient
+    teams: `from slackker.core import TeamsClient
 from slackker.callbacks.keras import KerasCallback
 
 client = TeamsClient(
@@ -298,10 +347,32 @@ history = model.fit(
   validation_data=(x_val, y_val),
   callbacks=[slackker_cb]
 )`,
+    discord: `from slackker.core import DiscordClient
+from slackker.callbacks.keras import KerasCallback
+
+client = DiscordClient(
+    token="your_bot_token",
+    channel_id="123456789012345678",
+    verbose=1
+)
+slackker_cb = KerasCallback(
+    client=client,
+    model_name="ImageClassifierV1",
+    export="png",
+    send_plot=True,
+)
+
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=20,
+    batch_size=32,
+    validation_data=(x_val, y_val),
+    callbacks=[slackker_cb]
+)`,
   },
   lightning: {
-    telegram:
-`from lightning.pytorch import Trainer
+    telegram: `from lightning.pytorch import Trainer
 from slackker.core import TelegramClient
 from slackker.callbacks.lightning import LightningCallback
 
@@ -320,8 +391,7 @@ slackker_cb = LightningCallback(
 
 trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
 trainer.fit(model, train_loader, val_loader)`,
-    slack:
-`from lightning.pytorch import Trainer
+    slack: `from lightning.pytorch import Trainer
 from slackker.core import SlackClient
 from slackker.callbacks.lightning import LightningCallback
 
@@ -341,8 +411,7 @@ slackker_cb = LightningCallback(
 
 trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
 trainer.fit(model, train_loader, val_loader)`,
-  teams:
-`from lightning.pytorch import Trainer
+    teams: `from lightning.pytorch import Trainer
 from slackker.core import TeamsClient
 from slackker.callbacks.lightning import LightningCallback
 
@@ -359,6 +428,26 @@ slackker_cb = LightningCallback(
   monitor="val_loss",
   export="png",
   send_plot=True,
+)
+
+trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
+trainer.fit(model, train_loader, val_loader)`,
+    discord: `from lightning.pytorch import Trainer
+from slackker.core import DiscordClient
+from slackker.callbacks.lightning import LightningCallback
+
+client = DiscordClient(
+    token="your_bot_token",
+    channel_id="123456789012345678",
+    verbose=1
+)
+slackker_cb = LightningCallback(
+    client=client,
+    model_name="LightningClassifier",
+    track_logs=["train_loss", "train_acc", "val_loss", "val_acc"],
+    monitor="val_loss",
+    export="png",
+    send_plot=True,
 )
 
 trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
@@ -398,11 +487,32 @@ document.querySelectorAll(".platform-toggle").forEach((toggle) => {
 
       if (!CODE_SNIPPETS[snippet]?.[platform]) return;
 
-      toggle.querySelectorAll(".plt-btn").forEach((b) =>
-        b.classList.toggle("active", b === btn)
-      );
+      toggle
+        .querySelectorAll(".plt-btn")
+        .forEach((b) => b.classList.toggle("active", b === btn));
 
       codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
     });
   });
+
+  const select = toggle.querySelector(".plt-select");
+  if (select) {
+    select.addEventListener("change", (e) => {
+      const platform = e.target.value;
+      const container = toggle.closest(".hero-code, .example-panel");
+      const codeBlock = container.querySelector("code.code-python");
+      const snippet = codeBlock.dataset.snippet;
+
+      if (!CODE_SNIPPETS[snippet]?.[platform]) return;
+
+      // Sync the buttons in case we switch back to desktop
+      toggle
+        .querySelectorAll(".plt-btn")
+        .forEach((b) =>
+          b.classList.toggle("active", b.dataset.platform === platform),
+        );
+
+      codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
+    });
+  }
 });
