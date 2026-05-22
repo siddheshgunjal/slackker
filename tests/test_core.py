@@ -424,7 +424,7 @@ class TestTeamsClient:
         assert client._tenant_id == "common"
 
     def test_auth_headers(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "abc123"
         headers = client._auth_headers()
         assert headers["Authorization"] == "Bearer abc123"
@@ -432,7 +432,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_ensure_token_uses_existing_token(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "cached-token"
         client._token_expiry = 9_999_999_999
         client.connect = AsyncMock()
@@ -443,7 +443,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_ensure_token_reconnects_when_expired(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "expired-token"
         client._token_expiry = 0
         client.connect = AsyncMock(return_value=True)
@@ -454,7 +454,7 @@ class TestTeamsClient:
 
     def test_token_cache_roundtrip(self, tmp_path):
         cache_path = tmp_path / "teams_cache.json"
-        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path))
+        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path), verbose=1)
 
         client._save_token_cache(
             {"access_token": "a", "refresh_token": "r", "expires_at": 1}
@@ -468,13 +468,13 @@ class TestTeamsClient:
     def test_load_token_cache_unreadable_returns_none(self, tmp_path):
         cache_path = tmp_path / "teams_cache.json"
         cache_path.write_text("{bad-json")
-        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path))
+        client = TeamsClient(**self._INIT, token_cache_path=str(cache_path), verbose=1)
 
         loaded = client._load_token_cache()
         assert loaded is None
 
     def test_apply_token_sets_connection_state_and_persists_cache(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._save_token_cache = MagicMock()
 
         client._apply_token(
@@ -492,7 +492,7 @@ class TestTeamsClient:
         return_value=False,
     )
     async def test_connect_no_internet(self, mock_check):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         result = await client.connect()
         assert result is False
         assert client.is_connected is False
@@ -512,7 +512,7 @@ class TestTeamsClient:
             "refresh_token": "rt",
             "expires_in": 3600,
         }
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value={"refresh_token": "old-rt"})
         client._save_token_cache = MagicMock()
 
@@ -553,7 +553,7 @@ class TestTeamsClient:
             "refresh_token": "rt",
             "expires_in": 3600,
         }
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value=None)
         client._save_token_cache = MagicMock()
 
@@ -582,7 +582,7 @@ class TestTeamsClient:
     async def test_connect_device_code_failed(
         self, mock_device, mock_refresh, mock_check
     ):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value=None)
         result = await client.connect()
         assert result is False
@@ -590,7 +590,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_send_message(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "fake-token"
         client._token_expiry = 9_999_999_999
 
@@ -608,7 +608,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_send_message_when_not_connected(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._ensure_token = AsyncMock(return_value=False)
 
         with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
@@ -617,7 +617,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_upload_file_invalid_path(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "fake-token"
         client._token_expiry = 9_999_999_999
 
@@ -634,7 +634,7 @@ class TestTeamsClient:
         file_path = tmp_path / "sample.txt"
         file_path.write_text("hello")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._ensure_token = AsyncMock(return_value=False)
 
         with patch("slackker.core.teams.httpx.AsyncClient") as mock_cls:
@@ -646,7 +646,7 @@ class TestTeamsClient:
         file_path = tmp_path / "sample.txt"
         file_path.write_text("hello")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "fake-token"
         client._token_expiry = 9_999_999_999
         client.send_message = AsyncMock()
@@ -675,7 +675,7 @@ class TestTeamsClient:
         file_path = tmp_path / "sample.txt"
         file_path.write_text("hello")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "fake-token"
         client._token_expiry = 9_999_999_999
         client.send_message = AsyncMock()
@@ -697,14 +697,14 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_upload_image_delegates_to_upload_file(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client.upload_file = AsyncMock()
 
         await client.upload_image("image.png", comment="plot")
         client.upload_file.assert_awaited_once_with("image.png", "plot")
 
     def test_send_message_sync(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client.send_message = AsyncMock()
         client.send_message_sync("Hello sync")
         client.send_message.assert_awaited_once_with("Hello sync")
@@ -794,7 +794,7 @@ class TestTeamsClient:
             "message": "Visit https://microsoft.com/devicelogin",
             "interval": 0,
         }
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._load_token_cache = MagicMock(return_value=None)
 
         result = await client.connect()
@@ -802,7 +802,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_ensure_token_returns_false_when_connect_fails(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client.connect = AsyncMock(return_value=False)
 
         result = await client._ensure_token()
@@ -812,7 +812,7 @@ class TestTeamsClient:
     def test_save_token_cache_exception_logs_warning(self, tmp_path):
         """If the directory cannot be created, a warning is logged (no raise)."""
         client = TeamsClient(
-            **self._INIT, token_cache_path="/dev/null/impossible/path.json"
+            **self._INIT, token_cache_path="/dev/null/impossible/path.json", verbose=1
         )
         # Should not raise — exception is caught internally
         client._save_token_cache(
@@ -838,7 +838,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_send_message_http_error(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "tok"
         client._token_expiry = 9_999_999_999
 
@@ -859,7 +859,7 @@ class TestTeamsClient:
 
     @pytest.mark.asyncio
     async def test_send_message_general_exception(self):
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "tok"
         client._token_expiry = 9_999_999_999
 
@@ -900,7 +900,7 @@ class TestTeamsClient:
         file_path = tmp_path / "f.txt"
         file_path.write_text("data")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "tok"
         client._token_expiry = 9_999_999_999
         client.send_message = AsyncMock()
@@ -920,7 +920,7 @@ class TestTeamsClient:
         file_path = tmp_path / "f.txt"
         file_path.write_text("data")
 
-        client = TeamsClient(**self._INIT)
+        client = TeamsClient(**self._INIT, verbose=1)
         client._access_token = "tok"
         client._token_expiry = 9_999_999_999
         client.send_message = AsyncMock()
