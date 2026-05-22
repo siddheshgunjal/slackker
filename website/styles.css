@@ -345,6 +345,19 @@ h2 {
     gap: 0.25rem;
 }
 
+.plt-select {
+    display: none;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    cursor: pointer;
+    outline: none;
+}
+
 .plt-btn {
     font-size: 0.72rem;
     font-weight: 700;
@@ -713,6 +726,16 @@ button:focus-visible,
     .example-tab {
         font-size: 0.82rem;
         padding: 0.45rem 0.75rem;
+    }
+
+    /* ── Platform Toggle Mobile ───────────────────────────────── */
+    .platform-label,
+    .plt-btn {
+        display: none;
+    }
+    .plt-select {
+        display: block;
+        margin-left: auto;
     }
 
     /* ── Quickstart steps ────────────────────────────────────── */

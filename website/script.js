@@ -494,4 +494,25 @@ document.querySelectorAll(".platform-toggle").forEach((toggle) => {
       codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
     });
   });
+
+  const select = toggle.querySelector(".plt-select");
+  if (select) {
+    select.addEventListener("change", (e) => {
+      const platform = e.target.value;
+      const container = toggle.closest(".hero-code, .example-panel");
+      const codeBlock = container.querySelector("code.code-python");
+      const snippet = codeBlock.dataset.snippet;
+
+      if (!CODE_SNIPPETS[snippet]?.[platform]) return;
+
+      // Sync the buttons in case we switch back to desktop
+      toggle
+        .querySelectorAll(".plt-btn")
+        .forEach((b) =>
+          b.classList.toggle("active", b.dataset.platform === platform),
+        );
+
+      codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
+    });
+  }
 });

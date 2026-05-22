@@ -132,6 +132,12 @@
             <button class="plt-btn" data-platform="slack">Slack</button>
             <button class="plt-btn" data-platform="discord">Discord</button>
             <button class="plt-btn" data-platform="teams">Teams</button>
+            <select class="plt-select" aria-label="Switch client">
+              <option value="telegram">Telegram</option>
+              <option value="slack">Slack</option>
+              <option value="discord">Discord</option>
+              <option value="teams">Teams</option>
+            </select>
           </div>
         </div>
 <pre><code class="code-python" data-snippet="hero">from slackker.core import TelegramClient
@@ -220,7 +226,6 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
       <div class="example-switch center-wrap" role="tablist" aria-label="Client setup guides">
         <button class="example-tab setup-tab active" data-target="setup-telegram" role="tab" aria-selected="true">Telegram</button>
         <button class="example-tab setup-tab" data-target="setup-slack" role="tab" aria-selected="false">Slack</button>
-        <button class="example-tab setup-tab" data-target="setup-teams" role="tab" aria-selected="false">Teams</button>
         <button class="example-tab setup-tab" data-target="setup-discord" role="tab" aria-selected="false">Discord</button>
         <button class="example-tab setup-tab" data-target="setup-teams" role="tab" aria-selected="false">Teams</button>
       </div>
@@ -473,8 +478,14 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
               <span class="platform-label">Client: </span>
               <button class="plt-btn active" data-platform="telegram">Telegram</button>
               <button class="plt-btn" data-platform="slack">Slack</button>
-              <button class="plt-btn" data-platform="teams">Teams</button>
               <button class="plt-btn" data-platform="discord">Discord</button>
+              <button class="plt-btn" data-platform="teams">Teams</button>
+              <select class="plt-select" aria-label="Switch client">
+                <option value="telegram">Telegram</option>
+                <option value="slack">Slack</option>
+                <option value="discord">Discord</option>
+                <option value="teams">Teams</option>
+              </select>
             </div>
           </div>
 <pre><code class="code-python" data-snippet="basic">from slackker.core import TelegramClient
@@ -512,8 +523,14 @@ if __name__ == "__main__":
               <span class="platform-label">Client: </span>
               <button class="plt-btn active" data-platform="telegram">Telegram</button>
               <button class="plt-btn" data-platform="slack">Slack</button>
-              <button class="plt-btn" data-platform="teams">Teams</button>
               <button class="plt-btn" data-platform="discord">Discord</button>
+              <button class="plt-btn" data-platform="teams">Teams</button>
+              <select class="plt-select" aria-label="Switch client">
+                <option value="telegram">Telegram</option>
+                <option value="slack">Slack</option>
+                <option value="discord">Discord</option>
+                <option value="teams">Teams</option>
+              </select>
             </div>
           </div>
 <pre><code class="code-python" data-snippet="keras">from slackker.core import TelegramClient
@@ -550,8 +567,14 @@ history = model.fit(
               <span class="platform-label">Client: </span>
               <button class="plt-btn active" data-platform="telegram">Telegram</button>
               <button class="plt-btn" data-platform="slack">Slack</button>
-              <button class="plt-btn" data-platform="teams">Teams</button>
               <button class="plt-btn" data-platform="discord">Discord</button>
+              <button class="plt-btn" data-platform="teams">Teams</button>
+              <select class="plt-select" aria-label="Switch client">
+                <option value="telegram">Telegram</option>
+                <option value="slack">Slack</option>
+                <option value="discord">Discord</option>
+                <option value="teams">Teams</option>
+              </select>
             </div>
           </div>
 <pre><code class="code-python" data-snippet="lightning">from lightning.pytorch import Trainer
