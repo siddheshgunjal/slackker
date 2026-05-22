@@ -261,6 +261,22 @@ async def refresh_teams_access_token(
         return None
 
 
+async def verify_discord_token(token: str, verbose: int = 2) -> bool:
+    """Verify a Discord Bot token by calling /users/@me."""
+    url = "https://discord.com/api/v10/users/@me"
+    headers = {"Authorization": f"Bot {token}"}
+    try:
+        async with _make_async_client() as client:
+            resp = await client.get(url, headers=headers, timeout=10)
+            resp.raise_for_status()
+            if verbose >= 2:
+                log.debug(f"Connection to Discord API successful! [{_ip_mode()}]")
+            return True
+    except Exception as e:
+        log.error(f"Invalid Discord Bot token: {e} [{_ip_mode()}]")
+        return False
+
+
 # --- Sync wrappers ---
 
 
@@ -278,6 +294,10 @@ def check_connection_quick_sync(
 
 def verify_slack_token_sync(token: str, verbose: int = 2) -> bool:
     return _run_sync(verify_slack_token(token, verbose))
+
+
+def verify_discord_token_sync(token: str, verbose: int = 2) -> bool:
+    return _run_sync(verify_discord_token(token, verbose))
 
 
 def get_telegram_chat_id_sync(token: str, verbose: int = 2) -> str | None:
