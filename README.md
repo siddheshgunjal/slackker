@@ -6,14 +6,13 @@
 ![Tests](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/pr-tests.yml?style=for-the-badge&logo=checkmarx&label=Tests)
 ![Python Build](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/publish-to-pypi.yml?style=for-the-badge&logo=python&logoColor=yellow&label=Build)
 [<img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fslackker.com&style=for-the-badge&logo=htmx">][website]
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fsiddheshgunjal%2Fslackker%2Frefs%2Fheads%2Fmain%2Fpyproject.toml&style=for-the-badge)
 
 </div>
 
 <div align="center">
 
 [<img alt="PyPI - Version" src="https://img.shields.io/pypi/v/slackker?style=for-the-badge&logo=python&logoColor=yellow&label=pip%20install%20slackker&color=teal" width="400">][py-pi]
-
-![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fsiddheshgunjal%2Fslackker%2Frefs%2Fheads%2Fmain%2Fpyproject.toml&style=for-the-badge)
 
 </div>
 
