@@ -13,6 +13,8 @@
 
 [<img alt="PyPI - Version" src="https://img.shields.io/pypi/v/slackker?style=for-the-badge&logo=python&logoColor=yellow&label=pip%20install%20slackker&color=teal" width="400">][py-pi]
 
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fsiddheshgunjal%2Fslackker%2Frefs%2Fheads%2Fmain%2Fpyproject.toml&style=for-the-badge)
+
 </div>
 
 Watching training metrics is a time killer and addictive. Have you ever found yourself walking back and forth to computer to monitor progress, only to find that the current epoch is not finished yet or that nothing has changed?
