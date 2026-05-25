@@ -143,14 +143,19 @@
 <pre><code class="code-python" data-snippet="hero">from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
-client = TelegramClient(token="123456:ABC-DEF...")
-slackker = SimpleCallback(client)
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
 
 @slackker.notifier
 def train_model():
     return "done"
 
-slackker.notify(event="training_complete", status="completed")</code></pre>
+slackker.notify(event="training_complete",
+  status="completed",
+  attachment="path_to_file"
+)</code></pre>
       </div>
     </section>
 
@@ -465,6 +470,8 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
         <button class="example-tab active" data-target="example-basic" role="tab" aria-selected="true">Basic Script</button>
         <button class="example-tab" data-target="example-keras" role="tab" aria-selected="false">Keras</button>
         <button class="example-tab" data-target="example-lightning" role="tab" aria-selected="false">Lightning</button>
+        <button class="example-tab" data-target="example-sync-pipeline" role="tab" aria-selected="false">Sync Pipeline</button>
+        <button class="example-tab" data-target="example-async-pipeline" role="tab" aria-selected="false">Async Pipeline</button>
       </div>
 
       <div class="example-panels">
@@ -596,6 +603,122 @@ slackker_cb = LightningCallback(
 
 trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
 trainer.fit(model, train_loader, val_loader)</code></pre>
+        </article>
+
+        <article id="example-sync-pipeline" class="example-panel glass" role="tabpanel" hidden>
+          <div class="ide-titlebar">
+            <span class="ide-dot dot-red"></span>
+            <span class="ide-dot dot-yellow"></span>
+            <span class="ide-dot dot-green"></span>
+            <span class="ide-filename">sync_pipeline.py</span>
+            <div class="platform-toggle" role="group" aria-label="Switch client">
+              <span class="platform-label">Client: </span>
+              <button class="plt-btn active" data-platform="telegram">Telegram</button>
+              <button class="plt-btn" data-platform="slack">Slack</button>
+              <button class="plt-btn" data-platform="discord">Discord</button>
+              <button class="plt-btn" data-platform="teams">Teams</button>
+              <select class="plt-select" aria-label="Switch client">
+                <option value="telegram">Telegram</option>
+                <option value="slack">Slack</option>
+                <option value="discord">Discord</option>
+                <option value="teams">Teams</option>
+              </select>
+            </div>
+          </div>
+<pre><code class="code-python" data-snippet="sync-pipeline">import time
+from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+def main():
+    # Step 1
+    notifier.notify("📥 Step 1: Fetching data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 1 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    notifier.notify("⚙️ Step 2: Processing data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 2 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    notifier.stop()
+
+main()</code></pre>
+        </article>
+
+        <article id="example-async-pipeline" class="example-panel glass" role="tabpanel" hidden>
+          <div class="ide-titlebar">
+            <span class="ide-dot dot-red"></span>
+            <span class="ide-dot dot-yellow"></span>
+            <span class="ide-dot dot-green"></span>
+            <span class="ide-filename">async_pipeline.py</span>
+            <div class="platform-toggle" role="group" aria-label="Switch client">
+              <span class="platform-label">Client: </span>
+              <button class="plt-btn active" data-platform="telegram">Telegram</button>
+              <button class="plt-btn" data-platform="slack">Slack</button>
+              <button class="plt-btn" data-platform="discord">Discord</button>
+              <button class="plt-btn" data-platform="teams">Teams</button>
+              <select class="plt-select" aria-label="Switch client">
+                <option value="telegram">Telegram</option>
+                <option value="slack">Slack</option>
+                <option value="discord">Discord</option>
+                <option value="teams">Teams</option>
+              </select>
+            </div>
+          </div>
+<pre><code class="code-python" data-snippet="async-pipeline">import asyncio
+from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+async def main():
+    # Step 1
+    await notifier.async_notify("📥 Step 1: Fetching data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 1 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    await notifier.async_notify("⚙️ Step 2: Processing data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 2 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    await notifier.async_stop()
+
+asyncio.run(main())</code></pre>
         </article>
       </div>
     </section>
