@@ -296,6 +296,7 @@ class CommandHandler:
         client: BaseClient,
         command_prefix: str = "/",
         interval: float = 2.0,
+        filter_fn: Callable[[IncomingMessage], bool] | None = None,
     ):
         """
         Parameters
@@ -306,10 +307,18 @@ class CommandHandler:
             Prefix that marks a message as a command.  Defaults to ``"/"``.
         interval : float
             Polling interval in seconds passed to :class:`MessagePoller`.
+        filter_fn : callable | None
+            Optional ``(IncomingMessage) -> bool`` predicate passed through to
+            the underlying :class:`MessagePoller`.  Messages that return
+            ``False`` are silently discarded before any handler or
+            ``wait_for_reply`` waiter is invoked.  A common value is
+            ``lambda m: not m.is_bot`` to ignore the bot's own outbound
+            messages (important on platforms like Discord where the REST API
+            returns all channel messages, including those sent by the bot).
         """
         self._client = client
         self._prefix = command_prefix
-        self.poller = MessagePoller(client, interval=interval)
+        self.poller = MessagePoller(client, interval=interval, filter_fn=filter_fn)
 
     def command(self, name: str) -> Callable:
         """Decorator that registers a command handler for ``<prefix><name>``.
