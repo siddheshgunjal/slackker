@@ -3,6 +3,7 @@ import os
 import httpx
 
 from slackker.core.client import BaseClient
+from slackker.core.models import IncomingMessage
 from slackker.utils import network
 from slackker.utils.logger import log
 
@@ -100,6 +101,64 @@ class DiscordClient(BaseClient):
     async def upload_image(self, filepath: str, comment: str | None = None) -> None:
         # Discord handles images as general attachments
         await self.upload_file(filepath, comment)
+
+    async def fetch_messages(
+        self,
+        limit: int = 10,
+        since: str | None = None,
+        thread_id: str | None = None,
+    ) -> list[IncomingMessage]:
+        """Fetch messages from the Discord channel.
+
+        *since* is a Snowflake message ID — only messages with a higher
+        (newer) ID are returned (maps to the ``after`` query parameter).
+
+        When *thread_id* is provided, only messages whose
+        ``message_reference.message_id`` matches are returned (client-side
+        filter).  Messages are returned in chronological order (oldest first).
+        """
+        url = f"{self.BASE_URL}/channels/{self._channel_id}/messages"
+        headers = {"Authorization": f"Bot {self._token}"}
+        params: dict = {"limit": min(limit, 100)}
+        if since:
+            params["after"] = since
+
+        try:
+            async with network._make_async_client() as client:
+                resp = await client.get(url, headers=headers, params=params, timeout=10)
+                resp.raise_for_status()
+                raw_messages = resp.json()
+
+            result: list[IncomingMessage] = []
+            for msg in reversed(raw_messages):  # Discord returns newest-first; reverse
+                author = msg.get("author") or {}
+                is_bot = author.get("bot", False)
+
+                ref = msg.get("message_reference") or {}
+                msg_thread_id = ref.get("message_id")
+
+                if thread_id is not None and msg_thread_id != thread_id:
+                    continue
+
+                result.append(
+                    IncomingMessage(
+                        text=msg.get("content", ""),
+                        sender=author.get("username", "unknown"),
+                        sender_id=author.get("id", ""),
+                        timestamp=msg.get("id", ""),  # Snowflake — monotonically increasing
+                        platform="discord",
+                        is_bot=is_bot,
+                        thread_id=msg_thread_id,
+                        raw=msg,
+                    )
+                )
+            return result
+        except httpx.HTTPStatusError as e:
+            log.error(f"Discord fetch_messages error {e.response.status_code}: {e.response.text}")
+            return []
+        except Exception as e:
+            log.error(f"Discord fetch_messages error: {e}")
+            return []
 
     async def close(self) -> None:
         pass
