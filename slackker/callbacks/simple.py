@@ -1,4 +1,6 @@
+import asyncio
 import os
+import threading
 import time
 from datetime import datetime
 from inspect import stack
@@ -21,7 +23,35 @@ class SimpleCallback:
         self.client = client
         if not client.is_connected:
             _run_sync(client.connect())
-        self._listener = None  # lazily created on first ask()
+        self._listener = None       # lazily created on first ask()
+        self._sync_loop = None      # persistent event loop for sync ask()/stop()
+        self._sync_thread = None    # background thread running _sync_loop
+
+    # ── Persistent background loop (sync mode only) ───────────────────────────
+
+    def _ensure_sync_loop(self) -> None:
+        """Start a persistent background event loop for sync ask() calls.
+
+        ``asyncio.run()`` creates a *new* event loop per call and closes it
+        when the coroutine finishes.  Because the polling Task is bound to the
+        loop it was created in, a second ``ask()`` call would find the Task
+        dead and ``wait_for_reply`` would never be resolved.
+
+        A single persistent loop avoids this: the Task created during the
+        first ``ask()`` stays alive across all subsequent calls until
+        ``stop()`` is explicitly called.
+        """
+        if self._sync_loop is None or not self._sync_loop.is_running():
+            self._sync_loop = asyncio.new_event_loop()
+            self._sync_thread = threading.Thread(
+                target=self._sync_loop.run_forever, daemon=True
+            )
+            self._sync_thread.start()
+
+    def _sync_run(self, coro):
+        """Submit *coro* to the persistent background loop and block until done."""
+        self._ensure_sync_loop()
+        return asyncio.run_coroutine_threadsafe(coro, self._sync_loop).result()
 
     # ── Internal listener lifecycle ───────────────────────────────────────────
 
@@ -43,8 +73,16 @@ class SimpleCallback:
             self._listener = None
 
     def stop(self) -> None:
-        """Sync: stop the internal listener if it is running."""
-        _run_sync(self.async_stop())
+        """Sync: stop the internal listener and shut down the background loop."""
+        if self._sync_loop is not None and self._sync_loop.is_running():
+            # Stop the listener inside the persistent loop, then shut it down
+            asyncio.run_coroutine_threadsafe(self.async_stop(), self._sync_loop).result()
+            self._sync_loop.call_soon_threadsafe(self._sync_loop.stop)
+            self._sync_thread.join(timeout=5)
+            self._sync_loop = None
+            self._sync_thread = None
+        else:
+            _run_sync(self.async_stop())
 
     # ── Interactive approval gate ─────────────────────────────────────────────
 
@@ -101,12 +139,17 @@ class SimpleCallback:
     ) -> bool:
         """Sync: send *question* and wait for a human reply.
 
+        Uses a persistent background event loop so the polling Task stays
+        alive across multiple consecutive ``ask()`` calls — unlike
+        ``asyncio.run()`` which would close the loop (and kill the Task)
+        after every call.
+
         Example (inside a Keras/Lightning training callback)::
 
             if not notifier.ask("Epoch 3 done. Continue?"):
                 self.model.stop_training = True
         """
-        return _run_sync(self.async_ask(question, timeout, halt_on))
+        return self._sync_run(self.async_ask(question, timeout, halt_on))
 
     # ── Notifier decorator ────────────────────────────────────────────────────
 

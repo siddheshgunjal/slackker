@@ -430,3 +430,219 @@ class TestShimConnectFails:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+
+# ── SimpleCallback.ask / async_ask / stop / async_stop tests ─────────────────
+
+class MockPoller:
+    """Minimal MessagePoller stand-in that returns a preset reply."""
+
+    def __init__(self, reply=None):
+        self._reply = reply
+
+    async def wait_for_reply(self, timeout=60.0):
+        return self._reply
+
+
+def _make_reply(text="yes", sender="human"):
+    from slackker.core.models import IncomingMessage
+    return IncomingMessage(
+        text=text, sender=sender, sender_id="u1",
+        timestamp="1", platform="mock", is_bot=False,
+    )
+
+
+def _patch_listener(cb, reply=None):
+    """Inject a fake CommandHandler+poller into cb._listener."""
+    poller = MockPoller(reply=reply)
+    listener = MagicMock()
+    listener.poller = poller
+    listener.stop = AsyncMock()
+    cb._listener = listener
+    return poller, listener
+
+
+class TestAsyncAsk:
+    """Tests for SimpleCallback.async_ask()."""
+
+    @pytest.mark.asyncio
+    async def test_returns_true_on_yes_reply(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes"))
+        assert await cb.async_ask("Continue?") is True
+
+    @pytest.mark.asyncio
+    async def test_returns_false_on_no_reply(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("no"))
+        assert await cb.async_ask("Continue?") is False
+
+    @pytest.mark.asyncio
+    async def test_returns_true_on_timeout(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=None)
+        assert await cb.async_ask("Continue?") is True
+
+    @pytest.mark.asyncio
+    async def test_sends_question_message(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes"))
+        await cb.async_ask("Step 1 done?")
+        assert any("Step 1 done?" in m for m in client.messages)
+
+    @pytest.mark.asyncio
+    async def test_question_includes_halt_on_hint(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes"))
+        await cb.async_ask("Continue?", halt_on="abort")
+        assert any("abort" in m for m in client.messages)
+
+    @pytest.mark.asyncio
+    async def test_question_includes_timeout_hint(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes"))
+        await cb.async_ask("Continue?", timeout=30.0)
+        assert any("30" in m for m in client.messages)
+
+    @pytest.mark.asyncio
+    async def test_sends_halted_message_on_no(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("no", sender="alice"))
+        await cb.async_ask("Continue?")
+        assert any("🛑" in m and "alice" in m for m in client.messages)
+
+    @pytest.mark.asyncio
+    async def test_sends_continuing_message_with_sender(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes", sender="bob"))
+        await cb.async_ask("Continue?")
+        assert any("bob" in m for m in client.messages)
+
+    @pytest.mark.asyncio
+    async def test_sends_timeout_auto_approved_message(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=None)
+        await cb.async_ask("Continue?")
+        assert any("timeout" in m for m in client.messages)
+
+    @pytest.mark.asyncio
+    async def test_custom_halt_on(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("stop"))
+        assert await cb.async_ask("Continue?", halt_on="stop") is False
+
+    @pytest.mark.asyncio
+    async def test_halt_on_is_case_insensitive(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("NO"))
+        assert await cb.async_ask("Continue?", halt_on="no") is False
+
+    @pytest.mark.asyncio
+    async def test_non_halt_reply_returns_true(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("sure"))
+        assert await cb.async_ask("Continue?") is True
+
+    @pytest.mark.asyncio
+    async def test_lazy_listener_created_on_first_ask(self):
+        cb, client = _make_callback()
+        assert cb._listener is None
+        mock_handler = MagicMock()
+        mock_handler.poller = MockPoller(reply=_make_reply("yes"))
+        mock_handler.start = AsyncMock()
+        with patch("slackker.listener.CommandHandler", return_value=mock_handler):
+            await cb.async_ask("Continue?")
+        assert cb._listener is mock_handler
+
+    @pytest.mark.asyncio
+    async def test_listener_reused_across_asks(self):
+        cb, client = _make_callback()
+        _, listener = _patch_listener(cb, reply=_make_reply("yes"))
+        await cb.async_ask("Step 1?")
+        await cb.async_ask("Step 2?")
+        listener.start.assert_not_called()
+
+
+class TestAskSync:
+    """Tests for SimpleCallback.ask() — sync wrapper."""
+
+    def test_returns_true_on_yes(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes"))
+        assert cb.ask("Continue?") is True
+
+    def test_returns_false_on_no(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("no"))
+        assert cb.ask("Continue?") is False
+
+    def test_returns_true_on_timeout(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=None)
+        assert cb.ask("Continue?") is True
+
+    def test_sends_messages(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes"))
+        cb.ask("Step done?")
+        assert any("Step done?" in m for m in client.messages)
+
+    def test_persistent_loop_reused_across_calls(self):
+        """Regression: second ask() must reuse the same event loop so the
+        polling Task (bound to loop 1) is still alive to resolve wait_for_reply."""
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes"))
+        cb.ask("Step 1?")
+        loop_after_first = cb._sync_loop
+        cb.ask("Step 2?")
+        assert cb._sync_loop is loop_after_first  # same loop, not a new one
+
+    def test_persistent_loop_created_on_first_ask(self):
+        cb, client = _make_callback()
+        assert cb._sync_loop is None
+        _patch_listener(cb, reply=_make_reply("yes"))
+        cb.ask("Step 1?")
+        assert cb._sync_loop is not None
+
+    def test_stop_shuts_down_loop(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes"))
+        cb.ask("Step 1?")
+        assert cb._sync_loop is not None
+        cb.stop()
+        assert cb._sync_loop is None
+
+
+class TestStop:
+    """Tests for SimpleCallback.async_stop() and stop()."""
+
+    @pytest.mark.asyncio
+    async def test_async_stop_clears_listener(self):
+        cb, client = _make_callback()
+        _, listener = _patch_listener(cb)
+        await cb.async_stop()
+        assert cb._listener is None
+        listener.stop.assert_awaited_once()
+
+    @pytest.mark.asyncio
+    async def test_async_stop_noop_when_no_listener(self):
+        cb, client = _make_callback()
+        await cb.async_stop()  # must not raise
+
+    def test_stop_sync_clears_listener(self):
+        cb, client = _make_callback()
+        _, listener = _patch_listener(cb)
+        cb.stop()
+        assert cb._listener is None
+        listener.stop.assert_awaited_once()
+
+    def test_stop_sync_noop_when_no_listener(self):
+        cb, client = _make_callback()
+        cb.stop()  # must not raise
+
+    @pytest.mark.asyncio
+    async def test_stop_after_ask_cleans_up(self):
+        cb, client = _make_callback()
+        _patch_listener(cb, reply=_make_reply("yes"))
+        await cb.async_ask("Continue?")
+        await cb.async_stop()
+        assert cb._listener is None
