@@ -126,10 +126,10 @@ class SlackUpdate(KerasCallback):
     """Deprecated: Use KerasCallback(SlackClient(...), ...) instead."""
 
     def __init__(
-        self, token, channel, ModelName, export="png", SendPlot=False, verbose=0
+        self, token, channel_id, ModelName, export="png", SendPlot=False, verbose=0
     ):
         warnings.warn(
-            "SlackUpdate is deprecated. Use KerasCallback(SlackClient(token, channel), model_name) instead.",
+            "SlackUpdate is deprecated. Use KerasCallback(SlackClient(token, channel_id), model_name) instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -137,7 +137,7 @@ class SlackUpdate(KerasCallback):
             log.error("Please enter a valid Slack API Token.")
             return
 
-        client = SlackClient(token=token, channel=channel, verbose=verbose)
+        client = SlackClient(token=token, channel_id=channel_id, verbose=verbose)
         connected = _run_sync(client.connect())
         if not connected:
             log.error("Failed to connect to Slack.")
@@ -152,7 +152,7 @@ class SlackUpdate(KerasCallback):
         self.SendPlot = SendPlot
         self.verbose = verbose
         self._sdk_client = client._client
-        self.channel = channel
+        self.channel_id = channel_id
 
 
 class TelegramUpdate(KerasCallback):

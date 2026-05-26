@@ -132,7 +132,7 @@ class SlackUpdate(LightningCallback):
     def __init__(
         self,
         token,
-        channel,
+        channel_id,
         ModelName,
         TrackLogs=None,
         monitor=None,
@@ -141,7 +141,7 @@ class SlackUpdate(LightningCallback):
         verbose=0,
     ):
         warnings.warn(
-            "SlackUpdate is deprecated. Use LightningCallback(SlackClient(token, channel), ...) instead.",
+            "SlackUpdate is deprecated. Use LightningCallback(SlackClient(token, channel_id), ...) instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -149,7 +149,7 @@ class SlackUpdate(LightningCallback):
             log.error("Please enter a valid Slack API Token.")
             return
 
-        client = SlackClient(token=token, channel=channel, verbose=verbose)
+        client = SlackClient(token=token, channel_id=channel_id, verbose=verbose)
         connected = _run_sync(client.connect())
         if not connected:
             log.error("Failed to connect to Slack.")
@@ -170,7 +170,7 @@ class SlackUpdate(LightningCallback):
         self.SendPlot = SendPlot
         self.verbose = verbose
         self._sdk_client = client._client
-        self.channel = channel
+        self.channel_id = channel_id
 
 
 class TelegramUpdate(LightningCallback):

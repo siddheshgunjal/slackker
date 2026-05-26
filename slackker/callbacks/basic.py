@@ -33,9 +33,9 @@ class Update(SimpleCallback):
 class SlackUpdate(SimpleCallback):
     """Deprecated: Use SimpleCallback(SlackClient(...)) instead."""
 
-    def __init__(self, token, channel, verbose=0):
+    def __init__(self, token, channel_id, verbose=0):
         warnings.warn(
-            "SlackUpdate is deprecated. Use SimpleCallback(SlackClient(token, channel)) instead.",
+            "SlackUpdate is deprecated. Use SimpleCallback(SlackClient(token, channel_id)) instead.",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -43,7 +43,7 @@ class SlackUpdate(SimpleCallback):
             log.error("Please enter a valid Slack API Token.")
             return
 
-        client = SlackClient(token=token, channel=channel, verbose=verbose)
+        client = SlackClient(token=token, channel_id=channel_id, verbose=verbose)
         connected = _sync(client.connect())
         if connected:
             super().__init__(client)
