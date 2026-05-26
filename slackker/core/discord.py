@@ -41,12 +41,8 @@ class DiscordClient(BaseClient):
 
     async def connect(self) -> bool:
         """Verify server connectivity and Bot token. Returns True on success."""
-        server = await network.check_connection(
-            url="discord.com", verbose=self._verbose
-        )
-        api = await network.verify_discord_token(
-            token=self._token, verbose=self._verbose
-        )
+        server = await network.check_connection(url="discord.com")
+        api = await network.verify_discord_token(token=self._token)
         self._connected = server and api
         return self._connected
 
@@ -59,8 +55,7 @@ class DiscordClient(BaseClient):
             async with network._make_async_client() as client:
                 resp = await client.post(url, json=payload, headers=headers, timeout=10)
                 resp.raise_for_status()
-            if self._verbose >= 1:
-                log.info(f"Posted update to Discord channel {self._channel_id}")
+            log.info(f"Posted update to Discord channel {self._channel_id}")
         except httpx.HTTPStatusError as e:
             log.error(f"Discord API error {e.response.status_code}: {e.response.text}")
         except Exception as e:
@@ -91,8 +86,7 @@ class DiscordClient(BaseClient):
                         url, headers=headers, data=data, files=files, timeout=60
                     )
                     resp.raise_for_status()
-            if self._verbose >= 1:
-                log.debug(f"Uploaded attachment to Discord channel {self._channel_id}")
+            log.debug(f"Uploaded attachment to Discord channel {self._channel_id}")
         except httpx.HTTPStatusError as e:
             log.error(f"Discord API error {e.response.status_code}: {e.response.text}")
         except Exception as e:
@@ -145,7 +139,9 @@ class DiscordClient(BaseClient):
                         text=msg.get("content", ""),
                         sender=author.get("username", "unknown"),
                         sender_id=author.get("id", ""),
-                        timestamp=msg.get("id", ""),  # Snowflake — monotonically increasing
+                        timestamp=msg.get(
+                            "id", ""
+                        ),  # Snowflake — monotonically increasing
                         platform="discord",
                         is_bot=is_bot,
                         thread_id=msg_thread_id,
@@ -154,7 +150,9 @@ class DiscordClient(BaseClient):
                 )
             return result
         except httpx.HTTPStatusError as e:
-            log.error(f"Discord fetch_messages error {e.response.status_code}: {e.response.text}")
+            log.error(
+                f"Discord fetch_messages error {e.response.status_code}: {e.response.text}"
+            )
             return []
         except Exception as e:
             log.error(f"Discord fetch_messages error: {e}")

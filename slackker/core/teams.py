@@ -161,9 +161,7 @@ class TeamsClient(BaseClient):
            b. Poll until the user authenticates or the code expires.
         4. Cache the resulting token for future silent refreshes.
         """
-        server = await network.check_connection(
-            url="graph.microsoft.com", verbose=self._verbose
-        )
+        server = await network.check_connection(url="graph.microsoft.com")
         if not server:
             return False
 
@@ -175,12 +173,10 @@ class TeamsClient(BaseClient):
                 tenant_id=self._tenant_id,
                 refresh_token=cached["refresh_token"],
                 scopes=self._SCOPES,
-                verbose=self._verbose,
             )
             if refreshed:
                 self._apply_token(refreshed)
-                if self._verbose >= 1:
-                    log.info("Teams: Authenticated via cached token.")
+                log.info("Teams: Authenticated via cached token.")
                 return True
 
         # Interactive device code flow
@@ -188,7 +184,6 @@ class TeamsClient(BaseClient):
             app_id=self._app_id,
             tenant_id=self._tenant_id,
             scopes=self._SCOPES,
-            verbose=self._verbose,
         )
         if not code_data:
             return False
@@ -201,14 +196,12 @@ class TeamsClient(BaseClient):
             tenant_id=self._tenant_id,
             device_code=code_data["device_code"],
             interval=int(code_data.get("interval", 5)),
-            verbose=self._verbose,
         )
         if not token_data:
             return False
 
         self._apply_token(token_data)
-        if self._verbose >= 1:
-            log.info("Teams: Authenticated successfully via device code flow.")
+        log.info("Teams: Authenticated successfully via device code flow.")
         return True
 
     # ── Token management ────────────────────────────────────────────────────
@@ -241,8 +234,7 @@ class TeamsClient(BaseClient):
                     url, json=payload, headers=self._auth_headers(), timeout=10
                 )
                 resp.raise_for_status()
-            if self._verbose >= 1:
-                log.info("Teams: Message posted to personal chat.")
+            log.info("Teams: Message posted to personal chat.")
         except httpx.HTTPStatusError as e:
             log.error(
                 f"Teams: Error posting message ({e.response.status_code}): {e.response.text}"
@@ -286,8 +278,7 @@ class TeamsClient(BaseClient):
                 resp.raise_for_status()
                 web_url = resp.json().get("webUrl", "")
 
-            if self._verbose >= 1:
-                log.debug(f"Teams: Uploaded '{filename}' to OneDrive.")
+            log.debug(f"Teams: Uploaded '{filename}' to OneDrive.")
 
             caption = comment or f"Attachment: {filename}"
             message_text = f"{caption}\n{web_url}" if web_url else caption
@@ -353,7 +344,9 @@ class TeamsClient(BaseClient):
                     continue
 
                 from_field = msg.get("from") or {}
-                user_info = from_field.get("user") or from_field.get("application") or {}
+                user_info = (
+                    from_field.get("user") or from_field.get("application") or {}
+                )
                 is_bot = "application" in from_field
 
                 result.append(
