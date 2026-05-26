@@ -3,15 +3,17 @@ Comprehensive tests for slackker.callbacks.simple and slackker.callbacks.basic m
 Tests cover SimpleCallback and backward-compatible Update/SlackUpdate/TelegramUpdate shims.
 """
 
-import pytest
 import warnings
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from slackker.callbacks.basic import SlackUpdate, TelegramUpdate, Update
 from slackker.callbacks.simple import SimpleCallback
-from slackker.callbacks.basic import Update, SlackUpdate, TelegramUpdate
 from slackker.core.client import BaseClient
 
-
 # ── Fixtures ──────────────────────────────────────────────────
+
 
 class MockClient(BaseClient):
     """Concrete test client that records calls."""
@@ -59,6 +61,7 @@ def _make_update(verbose=0):
 
 # ── SimpleCallback tests ──────────────────────────────────────
 
+
 class TestSimpleCallbackNotifier:
     """Test SimpleCallback.notifier decorator."""
 
@@ -101,6 +104,7 @@ class TestSimpleCallbackNotifier:
 
     def test_notifier_execution_time(self):
         import time
+
         cb, client = _make_callback()
 
         @cb.notifier
@@ -227,6 +231,7 @@ class TestAsyncNotify:
 
 # ── Deprecated Update alias test ─────────────────────────────
 
+
 class TestUpdateDeprecation:
     """Ensure Update emits DeprecationWarning and still works."""
 
@@ -250,6 +255,7 @@ class TestUpdateDeprecation:
 
 # ── Backward-compat shim tests ───────────────────────────────
 
+
 class TestSlackUpdateShim:
     """Test backward-compatible SlackUpdate."""
 
@@ -261,7 +267,7 @@ class TestSlackUpdateShim:
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            obj = SlackUpdate(token="test", channel="C123", verbose=0)
+            obj = SlackUpdate(token="test", channel_id="C123", verbose=0)
             assert len(w) == 1
             assert issubclass(w[0].category, DeprecationWarning)
             assert "SlackUpdate is deprecated" in str(w[0].message)
@@ -274,7 +280,7 @@ class TestSlackUpdateShim:
 
         with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
-            obj = SlackUpdate(token="test", channel="C123", verbose=0)
+            obj = SlackUpdate(token="test", channel_id="C123", verbose=0)
 
         assert hasattr(obj, "client")
         assert obj.client is mock_client
@@ -282,7 +288,7 @@ class TestSlackUpdateShim:
     def test_init_no_token(self):
         with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
-            obj = SlackUpdate(token=None, channel="C123")
+            obj = SlackUpdate(token=None, channel_id="C123")
         assert not hasattr(obj, "client")
 
 
@@ -331,7 +337,7 @@ class TestShimWorkflows:
 
         with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
-            obj = SlackUpdate(token="xoxb-test", channel="C123", verbose=0)
+            obj = SlackUpdate(token="xoxb-test", channel_id="C123", verbose=0)
 
         @obj.notifier
         def compute(x, y):
@@ -365,6 +371,7 @@ class TestShimWorkflows:
 
 # ── Auto-connect tests ───────────────────────────────────────
 
+
 class DisconnectedMockClient(MockClient):
     """MockClient that starts disconnected and records connect() calls."""
 
@@ -394,7 +401,7 @@ class TestAutoConnect:
         assert client.is_connected
 
     def test_skips_connect_when_already_connected(self):
-        client = MockClient()          # is_connected always True
+        client = MockClient()  # is_connected always True
         SimpleCallback(client)
         # MockClient has no connect_calls attr — just ensure no AttributeError
         assert client.is_connected
@@ -411,7 +418,7 @@ class TestShimConnectFails:
 
         with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
-            obj = SlackUpdate(token="xoxb-test", channel="C123")
+            obj = SlackUpdate(token="xoxb-test", channel_id="C123")
 
         assert not hasattr(obj, "client")
 
@@ -433,6 +440,7 @@ if __name__ == "__main__":
 
 # ── SimpleCallback.ask / async_ask / stop / async_stop tests ─────────────────
 
+
 class MockPoller:
     """Minimal MessagePoller stand-in that returns a preset reply."""
 
@@ -445,9 +453,14 @@ class MockPoller:
 
 def _make_reply(text="yes", sender="human"):
     from slackker.core.models import IncomingMessage
+
     return IncomingMessage(
-        text=text, sender=sender, sender_id="u1",
-        timestamp="1", platform="mock", is_bot=False,
+        text=text,
+        sender=sender,
+        sender_id="u1",
+        timestamp="1",
+        platform="mock",
+        is_bot=False,
     )
 
 
