@@ -11,7 +11,7 @@ from slackker.listener import CommandHandler, MessagePoller
 
 __author__ = "Siddhesh Gunjal"
 __email__ = "siddhu19@live.com"
-__version__ = "1.4.9"
+__version__ = "1.5.0"
 
 # module level doc-string
 __doc__ = """
