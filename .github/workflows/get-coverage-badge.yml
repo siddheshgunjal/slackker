@@ -1,0 +1,76 @@
+name: Get Coverage Badge
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    name: Generate coverage badge
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run tests with coverage
+        run: uv run pytest tests/ --cov=slackker --cov-report=json -q
+
+      - name: Generate coverage badge JSON
+        run: |
+          python - <<'EOF'
+          import json
+
+          with open('coverage.json') as f:
+              cov_data = json.load(f)
+
+          pct = round(cov_data['totals']['percent_covered'])
+
+          if pct >= 90:
+              color = 'brightgreen'
+          elif pct >= 75:
+              color = 'green'
+          elif pct >= 60:
+              color = 'yellow'
+          elif pct >= 40:
+              color = 'orange'
+          else:
+              color = 'red'
+
+          badge = {
+              'schemaVersion': 1,
+              'label': 'coverage',
+              'message': f'{pct}%',
+              'color': color
+          }
+
+          with open('slackker-coverage-badge.json', 'w') as f:
+              json.dump(badge, f, indent=2)
+              f.write('\n')
+
+          print(f"Coverage: {pct}% ({color})")
+          EOF
+
+      - name: Update Gist with coverage badge
+        env:
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID: ${{ vars.COVERAGE_GIST_ID }}
+        run: |
+          CONTENT=$(cat slackker-coverage-badge.json | python3 -c "import json,sys; print(json.dumps(sys.stdin.read()))")
+          curl -s -X PATCH \
+            -H "Authorization: token $GIST_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/gists/$GIST_ID \
+            -d "{\"files\":{\"slackker-coverage-badge.json\":{\"content\":$CONTENT}}}"

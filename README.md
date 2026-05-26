@@ -3,10 +3,11 @@
 [![slackker-logo.png](https://i.postimg.cc/mgSDJPds/slackker-logo.png)](https://postimg.cc/RWN4nZ5s)
 <div align="center">
 
+![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fsiddheshgunjal%2Fslackker%2Frefs%2Fheads%2Fmain%2Fpyproject.toml&style=for-the-badge)
 ![Tests](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/pr-tests.yml?style=for-the-badge&logo=checkmarx&label=Tests)
 ![Python Build](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/publish-to-pypi.yml?style=for-the-badge&logo=python&logoColor=yellow&label=Build)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/siddheshgunjal/3ae5533adbce2e1160d96a0fec1dd303/raw/slackker-coverage-badge.json&style=for-the-badge&logo=pytest&logoColor=white&label=Coverage)
 [<img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fslackker.com&style=for-the-badge&logo=htmx">][website]
-![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fsiddheshgunjal%2Fslackker%2Frefs%2Fheads%2Fmain%2Fpyproject.toml&style=for-the-badge)
 
 </div>
 
