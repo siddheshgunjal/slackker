@@ -35,12 +35,12 @@ class TestSlackClient:
 
     def test_init_requires_token(self):
         with pytest.raises(ValueError, match="Slack API token is required"):
-            SlackClient(token="", channel="C123")
+            SlackClient(token="", channel_id="C123")
 
     def test_init_stores_attributes(self):
-        client = SlackClient(token="xoxb-test", channel="C123", verbose=2)
+        client = SlackClient(token="xoxb-test", channel_id="C123", verbose=2)
         assert client.platform == "slack"
-        assert client.channel == "C123"
+        assert client.channel_id == "C123"
         assert client.verbose == 2
 
     @pytest.mark.asyncio
@@ -55,7 +55,7 @@ class TestSlackClient:
         return_value=True,
     )
     async def test_connect_success(self, mock_verify, mock_check):
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         result = await client.connect()
         assert result is True
         mock_check.assert_awaited_once()
@@ -73,7 +73,7 @@ class TestSlackClient:
         return_value=True,
     )
     async def test_connect_no_internet(self, mock_verify, mock_check):
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         result = await client.connect()
         assert result is False
 
@@ -89,13 +89,13 @@ class TestSlackClient:
         return_value=False,
     )
     async def test_connect_invalid_token(self, mock_verify, mock_check):
-        client = SlackClient(token="xoxb-bad", channel="C123")
+        client = SlackClient(token="xoxb-bad", channel_id="C123")
         result = await client.connect()
         assert result is False
 
     @pytest.mark.asyncio
     async def test_send_message(self):
-        client = SlackClient(token="xoxb-test", channel="C123", verbose=0)
+        client = SlackClient(token="xoxb-test", channel_id="C123", verbose=0)
         client._client = AsyncMock()
         client._client.chat_postMessage = AsyncMock()
 
@@ -106,14 +106,14 @@ class TestSlackClient:
 
     @pytest.mark.asyncio
     async def test_upload_file_invalid_path(self):
-        client = SlackClient(token="xoxb-test", channel="C123", verbose=0)
+        client = SlackClient(token="xoxb-test", channel_id="C123", verbose=0)
         client._client = AsyncMock()
         # Should not raise, just log an error
         await client.upload_file("/nonexistent/file.txt")
         client._client.files_upload_v2.assert_not_awaited()
 
     def test_send_message_sync(self):
-        client = SlackClient(token="xoxb-test", channel="C123", verbose=0)
+        client = SlackClient(token="xoxb-test", channel_id="C123", verbose=0)
         client._client = MagicMock()
         # Mock the async method to return a coroutine
         client.send_message = AsyncMock()
@@ -945,7 +945,7 @@ class TestSlackClientCoverage:
     """Tests for lines not covered by TestSlackClient."""
 
     def test_is_connected_initially_false(self):
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         assert client.is_connected is False
 
     @pytest.mark.asyncio
@@ -960,17 +960,17 @@ class TestSlackClientCoverage:
         return_value=True,
     )
     async def test_is_connected_true_after_connect(self, mock_verify, mock_check):
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         await client.connect()
         assert client.is_connected is True
 
     def test_connectivity_url(self):
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         assert client.connectivity_url == "api.slack.com"
 
     @pytest.mark.asyncio
     async def test_send_message_verbose_log(self):
-        client = SlackClient(token="xoxb-test", channel="C123", verbose=1)
+        client = SlackClient(token="xoxb-test", channel_id="C123", verbose=1)
         client._client = AsyncMock()
         client._client.chat_postMessage = AsyncMock()
 
@@ -981,7 +981,7 @@ class TestSlackClientCoverage:
     async def test_send_message_slack_api_error(self):
         from slack_sdk.errors import SlackApiError
 
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         client._client = AsyncMock()
         client._client.chat_postMessage = AsyncMock(
             side_effect=SlackApiError("error", {"error": "channel_not_found"})
@@ -995,7 +995,7 @@ class TestSlackClientCoverage:
         file_path = tmp_path / "report.txt"
         file_path.write_text("results")
 
-        client = SlackClient(token="xoxb-test", channel="C123", verbose=1)
+        client = SlackClient(token="xoxb-test", channel_id="C123", verbose=1)
         client._client = AsyncMock()
         client._client.files_upload_v2 = AsyncMock()
 
@@ -1013,7 +1013,7 @@ class TestSlackClientCoverage:
         file_path = tmp_path / "f.txt"
         file_path.write_text("x")
 
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         client._client = AsyncMock()
         client._client.files_upload_v2 = AsyncMock(
             side_effect=SlackApiError("upload error", {"error": "not_authed"})
@@ -1027,7 +1027,7 @@ class TestSlackClientCoverage:
         file_path = tmp_path / "f.txt"
         file_path.write_text("x")
 
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         client._client = AsyncMock()
         client._client.files_upload_v2 = AsyncMock()
 
@@ -1040,7 +1040,7 @@ class TestSlackClientCoverage:
         file_path = tmp_path / "plot.png"
         file_path.write_text("binary")
 
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         client.upload_file = AsyncMock()
 
         await client.upload_image(str(file_path), comment="My plot")
@@ -1048,7 +1048,7 @@ class TestSlackClientCoverage:
 
     @pytest.mark.asyncio
     async def test_close_does_not_raise(self):
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         await client.close()  # Should be a no-op without raising
 
 

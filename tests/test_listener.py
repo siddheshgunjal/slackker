@@ -2,16 +2,16 @@
 
 import asyncio
 import time
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
 from slackker.core.client import BaseClient
 from slackker.core.models import IncomingMessage
 from slackker.listener import CommandHandler, MessagePoller
 
-
 # ── Shared helpers ────────────────────────────────────────────────────────────
+
 
 def _msg(
     text="hello",
@@ -65,11 +65,14 @@ class MockClient(BaseClient):
         pass
 
     async def fetch_messages(self, limit=10, since=None, thread_id=None):
-        self.fetch_calls.append({"limit": limit, "since": since, "thread_id": thread_id})
+        self.fetch_calls.append(
+            {"limit": limit, "since": since, "thread_id": thread_id}
+        )
         return list(self._messages)
 
 
 # ── IncomingMessage ───────────────────────────────────────────────────────────
+
 
 class TestIncomingMessage:
     def test_basic_construction(self):
@@ -107,14 +110,19 @@ class TestIncomingMessage:
 
     def test_default_raw_is_empty_dict(self):
         msg = IncomingMessage(
-            text="t", sender="s", sender_id="id",
-            timestamp="0", platform="p", is_bot=False,
+            text="t",
+            sender="s",
+            sender_id="id",
+            timestamp="0",
+            platform="p",
+            is_bot=False,
         )
         assert msg.raw == {}
         assert isinstance(msg.raw, dict)
 
 
 # ── BaseClient.cursor_from_message default ────────────────────────────────────
+
 
 class TestBaseCursorDefault:
     def test_default_returns_timestamp(self):
@@ -125,23 +133,26 @@ class TestBaseCursorDefault:
 
 # ── Slack fetch_messages ──────────────────────────────────────────────────────
 
+
 class TestSlackFetchMessages:
     @pytest.mark.asyncio
     async def test_channel_history_oldest_first(self):
         from slackker.core.slack import SlackClient
 
-        client = SlackClient(token="xoxb-test", channel="C123")
-        client._client.conversations_history = AsyncMock(return_value={
-            "messages": [
-                {"ts": "2000", "text": "newer", "user": "U2"},
-                {"ts": "1000", "text": "older", "user": "U1"},
-            ]
-        })
+        client = SlackClient(token="xoxb-test", channel_id="C123")
+        client._client.conversations_history = AsyncMock(
+            return_value={
+                "messages": [
+                    {"ts": "2000", "text": "newer", "user": "U2"},
+                    {"ts": "1000", "text": "older", "user": "U1"},
+                ]
+            }
+        )
 
         msgs = await client.fetch_messages(limit=10)
 
         assert len(msgs) == 2
-        assert msgs[0].text == "older"   # oldest first
+        assert msgs[0].text == "older"  # oldest first
         assert msgs[1].text == "newer"
         assert msgs[0].platform == "slack"
         assert msgs[0].timestamp == "1000"
@@ -150,7 +161,7 @@ class TestSlackFetchMessages:
     async def test_since_passed_as_oldest(self):
         from slackker.core.slack import SlackClient
 
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         client._client.conversations_history = AsyncMock(return_value={"messages": []})
 
         await client.fetch_messages(limit=5, since="1234567890.000100")
@@ -163,15 +174,17 @@ class TestSlackFetchMessages:
     async def test_thread_replies_skips_parent(self):
         from slackker.core.slack import SlackClient
 
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         # Slack always includes the parent message as the first element
-        client._client.conversations_replies = AsyncMock(return_value={
-            "messages": [
-                {"ts": "1000", "text": "parent", "user": "U1"},         # skipped
-                {"ts": "1001", "text": "reply1", "user": "U2", "thread_ts": "1000"},
-                {"ts": "1002", "text": "reply2", "user": "U3", "thread_ts": "1000"},
-            ]
-        })
+        client._client.conversations_replies = AsyncMock(
+            return_value={
+                "messages": [
+                    {"ts": "1000", "text": "parent", "user": "U1"},  # skipped
+                    {"ts": "1001", "text": "reply1", "user": "U2", "thread_ts": "1000"},
+                    {"ts": "1002", "text": "reply2", "user": "U3", "thread_ts": "1000"},
+                ]
+            }
+        )
 
         msgs = await client.fetch_messages(limit=10, thread_id="1000")
 
@@ -184,10 +197,12 @@ class TestSlackFetchMessages:
     async def test_bot_message_flagged(self):
         from slackker.core.slack import SlackClient
 
-        client = SlackClient(token="xoxb-test", channel="C123")
-        client._client.conversations_history = AsyncMock(return_value={
-            "messages": [{"ts": "1000", "text": "bot msg", "bot_id": "B123"}]
-        })
+        client = SlackClient(token="xoxb-test", channel_id="C123")
+        client._client.conversations_history = AsyncMock(
+            return_value={
+                "messages": [{"ts": "1000", "text": "bot msg", "bot_id": "B123"}]
+            }
+        )
 
         msgs = await client.fetch_messages()
         assert msgs[0].is_bot is True
@@ -196,9 +211,10 @@ class TestSlackFetchMessages:
     @pytest.mark.asyncio
     async def test_api_error_returns_empty_list(self):
         from slack_sdk.errors import SlackApiError
+
         from slackker.core.slack import SlackClient
 
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         client._client.conversations_history = AsyncMock(
             side_effect=SlackApiError("fail", {"error": "not_authed"})
         )
@@ -208,12 +224,13 @@ class TestSlackFetchMessages:
     def test_cursor_from_message(self):
         from slackker.core.slack import SlackClient
 
-        client = SlackClient(token="xoxb-test", channel="C123")
+        client = SlackClient(token="xoxb-test", channel_id="C123")
         msg = _msg(timestamp="1699000000.000100", platform="slack")
         assert client.cursor_from_message(msg) == "1699000000.000100"
 
 
 # ── Telegram fetch_messages ───────────────────────────────────────────────────
+
 
 def _telegram_mock_ctx(updates_payload: dict):
     """Return a patched _make_async_client context that returns the given payload."""
@@ -237,15 +254,17 @@ class TestTelegramFetchMessages:
 
         client = TelegramClient(token="123:ABC", chat_id="99")
         payload = {
-            "result": [{
-                "update_id": 500,
-                "message": {
-                    "message_id": 10,
-                    "chat": {"id": 99},
-                    "from": {"id": 1, "first_name": "Alice", "is_bot": False},
-                    "text": "hello",
-                },
-            }]
+            "result": [
+                {
+                    "update_id": 500,
+                    "message": {
+                        "message_id": 10,
+                        "chat": {"id": 99},
+                        "from": {"id": 1, "first_name": "Alice", "is_bot": False},
+                        "text": "hello",
+                    },
+                }
+            ]
         }
         mock_ctx, _ = _telegram_mock_ctx(payload)
 
@@ -283,7 +302,8 @@ class TestTelegramFetchMessages:
                 {
                     "update_id": 1,
                     "message": {
-                        "message_id": 1, "chat": {"id": 99},
+                        "message_id": 1,
+                        "chat": {"id": 99},
                         "from": {"id": 1, "first_name": "Alice", "is_bot": False},
                         "text": "for me",
                     },
@@ -291,7 +311,8 @@ class TestTelegramFetchMessages:
                 {
                     "update_id": 2,
                     "message": {
-                        "message_id": 2, "chat": {"id": 77},  # different chat
+                        "message_id": 2,
+                        "chat": {"id": 77},  # different chat
                         "from": {"id": 2, "first_name": "Bob", "is_bot": False},
                         "text": "not for me",
                     },
@@ -316,7 +337,8 @@ class TestTelegramFetchMessages:
                 {
                     "update_id": 10,
                     "message": {
-                        "message_id": 11, "chat": {"id": 99},
+                        "message_id": 11,
+                        "chat": {"id": 99},
                         "from": {"id": 2, "first_name": "Bob", "is_bot": False},
                         "text": "reply to 10",
                         "reply_to_message": {"message_id": 10},
@@ -325,7 +347,8 @@ class TestTelegramFetchMessages:
                 {
                     "update_id": 11,
                     "message": {
-                        "message_id": 12, "chat": {"id": 99},
+                        "message_id": 12,
+                        "chat": {"id": 99},
                         "from": {"id": 3, "first_name": "Eve", "is_bot": False},
                         "text": "unrelated",
                     },
@@ -351,6 +374,7 @@ class TestTelegramFetchMessages:
 
 # ── Discord fetch_messages ────────────────────────────────────────────────────
 
+
 def _discord_mock_ctx(messages_payload):
     mock_resp = MagicMock()
     mock_resp.raise_for_status = MagicMock()
@@ -372,8 +396,16 @@ class TestDiscordFetchMessages:
 
         client = DiscordClient(token="Bot-token", channel_id="CH1")
         payload = [
-            {"id": "200", "content": "newer", "author": {"id": "U2", "username": "Bob", "bot": False}},
-            {"id": "100", "content": "older", "author": {"id": "U1", "username": "Alice", "bot": False}},
+            {
+                "id": "200",
+                "content": "newer",
+                "author": {"id": "U2", "username": "Bob", "bot": False},
+            },
+            {
+                "id": "100",
+                "content": "older",
+                "author": {"id": "U1", "username": "Alice", "bot": False},
+            },
         ]
         mock_ctx, _ = _discord_mock_ctx(payload)
 
@@ -406,12 +438,14 @@ class TestDiscordFetchMessages:
         client = DiscordClient(token="Bot-token", channel_id="CH1")
         payload = [
             {
-                "id": "200", "content": "reply",
+                "id": "200",
+                "content": "reply",
                 "author": {"id": "U2", "username": "Bob", "bot": False},
                 "message_reference": {"message_id": "100"},
             },
             {
-                "id": "300", "content": "unrelated",
+                "id": "300",
+                "content": "unrelated",
                 "author": {"id": "U3", "username": "Eve", "bot": False},
             },
         ]
@@ -430,7 +464,11 @@ class TestDiscordFetchMessages:
 
         client = DiscordClient(token="Bot-token", channel_id="CH1")
         payload = [
-            {"id": "1", "content": "bot says hi", "author": {"id": "B1", "username": "mybot", "bot": True}},
+            {
+                "id": "1",
+                "content": "bot says hi",
+                "author": {"id": "B1", "username": "mybot", "bot": True},
+            },
         ]
         mock_ctx, _ = _discord_mock_ctx(payload)
 
@@ -449,6 +487,7 @@ class TestDiscordFetchMessages:
 
 # ── Teams fetch_messages ──────────────────────────────────────────────────────
 
+
 def _teams_mock_ctx(value_payload):
     mock_resp = MagicMock()
     mock_resp.raise_for_status = MagicMock()
@@ -466,6 +505,7 @@ def _teams_mock_ctx(value_payload):
 class TestTeamsFetchMessages:
     def _connected_client(self):
         from slackker.core.teams import TeamsClient
+
         client = TeamsClient(app_id="app-id", chat_id="19:chat@thread.v2")
         client._access_token = "fake-token"
         client._token_expiry = time.time() + 3600
@@ -474,12 +514,14 @@ class TestTeamsFetchMessages:
     @pytest.mark.asyncio
     async def test_fetch_basic_message(self):
         client = self._connected_client()
-        payload = [{
-            "id": "msg1",
-            "body": {"content": "hello teams"},
-            "from": {"user": {"id": "U1", "displayName": "Alice"}},
-            "createdDateTime": "2024-01-01T10:00:00Z",
-        }]
+        payload = [
+            {
+                "id": "msg1",
+                "body": {"content": "hello teams"},
+                "from": {"user": {"id": "U1", "displayName": "Alice"}},
+                "createdDateTime": "2024-01-01T10:00:00Z",
+            }
+        ]
         mock_ctx, _ = _teams_mock_ctx(payload)
 
         with patch("slackker.utils.network._make_async_client", return_value=mock_ctx):
@@ -556,12 +598,14 @@ class TestTeamsFetchMessages:
     @pytest.mark.asyncio
     async def test_bot_message_flagged(self):
         client = self._connected_client()
-        payload = [{
-            "id": "msg1",
-            "body": {"content": "automated"},
-            "from": {"application": {"id": "APP1", "displayName": "MyBot"}},
-            "createdDateTime": "2024-01-01T10:00:00Z",
-        }]
+        payload = [
+            {
+                "id": "msg1",
+                "body": {"content": "automated"},
+                "from": {"application": {"id": "APP1", "displayName": "MyBot"}},
+                "createdDateTime": "2024-01-01T10:00:00Z",
+            }
+        ]
         mock_ctx, _ = _teams_mock_ctx(payload)
 
         with patch("slackker.utils.network._make_async_client", return_value=mock_ctx):
@@ -572,6 +616,7 @@ class TestTeamsFetchMessages:
     @pytest.mark.asyncio
     async def test_not_connected_returns_empty(self):
         from slackker.core.teams import TeamsClient
+
         client = TeamsClient(app_id="app-id", chat_id="19:chat@thread.v2")
         # _access_token is None -> not connected; connect() would do device flow -> mock it
         client.connect = AsyncMock(return_value=False)
@@ -581,6 +626,7 @@ class TestTeamsFetchMessages:
 
 
 # ── MessagePoller ─────────────────────────────────────────────────────────────
+
 
 class TestMessagePoller:
     @pytest.mark.asyncio
@@ -854,6 +900,7 @@ class TestMessagePoller:
 
 
 # ── CommandHandler ────────────────────────────────────────────────────────────
+
 
 class TestCommandHandler:
     def test_command_decorator_registers_with_prefix(self):

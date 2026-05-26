@@ -144,7 +144,7 @@ from slackker.callbacks.simple import SimpleCallback
 
 client = SlackClient(
     token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
+    channel_id="A04AAB77ABC",
     verbose=1
 )
 notify = SimpleCallback(client)
@@ -210,7 +210,7 @@ from slackker.callbacks.simple import SimpleCallback
 
 client = SlackClient(
     token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
+    channel_id="A04AAB77ABC",
     verbose=1
 )
 notify = SimpleCallback(client)
@@ -286,7 +286,7 @@ from slackker.callbacks.simple import SimpleCallback
 
 client = SlackClient(
     token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
+    channel_id="A04AAB77ABC",
     verbose=1
 )
 notify = SimpleCallback(client)
@@ -397,7 +397,7 @@ from slackker.callbacks.simple import SimpleCallback
 
 client = SlackClient(
     token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
+    channel_id="A04AAB77ABC",
     verbose=1
 )
 notifier = SimpleCallback(client)
@@ -546,7 +546,7 @@ from slackker.callbacks.simple import SimpleCallback
 
 client = SlackClient(
     token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
+    channel_id="A04AAB77ABC",
     verbose=1
 )
 notifier = SimpleCallback(client)
@@ -680,7 +680,7 @@ from slackker.callbacks.keras import KerasCallback
 
 client = SlackClient(
     token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
+    channel_id="A04AAB77ABC",
     verbose=1
 )
 slackker_cb = KerasCallback(
@@ -771,7 +771,7 @@ from slackker.callbacks.lightning import LightningCallback
 
 client = SlackClient(
     token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
+    channel_id="A04AAB77ABC",
     verbose=1
 )
 slackker_cb = LightningCallback(

@@ -3,15 +3,17 @@ Comprehensive tests for slackker.callbacks.keras module.
 Tests cover the new unified KerasCallback class and backward-compatible shims.
 """
 
-import pytest
 import warnings
-import numpy as np
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import numpy as np
+import pytest
+
 from slackker.callbacks.keras import KerasCallback, SlackUpdate, TelegramUpdate
 from slackker.core.client import BaseClient
 
-
 # ── Fixtures ──────────────────────────────────────────────────
+
 
 class MockClient(BaseClient):
     """Concrete test client that records calls."""
@@ -58,6 +60,7 @@ def _make_callback(platform="slack", verbose=0, send_plot=False, export="png"):
 
 # ── KerasCallback initialization ──────────────────────────────
 
+
 class TestKerasCallbackInit:
     def test_init_stores_attributes(self):
         cb, _ = _make_callback()
@@ -76,6 +79,7 @@ class TestKerasCallbackInit:
 
 # ── on_train_begin ────────────────────────────────────────────
 
+
 class TestOnTrainBegin:
     def test_posts_training_start(self):
         cb, client = _make_callback()
@@ -87,8 +91,13 @@ class TestOnTrainBegin:
 
 # ── on_epoch_end ──────────────────────────────────────────────
 
+
 class TestOnEpochEnd:
-    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
     def test_tracks_metrics_and_reports(self, mock_check):
         cb, client = _make_callback()
         logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
@@ -100,7 +109,11 @@ class TestOnEpochEnd:
         assert len(client.messages) == 1
         assert "Epoch: 0" in client.messages[0]
 
-    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=False)
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=False,
+    )
     def test_skips_report_without_internet(self, mock_check):
         cb, client = _make_callback()
         logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
@@ -110,7 +123,11 @@ class TestOnEpochEnd:
         assert len(cb.train_loss) == 1
         assert len(client.messages) == 0
 
-    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
     def test_multiple_epochs(self, mock_check):
         cb, client = _make_callback()
         epochs_logs = [
@@ -129,6 +146,7 @@ class TestOnEpochEnd:
 
 # ── on_train_end ──────────────────────────────────────────────
 
+
 class TestOnTrainEnd:
     def test_reports_best_epoch(self):
         cb, client = _make_callback()
@@ -143,7 +161,10 @@ class TestOnTrainEnd:
         found_best = any("Best epoch was 2" in m for m in client.messages)
         assert found_best
 
-    @patch("slackker.callbacks.keras.plotting.generate_and_get_plots", return_value=["/tmp/loss.png", "/tmp/acc.png"])
+    @patch(
+        "slackker.callbacks.keras.plotting.generate_and_get_plots",
+        return_value=["/tmp/loss.png", "/tmp/acc.png"],
+    )
     def test_uploads_plots_when_enabled(self, mock_plots):
         cb, client = _make_callback(send_plot=True)
         cb.train_loss = [0.6, 0.4]
@@ -167,8 +188,13 @@ class TestOnTrainEnd:
 
 # ── Log ordering ──────────────────────────────────────────────
 
+
 class TestLogOrdering:
-    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
     def test_logs_stored_in_order(self, mock_check):
         cb, _ = _make_callback()
         for i in range(3):
@@ -188,9 +214,17 @@ class TestLogOrdering:
 
 # ── Complete workflow ─────────────────────────────────────────
 
+
 class TestCompleteWorkflow:
-    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
-    @patch("slackker.callbacks.keras.plotting.generate_and_get_plots", return_value=["/tmp/loss.png"])
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    @patch(
+        "slackker.callbacks.keras.plotting.generate_and_get_plots",
+        return_value=["/tmp/loss.png"],
+    )
     def test_full_training(self, mock_plots, mock_check):
         cb, client = _make_callback(send_plot=True)
 
@@ -211,6 +245,7 @@ class TestCompleteWorkflow:
 
 # ── Backward-compat shim tests ───────────────────────────────
 
+
 class TestSlackUpdateShim:
     @patch("slackker.callbacks.keras.SlackClient")
     def test_init_deprecation_warning(self, mock_cls):
@@ -221,7 +256,7 @@ class TestSlackUpdateShim:
 
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            cb = SlackUpdate(token="xoxb-test", channel="C123", ModelName="M")
+            cb = SlackUpdate(token="xoxb-test", channel_id="C123", ModelName="M")
             assert any(issubclass(x.category, DeprecationWarning) for x in w)
 
     @patch("slackker.callbacks.keras.SlackClient")
@@ -233,7 +268,13 @@ class TestSlackUpdateShim:
 
         with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
-            cb = SlackUpdate(token="xoxb-test", channel="C123", ModelName="M", SendPlot=True, verbose=2)
+            cb = SlackUpdate(
+                token="xoxb-test",
+                channel_id="C123",
+                ModelName="M",
+                SendPlot=True,
+                verbose=2,
+            )
 
         assert cb.ModelName == "M"
         assert cb.SendPlot is True
@@ -242,7 +283,7 @@ class TestSlackUpdateShim:
     def test_no_token(self):
         with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
-            cb = SlackUpdate(token=None, channel="C123", ModelName="M")
+            cb = SlackUpdate(token=None, channel_id="C123", ModelName="M")
         assert not hasattr(cb, "client")
 
 
@@ -269,7 +310,11 @@ class TestTelegramUpdateShim:
 class TestKerasCallbackMessageFormatting:
     """Test message formatting in Keras callbacks using MockClient."""
 
-    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
     def test_epoch_message_format(self, mock_check):
         cb, client = _make_callback()
         logs = {
@@ -286,7 +331,10 @@ class TestKerasCallbackMessageFormatting:
         assert "Training Loss:" in message
         assert "Validation Loss:" in message
 
-    @patch("slackker.callbacks.keras.plotting.generate_and_get_plots", return_value=["loss.png"])
+    @patch(
+        "slackker.callbacks.keras.plotting.generate_and_get_plots",
+        return_value=["loss.png"],
+    )
     def test_train_end_message_format(self, mock_plots):
         cb, client = _make_callback(send_plot=True)
         cb.train_loss = [0.60, 0.45, 0.35]
@@ -309,7 +357,11 @@ class TestKerasCallbackAdditionalBranches:
         with pytest.raises(ValueError, match="Unsupported export format"):
             KerasCallback(client=m, model_name="M", export=None)
 
-    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=True)
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
     def test_on_epoch_end_incomplete_logs_skips_tracking(self, mock_check):
         cb, client = _make_callback()
         cb.on_epoch_end(batch=0, logs={"accuracy": 0.8, "loss": 0.2})
@@ -317,7 +369,11 @@ class TestKerasCallbackAdditionalBranches:
         assert cb.n_epochs == 1
         assert cb.train_loss == []
 
-    @patch("slackker.callbacks.keras.network.check_connection_quick", new_callable=AsyncMock, return_value=False)
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=False,
+    )
     def test_on_epoch_end_no_internet_still_tracks(self, mock_check):
         cb, client = _make_callback()
         logs = {
@@ -332,7 +388,10 @@ class TestKerasCallbackAdditionalBranches:
         assert cb.valid_loss == [0.50]
         assert len(client.messages) == 0
 
-    @patch("slackker.callbacks.keras.plotting.generate_and_get_plots", return_value=["loss.png"])
+    @patch(
+        "slackker.callbacks.keras.plotting.generate_and_get_plots",
+        return_value=["loss.png"],
+    )
     def test_train_end_message_contains_accuracy_percent(self, mock_plots):
         cb, client = _make_callback(send_plot=True)
         cb.train_loss = [0.60, 0.45, 0.35]
@@ -347,6 +406,7 @@ class TestKerasCallbackAdditionalBranches:
 
 
 # ── Auto-connect tests ───────────────────────────────────────
+
 
 class DisconnectedMockClient(MockClient):
     """MockClient that starts disconnected and records connect() calls."""
@@ -377,7 +437,7 @@ class TestAutoConnect:
         assert client.is_connected
 
     def test_skips_connect_when_already_connected(self):
-        client = MockClient()          # is_connected always True
+        client = MockClient()  # is_connected always True
         KerasCallback(client=client, model_name="M", export="png")
         assert client.is_connected
 
@@ -394,7 +454,7 @@ class TestKerasShimConnectFails:
 
         with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
-            obj = SlackUpdate(token="xoxb-test", channel="C123", ModelName="M")
+            obj = SlackUpdate(token="xoxb-test", channel_id="C123", ModelName="M")
 
         assert not hasattr(obj, "client")
 

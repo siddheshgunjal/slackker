@@ -12,12 +12,12 @@ from slackker.utils.logger import log
 class SlackClient(BaseClient):
     """Slack client backend using the async Slack SDK."""
 
-    def __init__(self, token: str, channel: str, verbose: int = 0):
+    def __init__(self, token: str, channel_id: str, verbose: int = 0):
         super().__init__(verbose=verbose)
         if not token:
             raise ValueError("Slack API token is required.")
         self._token = token
-        self._channel = channel
+        self._channel_id = channel_id
         self._client = AsyncWebClient(token=token)
         self._connected = False
 
@@ -26,8 +26,8 @@ class SlackClient(BaseClient):
         return "slack"
 
     @property
-    def channel(self) -> str:
-        return self._channel
+    def channel_id(self) -> str:
+        return self._channel_id
 
     @property
     def is_connected(self) -> bool:
@@ -48,9 +48,9 @@ class SlackClient(BaseClient):
 
     async def send_message(self, text: str) -> None:
         try:
-            await self._client.chat_postMessage(channel=self._channel, text=text)
+            await self._client.chat_postMessage(channel=self._channel_id, text=text)
             if self._verbose >= 1:
-                log.info(f"Posted update on {self._channel} channel")
+                log.info(f"Posted update on {self._channel_id} channel")
         except SlackApiError as e:
             log.error(f"Error posting update: {e}")
 
@@ -61,12 +61,12 @@ class SlackClient(BaseClient):
                 return
             initial_comment = comment or "Attachment 📎"
             await self._client.files_upload_v2(
-                channel=self._channel,
+                channel=self._channel_id,
                 file=filepath,
                 initial_comment=initial_comment,
             )
             if self._verbose >= 1:
-                log.debug(f"Uploaded attachment on {self._channel} channel")
+                log.debug(f"Uploaded attachment on {self._channel_id} channel")
         except SlackApiError as e:
             log.error(f"Error uploading attachment: {e}")
 
@@ -90,17 +90,18 @@ class SlackClient(BaseClient):
         try:
             if thread_id:
                 resp = await self._client.conversations_replies(
-                    channel=self._channel,
+                    channel=self._channel_id,
                     ts=thread_id,
                     oldest=since,
-                    limit=limit + 1,  # +1 because the parent is always the first element
+                    limit=limit
+                    + 1,  # +1 because the parent is always the first element
                 )
                 # conversations.replies is already chronological (oldest first);
                 # skip index 0 which is always the parent message itself.
                 raw_messages = (resp.get("messages") or [])[1:]
             else:
                 resp = await self._client.conversations_history(
-                    channel=self._channel,
+                    channel=self._channel_id,
                     oldest=since,
                     limit=limit,
                 )

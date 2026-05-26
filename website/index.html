@@ -339,7 +339,7 @@ train_model(epochs=20)</code></pre>
               <div>
                 <strong>Add the app to a channel &amp; get the Channel ID</strong>
                 <p>In Slack, open the target channel&nbsp; ➤ &nbsp;click the channel name&nbsp; ➤ &nbsp;<strong>Integrations</strong>&nbsp; ➤ &nbsp;<strong>Add an App</strong>. Then copy the Channel ID from the channel description (starts with <code>C</code>):</p>
-                <code class="setup-token">SlackClient(token="xoxb-...", channel="C04AAB77ABC")</code>
+                <code class="setup-token">SlackClient(token="xoxb-...", channel_id="C04AAB77ABC")</code>
               </div>
             </li>
           </ol>
@@ -435,8 +435,11 @@ train_model(epochs=20)</code></pre>
               <span class="setup-step-num">3</span>
               <div>
                 <strong>Invite the Bot to your Server</strong>
-                <p>Sidebar&nbsp; ➤ &nbsp;<strong>OAuth2</strong>&nbsp; ➤ &nbsp;<strong>URL Generator</strong>&nbsp; ➤ &nbsp;Select <code>bot</code> scope&nbsp; ➤ &nbsp;Set permissions <code>Send Messages</code> &amp; <code>Attach Files</code>.&nbsp; ➤ &nbsp;Visit the generated URL to invite the bot.</p>
-              </div>
+                <p>Sidebar&nbsp; ➤ &nbsp;<strong>OAuth2</strong>&nbsp; ➤ &nbsp;<strong>URL Generator</strong>&nbsp; ➤ &nbsp;Select <code>bot</code> scope&nbsp; ➤ &nbsp;Set below permissions:</p>
+                <div class="setup-badges">
+                    <code>Send Messages</code><code>Attach Files</code>
+                </div>
+                <p>Visit the generated URL to invite the bot.</p>
             </li>
             <li>
               <span class="setup-step-num">4</span>
@@ -738,7 +741,7 @@ main()</code></pre>
     <div class="footer-bar">
       <div class="footer-status">
         <span class="footer-pulse"></span>
-        <span>slackker v1.4.8</span>
+        <span>slackker v1.4.9</span>
       </div>
       <div class="footer-links">
         <a href="https://github.com/siddheshgunjal/slackker" target="_blank" rel="noreferrer">GitHub</a>
