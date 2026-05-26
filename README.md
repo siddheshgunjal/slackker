@@ -4,6 +4,7 @@
 <div align="center">
 
 ![Tests](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/pr-tests.yml?style=for-the-badge&logo=checkmarx&label=Tests)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/siddheshgunjal/GIST_ID/raw/slackker-coverage-badge.json&style=for-the-badge&logo=pytest&logoColor=white)
 ![Python Build](https://img.shields.io/github/actions/workflow/status/siddheshgunjal/slackker/publish-to-pypi.yml?style=for-the-badge&logo=python&logoColor=yellow&label=Build)
 [<img alt="Website" src="https://img.shields.io/website?url=https%3A%2F%2Fslackker.com&style=for-the-badge&logo=htmx">][website]
 ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https%3A%2F%2Fraw.githubusercontent.com%2Fsiddheshgunjal%2Fslackker%2Frefs%2Fheads%2Fmain%2Fpyproject.toml&style=for-the-badge)
