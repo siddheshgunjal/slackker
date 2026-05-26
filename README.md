@@ -75,7 +75,7 @@ from slackker.core import SlackClient, TelegramClient, TeamsClient, DiscordClien
 # Slack
 client = SlackClient(
     token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel="C04AAB77ABC",
+    channel_id="C04AAB77ABC",
     verbose=0,
 )
 
@@ -85,18 +85,18 @@ client = TelegramClient(
     verbose=0,
 )
 
+# Discord
+client = DiscordClient(
+    token="your_bot_token_here",
+    channel_id="123456789012345678",
+    verbose=0,
+)
+
 # Microsoft Teams
 client = TeamsClient(
     app_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     tenant_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     chat_id="19:xxxxxxxxxxxxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxx@thread.v2",
-    verbose=0,
-)
-
-# Discord
-client = DiscordClient(
-    token="your_bot_token_here",
-    channel_id="123456789012345678",
     verbose=0,
 )
 ```
@@ -111,8 +111,7 @@ client = DiscordClient(
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `token` | `str` | _required_ | Slack app / Telegram bot / Discord bot token |
-| `channel` | `str` | _required (Slack only)_ | Slack channel ID |
-| `channel_id` | `str` | _required (Discord only)_ | Discord channel ID |
+| `channel_id` | `str` | _required (Slack & Discord only)_ | Slack or Discord channel ID |
 | `chat_id` | `str` | `None` _(Telegram only)_ | Telegram chat ID — auto-discovered if omitted |
 | `verbose` | `int` | `0` | `0` = silent, `1` = info, `2` = debug |
 
@@ -372,7 +371,7 @@ from slackker.callbacks.basic import SlackUpdate   # or TelegramUpdate
 # Slack
 slackker = SlackUpdate(
     token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel="C04AAB77ABC",
+    channel_id="C04AAB77ABC",
 )
 
 # Telegram
@@ -391,7 +390,7 @@ from slackker.callbacks.keras import SlackUpdate   # or TelegramUpdate
 
 slackker = SlackUpdate(
     token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel="C04AAB77ABC",
+    channel_id="C04AAB77ABC",
     ModelName="Keras_NN",
     export="png",
     SendPlot=True,
@@ -406,7 +405,7 @@ from slackker.callbacks.lightning import SlackUpdate   # or TelegramUpdate
 
 slackker = SlackUpdate(
     token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel="C04AAB77ABC",
+    channel_id="C04AAB77ABC",
     ModelName="Lightning NN",
     TrackLogs=["train_loss", "train_acc", "val_loss", "val_acc"],
     monitor="val_loss",
