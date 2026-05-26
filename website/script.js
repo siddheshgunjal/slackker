@@ -123,8 +123,7 @@ applyPythonHighlighting();
 
 // ── Platform toggle ───────────────────────────────────────────
 
-const CODE_SNIPPETS = {
-  hero: {
+const CODE_SNIPPETS = { hero: {
     telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
@@ -132,15 +131,14 @@ client = TelegramClient(
     token="123456:ABC-DEF...",
     verbose=1
 )
+notify = SimpleCallback(client)
 
-@slackker.notifier
-def train_model():
-    return "done"
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
 
-slackker.notify(event="training_complete",
-  status="completed",
-  attachment="path_to_file"
-)`,
+train_model(epochs=20)`,
     slack: `from slackker.core import SlackClient
 from slackker.callbacks.simple import SimpleCallback
 
@@ -149,126 +147,31 @@ client = SlackClient(
     channel="A04AAB77ABC",
     verbose=1
 )
+notify = SimpleCallback(client)
 
-@slackker.notifier
-def train_model():
-    return "done"
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
 
-slackker.notify(event="training_complete",
-  status="completed",
-  attachment="path_to_file"
-)`,
+train_model(epochs=20)`,
     teams: `from slackker.core import TeamsClient
 from slackker.callbacks.simple import SimpleCallback
 
 client = TeamsClient(
-  app_id="YOUR_AZURE_APP_ID",
-  tenant_id="YOUR_TENANT_ID",
-  chat_id="19:abc@thread.v2",
-  verbose=1
-)
-slackker = SimpleCallback(client)
-
-@slackker.notifier
-def train_model():
-  return "done"
-
-slackker.notify(event="training_complete",
-  status="completed",
-  attachment="path_to_file"
-)`,
-    discord: `from slackker.core import DiscordClient
-from slackker.callbacks.simple import SimpleCallback
-
-client = DiscordClient(
-  token="MTIz...",
-  channel_id="123456789012345678",
-  verbose=1
-)
-slackker = SimpleCallback(client)
-
-@slackker.notifier
-def train_model():
-  return "done"
-
-slackker.notify(event="training_complete",
-  status="completed",
-  attachment="path_to_file"
-)`,
-  },
-  basic: {
-    telegram: `from slackker.core import TelegramClient
-from slackker.callbacks.simple import SimpleCallback
-
-client = TelegramClient(
-    token="123456:ABC-DEF...",
-    verbose=1
-)
-notify = SimpleCallback(client)
-
-@notify.notifier
-def run_data_pipeline(source_path: str):
-    rows_processed = 12500
-    status = "success"
-    return rows_processed, status
-
-if __name__ == "__main__":
-    rows, status = run_data_pipeline("./data/train.csv")
-    notify.notify(
-        event="pipeline_finished",
-        rows_processed=rows,
-        status=status,
-        attachment="./artifacts/summary.txt"
-    )`,
-    slack: `from slackker.core import SlackClient
-from slackker.callbacks.simple import SimpleCallback
-
-client = SlackClient(
-    token="xoxb-your-bot-token",
-    channel="A04AAB77ABC",
-    verbose=1
-)
-notify = SimpleCallback(client)
-
-@notify.notifier
-def run_data_pipeline(source_path: str):
-    rows_processed = 12500
-    status = "success"
-    return rows_processed, status
-
-if __name__ == "__main__":
-    rows, status = run_data_pipeline("./data/train.csv")
-    notify.notify(
-        event="pipeline_finished",
-        rows_processed=rows,
-        status=status,
-        attachment="./artifacts/summary.txt"
-    )`,
-    teams: `from slackker.core import TeamsClient
-  from slackker.callbacks.simple import SimpleCallback
-
-  client = TeamsClient(
     app_id="YOUR_AZURE_APP_ID",
     tenant_id="YOUR_TENANT_ID",
     chat_id="19:abc@thread.v2",
     verbose=1
-  )
-  notify = SimpleCallback(client)
+)
+notify = SimpleCallback(client)
 
-  @notify.notifier
-  def run_data_pipeline(source_path: str):
-    rows_processed = 12500
-    status = "success"
-    return rows_processed, status
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
 
-  if __name__ == "__main__":
-    rows, status = run_data_pipeline("./data/train.csv")
-    notify.notify(
-      event="pipeline_finished",
-      rows_processed=rows,
-      status=status,
-      attachment="./artifacts/summary.txt"
-    )`,
+train_model(epochs=20)`,
     discord: `from slackker.core import DiscordClient
 from slackker.callbacks.simple import SimpleCallback
 
@@ -280,115 +183,178 @@ client = DiscordClient(
 notify = SimpleCallback(client)
 
 @notify.notifier
-def run_data_pipeline(source_path: str):
-    rows_processed = 12500
-    status = "success"
-    return rows_processed, status
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
 
-if __name__ == "__main__":
-    rows, status = run_data_pipeline("./data/train.csv")
-    notify.notify(
-        event="pipeline_finished",
-        rows_processed=rows,
-        status=status,
-        attachment="./artifacts/summary.txt"
-    )`,
-  },
-  keras: {
+train_model(epochs=20)`,
+  }, decorator: {
     telegram: `from slackker.core import TelegramClient
-from slackker.callbacks.keras import KerasCallback
+from slackker.callbacks.simple import SimpleCallback
 
 client = TelegramClient(
     token="123456:ABC-DEF...",
     verbose=1
 )
-slackker_cb = KerasCallback(
-    client=client,
-    model_name="ImageClassifierV1",
-    export="png",
-    send_plot=True,
-)
+notify = SimpleCallback(client)
 
-history = model.fit(
-    x_train,
-    y_train,
-    epochs=20,
-    batch_size=32,
-    validation_data=(x_val, y_val),
-    callbacks=[slackker_cb]
-)`,
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+# Return value is automatically sent as a notification
+train_model(epochs=20)`,
     slack: `from slackker.core import SlackClient
-from slackker.callbacks.keras import KerasCallback
+from slackker.callbacks.simple import SimpleCallback
 
 client = SlackClient(
     token="xoxb-your-bot-token",
     channel="A04AAB77ABC",
     verbose=1
 )
-slackker_cb = KerasCallback(
-    client=client,
-    model_name="ImageClassifierV1",
-    export="png",
-    send_plot=True,
-)
+notify = SimpleCallback(client)
 
-history = model.fit(
-    x_train,
-    y_train,
-    epochs=20,
-    batch_size=32,
-    validation_data=(x_val, y_val),
-    callbacks=[slackker_cb]
-)`,
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+# Return value is automatically sent as a notification
+train_model(epochs=20)`,
     teams: `from slackker.core import TeamsClient
-from slackker.callbacks.keras import KerasCallback
+from slackker.callbacks.simple import SimpleCallback
 
 client = TeamsClient(
-  app_id="YOUR_AZURE_APP_ID",
-  tenant_id="YOUR_TENANT_ID",
-  chat_id="19:abc@thread.v2",
-  verbose=1
+    app_id="YOUR_AZURE_APP_ID",
+    tenant_id="YOUR_TENANT_ID",
+    chat_id="19:abc@thread.v2",
+    verbose=1
 )
-slackker_cb = KerasCallback(
-  client=client,
-  model_name="ImageClassifierV1",
-  export="png",
-  send_plot=True,
-)
+notify = SimpleCallback(client)
 
-history = model.fit(
-  x_train,
-  y_train,
-  epochs=20,
-  batch_size=32,
-  validation_data=(x_val, y_val),
-  callbacks=[slackker_cb]
-)`,
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+# Return value is automatically sent as a notification
+train_model(epochs=20)`,
     discord: `from slackker.core import DiscordClient
-from slackker.callbacks.keras import KerasCallback
+from slackker.callbacks.simple import SimpleCallback
 
 client = DiscordClient(
     token="your_bot_token",
     channel_id="123456789012345678",
     verbose=1
 )
-slackker_cb = KerasCallback(
-    client=client,
-    model_name="ImageClassifierV1",
-    export="png",
-    send_plot=True,
-)
+notify = SimpleCallback(client)
 
-history = model.fit(
-    x_train,
-    y_train,
-    epochs=20,
-    batch_size=32,
-    validation_data=(x_val, y_val),
-    callbacks=[slackker_cb]
-)`,
-  },
-  "sync-pipeline": {
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+# Return value is automatically sent as a notification
+train_model(epochs=20)`,
+  }, notify: {
+    telegram: `from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+def run_pipeline(source_path: str):
+    rows_processed = 12500
+    status = "success"
+    return rows_processed, status
+
+if __name__ == "__main__":
+    rows, status = run_pipeline("./data/train.csv")
+    # Send detailed update with custom fields and file attachment
+    notify.notify(
+        event="pipeline_finished",
+        rows_processed=rows,
+        status=status,
+        attachment="./artifacts/summary.txt"
+    )`,
+    slack: `from slackker.core import SlackClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = SlackClient(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+def run_pipeline(source_path: str):
+    rows_processed = 12500
+    status = "success"
+    return rows_processed, status
+
+if __name__ == "__main__":
+    rows, status = run_pipeline("./data/train.csv")
+    # Send detailed update with custom fields and file attachment
+    notify.notify(
+        event="pipeline_finished",
+        rows_processed=rows,
+        status=status,
+        attachment="./artifacts/summary.txt"
+    )`,
+    teams: `from slackker.core import TeamsClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TeamsClient(
+    app_id="YOUR_AZURE_APP_ID",
+    tenant_id="YOUR_TENANT_ID",
+    chat_id="19:abc@thread.v2",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+def run_pipeline(source_path: str):
+    rows_processed = 12500
+    status = "success"
+    return rows_processed, status
+
+if __name__ == "__main__":
+    rows, status = run_pipeline("./data/train.csv")
+    # Send detailed update with custom fields and file attachment
+    notify.notify(
+        event="pipeline_finished",
+        rows_processed=rows,
+        status=status,
+        attachment="./artifacts/summary.txt"
+    )`,
+    discord: `from slackker.core import DiscordClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = DiscordClient(
+    token="your_bot_token",
+    channel_id="123456789012345678",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+def run_pipeline(source_path: str):
+    rows_processed = 12500
+    status = "success"
+    return rows_processed, status
+
+if __name__ == "__main__":
+    rows, status = run_pipeline("./data/train.csv")
+    # Send detailed update with custom fields and file attachment
+    notify.notify(
+        event="pipeline_finished",
+        rows_processed=rows,
+        status=status,
+        attachment="./artifacts/summary.txt"
+    )`,
+  }, "pipeline-sync": {
     telegram: `import time
 from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
@@ -537,8 +503,7 @@ def main():
     notifier.stop()
 
 main()`,
-  },
-  "async-pipeline": {
+  }, "pipeline-async": {
     telegram: `import asyncio
 from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
@@ -687,8 +652,100 @@ async def main():
     await notifier.async_stop()
 
 asyncio.run(main())`,
-  },
-  lightning: {
+  }, keras: {
+    telegram: `from slackker.core import TelegramClient
+from slackker.callbacks.keras import KerasCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+slackker_cb = KerasCallback(
+    client=client,
+    model_name="ImageClassifierV1",
+    export="png",
+    send_plot=True,
+)
+
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=20,
+    batch_size=32,
+    validation_data=(x_val, y_val),
+    callbacks=[slackker_cb]
+)`,
+    slack: `from slackker.core import SlackClient
+from slackker.callbacks.keras import KerasCallback
+
+client = SlackClient(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+slackker_cb = KerasCallback(
+    client=client,
+    model_name="ImageClassifierV1",
+    export="png",
+    send_plot=True,
+)
+
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=20,
+    batch_size=32,
+    validation_data=(x_val, y_val),
+    callbacks=[slackker_cb]
+)`,
+    teams: `from slackker.core import TeamsClient
+from slackker.callbacks.keras import KerasCallback
+
+client = TeamsClient(
+  app_id="YOUR_AZURE_APP_ID",
+  tenant_id="YOUR_TENANT_ID",
+  chat_id="19:abc@thread.v2",
+  verbose=1
+)
+slackker_cb = KerasCallback(
+  client=client,
+  model_name="ImageClassifierV1",
+  export="png",
+  send_plot=True,
+)
+
+history = model.fit(
+  x_train,
+  y_train,
+  epochs=20,
+  batch_size=32,
+  validation_data=(x_val, y_val),
+  callbacks=[slackker_cb]
+)`,
+    discord: `from slackker.core import DiscordClient
+from slackker.callbacks.keras import KerasCallback
+
+client = DiscordClient(
+    token="your_bot_token",
+    channel_id="123456789012345678",
+    verbose=1
+)
+slackker_cb = KerasCallback(
+    client=client,
+    model_name="ImageClassifierV1",
+    export="png",
+    send_plot=True,
+)
+
+history = model.fit(
+    x_train,
+    y_train,
+    epochs=20,
+    batch_size=32,
+    validation_data=(x_val, y_val),
+    callbacks=[slackker_cb]
+)`,
+  }, lightning: {
     telegram: `from lightning.pytorch import Trainer
 from slackker.core import TelegramClient
 from slackker.callbacks.lightning import LightningCallback
@@ -831,5 +888,47 @@ document.querySelectorAll(".platform-toggle").forEach((toggle) => {
 
       codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
     });
+  }
+});
+
+// ── Mode toggle (feature/mode switcher inside any panel) ─────
+document.querySelectorAll(".mode-toggle").forEach((toggle) => {
+  const getActivePlatform = (container) => {
+    const pToggle = container.querySelector(".platform-toggle");
+    return (
+      pToggle?.querySelector(".plt-btn.active")?.dataset.platform ||
+      pToggle?.querySelector(".plt-select")?.value ||
+      "telegram"
+    );
+  };
+
+  const applyMode = (mode) => {
+    const container = toggle.closest(".example-panel");
+    const codeBlock = container.querySelector("code.code-python");
+    // Each mode-btn carries its own data-snippet; fall back to mode value
+    const activeBtn = toggle.querySelector(`.mode-btn[data-mode="${mode}"]`);
+    const snippet = activeBtn?.dataset.snippet || mode;
+    const platform = getActivePlatform(container);
+
+    if (!CODE_SNIPPETS[snippet]?.[platform]) return;
+
+    toggle
+      .querySelectorAll(".mode-btn")
+      .forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+
+    const modeSelect = toggle.querySelector(".mode-select");
+    if (modeSelect) modeSelect.value = mode;
+
+    codeBlock.dataset.snippet = snippet;
+    codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
+  };
+
+  toggle.querySelectorAll(".mode-btn").forEach((btn) => {
+    btn.addEventListener("click", () => applyMode(btn.dataset.mode));
+  });
+
+  const modeSelect = toggle.querySelector(".mode-select");
+  if (modeSelect) {
+    modeSelect.addEventListener("change", (e) => applyMode(e.target.value));
   }
 });

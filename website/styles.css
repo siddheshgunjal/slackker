@@ -299,6 +299,7 @@ h2 {
 .ide-titlebar {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 0.45rem;
     padding: 0.6rem 0.9rem;
     background: rgba(0, 0, 0, 0.72);
@@ -343,6 +344,40 @@ h2 {
     flex-wrap: wrap;
     margin-left: auto;
     gap: 0.25rem;
+}
+
+/* ── Titlebar controls wrapper (for panels with mode + platform toggles) ── */
+.titlebar-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-left: auto;
+    justify-content: flex-end;
+}
+
+.titlebar-controls .platform-toggle {
+    margin-left: 0;
+}
+
+/* ── Mode toggle (Sync / Async) ──────────────────────────────── */
+.mode-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.mode-select {
+    display: none;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    cursor: pointer;
+    outline: none;
 }
 
 .plt-select {
@@ -663,7 +698,7 @@ button:focus-visible,
         opacity: 0;
         transition:
             max-height 0.35s ease,
-            opacity 0.3 laease,
+            opacity 0.3s ease,
             margin-top 0.35s ease,
             padding-top 0.35s ease,
             border-color 0.35s ease;
@@ -736,6 +771,20 @@ button:focus-visible,
     .plt-select {
         display: block;
         margin-left: auto;
+    }
+
+    /* ── Mode Toggle Mobile ──────────────────────────────────── */
+    .mode-btn {
+        display: none;
+    }
+    .mode-select {
+        display: block;
+    }
+    .titlebar-controls {
+        gap: 0.3rem;
+    }
+    .titlebar-controls .plt-select {
+        margin-left: 0;
     }
 
     /* ── Quickstart steps ────────────────────────────────────── */
@@ -828,6 +877,16 @@ button:focus-visible,
 
     .plt-btn {
         font-size: 0.6rem;
+    }
+
+    .mode-select,
+    .plt-select {
+        font-size: 0.7rem;
+        padding: 0.18rem 0.45rem;
+    }
+
+    .titlebar-controls {
+        row-gap: 0.2rem;
     }
 
     .steps li {
