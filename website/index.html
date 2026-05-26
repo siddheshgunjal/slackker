@@ -143,14 +143,18 @@
 <pre><code class="code-python" data-snippet="hero">from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
-client = TelegramClient(token="123456:ABC-DEF...")
-slackker = SimpleCallback(client)
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notify = SimpleCallback(client)
 
-@slackker.notifier
-def train_model():
-    return "done"
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
 
-slackker.notify(event="training_complete", status="completed")</code></pre>
+train_model(epochs=20)</code></pre>
       </div>
     </section>
 
@@ -309,9 +313,9 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
               <span class="setup-step-num">2</span>
               <div>
                 <strong>Add Bot Token Scopes</strong>
-                <p>Sidebar&nbsp; ➤ &nbsp;<strong>OAuth &amp; Permissions</strong>&nbsp; ➤ &nbsp;<strong>Bot Token Scopes</strong>&nbsp; ➤ &nbsp;add all four:</p>
+                <p>Sidebar&nbsp; ➤ &nbsp;<strong>OAuth &amp; Permissions</strong>&nbsp; ➤ &nbsp;<strong>Bot Token Scopes</strong>&nbsp; ➤ &nbsp;add all six:</p>
                 <div class="setup-badges">
-                  <code>chat:write</code><code>chat:write.public</code><code>files:read</code><code>files:write</code>
+                  <code>chat:write</code><code>chat:write.public</code><code>files:read</code><code>files:write</code><code>channels:hisotry</code><code>groups:history</code>
                 </div>
               </div>
             </li>
@@ -462,33 +466,45 @@ slackker.notify(event="training_complete", status="completed")</code></pre>
       </div>
 
       <div class="example-switch center-wrap" role="tablist" aria-label="Callback examples">
-        <button class="example-tab active" data-target="example-basic" role="tab" aria-selected="true">Basic Script</button>
+        <button class="example-tab active" data-target="example-simple" role="tab" aria-selected="true">Script</button>
+        <button class="example-tab" data-target="example-pipeline" role="tab" aria-selected="false">Pipeline</button>
         <button class="example-tab" data-target="example-keras" role="tab" aria-selected="false">Keras</button>
         <button class="example-tab" data-target="example-lightning" role="tab" aria-selected="false">Lightning</button>
       </div>
 
       <div class="example-panels">
-        <article id="example-basic" class="example-panel glass active" role="tabpanel">
+        <article id="example-simple" class="example-panel glass active" role="tabpanel">
           <div class="ide-titlebar">
             <span class="ide-dot dot-red"></span>
             <span class="ide-dot dot-yellow"></span>
             <span class="ide-dot dot-green"></span>
-            <span class="ide-filename">pipeline.py</span>
-            <div class="platform-toggle" role="group" aria-label="Switch client">
-              <span class="platform-label">Client: </span>
-              <button class="plt-btn active" data-platform="telegram">Telegram</button>
-              <button class="plt-btn" data-platform="slack">Slack</button>
-              <button class="plt-btn" data-platform="discord">Discord</button>
-              <button class="plt-btn" data-platform="teams">Teams</button>
-              <select class="plt-select" aria-label="Switch client">
-                <option value="telegram">Telegram</option>
-                <option value="slack">Slack</option>
-                <option value="discord">Discord</option>
-                <option value="teams">Teams</option>
-              </select>
+            <span class="ide-filename">script.py</span>
+            <div class="titlebar-controls">
+              <div class="mode-toggle" role="group" aria-label="Switch feature">
+                <span class="platform-label">Use: </span>
+                <button class="mode-btn plt-btn active" data-mode="decorator" data-snippet="decorator">Decorator</button>
+                <button class="mode-btn plt-btn" data-mode="notify" data-snippet="notify">Inline</button>
+                <select class="mode-select" aria-label="Switch feature">
+                  <option value="decorator">Decorator</option>
+                  <option value="notify">Inline</option>
+                </select>
+              </div>
+              <div class="platform-toggle" role="group" aria-label="Switch client">
+                <span class="platform-label">Client: </span>
+                <button class="plt-btn active" data-platform="telegram">Telegram</button>
+                <button class="plt-btn" data-platform="slack">Slack</button>
+                <button class="plt-btn" data-platform="discord">Discord</button>
+                <button class="plt-btn" data-platform="teams">Teams</button>
+                <select class="plt-select" aria-label="Switch client">
+                  <option value="telegram">Telegram</option>
+                  <option value="slack">Slack</option>
+                  <option value="discord">Discord</option>
+                  <option value="teams">Teams</option>
+                </select>
+              </div>
             </div>
           </div>
-<pre><code class="code-python" data-snippet="basic">from slackker.core import TelegramClient
+<pre><code class="code-python" data-snippet="decorator">from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
 client = TelegramClient(
@@ -498,19 +514,12 @@ client = TelegramClient(
 notify = SimpleCallback(client)
 
 @notify.notifier
-def run_data_pipeline(source_path: str):
-    rows_processed = 12500
-    status = "success"
-    return rows_processed, status
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
 
-if __name__ == "__main__":
-    rows, status = run_data_pipeline("./data/train.csv")
-    notify.notify(
-        event="pipeline_finished",
-        rows_processed=rows,
-        status=status,
-        attachment="./artifacts/summary.txt"
-    )</code></pre>
+# Return value is automatically sent as a notification
+train_model(epochs=20)</code></pre>
         </article>
 
         <article id="example-keras" class="example-panel glass" role="tabpanel" hidden>
@@ -597,6 +606,75 @@ slackker_cb = LightningCallback(
 trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
 trainer.fit(model, train_loader, val_loader)</code></pre>
         </article>
+
+        <article id="example-pipeline" class="example-panel glass" role="tabpanel" hidden>
+          <div class="ide-titlebar">
+            <span class="ide-dot dot-red"></span>
+            <span class="ide-dot dot-yellow"></span>
+            <span class="ide-dot dot-green"></span>
+            <span class="ide-filename">pipeline.py</span>
+            <div class="titlebar-controls">
+              <div class="mode-toggle" role="group" aria-label="Switch mode">
+                <span class="platform-label">Mode: </span>
+                <button class="mode-btn plt-btn active" data-mode="sync" data-snippet="pipeline-sync">Sync</button>
+                <button class="mode-btn plt-btn" data-mode="async" data-snippet="pipeline-async">Async</button>
+                <select class="mode-select" aria-label="Switch mode">
+                  <option value="sync">Sync</option>
+                  <option value="async">Async</option>
+                </select>
+              </div>
+              <div class="platform-toggle" role="group" aria-label="Switch client">
+                <span class="platform-label">Client: </span>
+                <button class="plt-btn active" data-platform="telegram">Telegram</button>
+                <button class="plt-btn" data-platform="slack">Slack</button>
+                <button class="plt-btn" data-platform="discord">Discord</button>
+                <button class="plt-btn" data-platform="teams">Teams</button>
+                <select class="plt-select" aria-label="Switch client">
+                  <option value="telegram">Telegram</option>
+                  <option value="slack">Slack</option>
+                  <option value="discord">Discord</option>
+                  <option value="teams">Teams</option>
+                </select>
+              </div>
+            </div>
+          </div>
+<pre><code class="code-python" data-snippet="pipeline-sync">import time
+from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+def main():
+    # Step 1
+    notifier.notify("📥 Step 1: Fetching data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 1 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    notifier.notify("⚙️ Step 2: Processing data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 2 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    notifier.stop()
+
+main()</code></pre>
+        </article>
       </div>
     </section>
 
@@ -660,7 +738,7 @@ trainer.fit(model, train_loader, val_loader)</code></pre>
     <div class="footer-bar">
       <div class="footer-status">
         <span class="footer-pulse"></span>
-        <span>slackker v1.4.5</span>
+        <span>slackker v1.4.8</span>
       </div>
       <div class="footer-links">
         <a href="https://github.com/siddheshgunjal/slackker" target="_blank" rel="noreferrer">GitHub</a>

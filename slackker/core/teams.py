@@ -6,6 +6,7 @@ from pathlib import Path
 import httpx
 
 from slackker.core.client import BaseClient
+from slackker.core.models import IncomingMessage
 from slackker.utils import network
 from slackker.utils.logger import log
 
@@ -302,3 +303,77 @@ class TeamsClient(BaseClient):
     async def upload_image(self, filepath: str, comment: str | None = None) -> None:
         """Upload an image — treated identically to upload_file for Teams."""
         await self.upload_file(filepath, comment)
+
+    async def fetch_messages(
+        self,
+        limit: int = 10,
+        since: str | None = None,
+        thread_id: str | None = None,
+    ) -> list[IncomingMessage]:
+        """Fetch messages from the Teams personal chat via Microsoft Graph.
+
+        When *thread_id* is provided, fetches replies to that message via
+        ``/chats/{id}/messages/{thread_id}/replies``.  Otherwise fetches
+        all chat messages.
+
+        *since* is an ISO 8601 datetime string — messages with a
+        ``createdDateTime`` after this value are returned (client-side
+        filter, since Graph's ``$filter`` support for this field is limited).
+        Messages are returned in chronological order (oldest first).
+        """
+        if not await self._ensure_token():
+            log.error("Teams: Cannot fetch messages — not connected.")
+            return []
+
+        if thread_id:
+            url = f"{_GRAPH_BASE}/chats/{self._chat_id}/messages/{thread_id}/replies"
+        else:
+            url = f"{_GRAPH_BASE}/chats/{self._chat_id}/messages"
+
+        params: dict = {"$top": min(limit, 50)}
+
+        try:
+            async with network._make_async_client() as client:
+                resp = await client.get(
+                    url, headers=self._auth_headers(), params=params, timeout=10
+                )
+                resp.raise_for_status()
+                data = resp.json()
+
+            raw_messages = data.get("value", [])
+            # Graph returns newest-first by default; reverse to oldest-first
+            raw_messages = list(reversed(raw_messages))
+
+            result: list[IncomingMessage] = []
+            for msg in raw_messages:
+                created_at = msg.get("createdDateTime", "")
+
+                # Client-side timestamp filter (Graph $filter on datetime is unreliable)
+                if since and created_at and created_at <= since:
+                    continue
+
+                from_field = msg.get("from") or {}
+                user_info = from_field.get("user") or from_field.get("application") or {}
+                is_bot = "application" in from_field
+
+                result.append(
+                    IncomingMessage(
+                        text=msg.get("body", {}).get("content", ""),
+                        sender=user_info.get("displayName", "unknown"),
+                        sender_id=user_info.get("id", ""),
+                        timestamp=created_at,
+                        platform="teams",
+                        is_bot=is_bot,
+                        thread_id=msg.get("replyToId"),
+                        raw=msg,
+                    )
+                )
+            return result
+        except httpx.HTTPStatusError as e:
+            log.error(
+                f"Teams fetch_messages error ({e.response.status_code}): {e.response.text}"
+            )
+            return []
+        except Exception as e:
+            log.error(f"Teams fetch_messages error: {e}")
+            return []

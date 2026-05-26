@@ -1,10 +1,17 @@
 from slackker import callbacks
 from slackker.callbacks.simple import SimpleCallback
-from slackker.core import BaseClient, SlackClient, TeamsClient, TelegramClient
+from slackker.core import (
+    BaseClient,
+    IncomingMessage,
+    SlackClient,
+    TeamsClient,
+    TelegramClient,
+)
+from slackker.listener import CommandHandler, MessagePoller
 
 __author__ = "Siddhesh Gunjal"
 __email__ = "siddhu19@live.com"
-__version__ = "1.4.5"
+__version__ = "1.4.8"
 
 # module level doc-string
 __doc__ = """
@@ -13,13 +20,17 @@ slackker
 Description
 -----------
 slackker is a python package for sending notifications and monitoring
-your pipeline & ML model training in real-time on Slack, Telegram & Microsoft Teams.
+your pipeline & ML model training in real-time on Slack, Telegram,
+Microsoft Teams, and Discord.
 
 Async-first with sync convenience wrappers. Works with any client
 backend via the BaseClient abstraction.
 
+Bidirectional communication — send updates *and* receive commands:
+    from slackker.listener import MessagePoller, CommandHandler
+
 New API (recommended):
-    from slackker.core import SlackClient, TelegramClient, TeamsClient
+    from slackker.core import SlackClient, TelegramClient, TeamsClient, DiscordClient
     from slackker.callbacks.simple import SimpleCallback
     from slackker.callbacks.keras import KerasCallback
     from slackker.callbacks.lightning import LightningCallback
@@ -39,6 +50,9 @@ __all__ = [
     "TelegramClient",
     "TeamsClient",
     "BaseClient",
+    "IncomingMessage",
     "SimpleCallback",
+    "MessagePoller",
+    "CommandHandler",
     "callbacks",
 ]

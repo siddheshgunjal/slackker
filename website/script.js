@@ -123,63 +123,7 @@ applyPythonHighlighting();
 
 // ── Platform toggle ───────────────────────────────────────────
 
-const CODE_SNIPPETS = {
-  hero: {
-    telegram: `from slackker.core import TelegramClient
-from slackker.callbacks.simple import SimpleCallback
-
-client = TelegramClient(token="123456:ABC-DEF...")
-slackker = SimpleCallback(client)
-
-@slackker.notifier
-def train_model():
-    return "done"
-
-slackker.notify(event="training_complete", status="completed")`,
-    slack: `from slackker.core import SlackClient
-from slackker.callbacks.simple import SimpleCallback
-
-client = SlackClient(token="xoxb-...", channel="A04AAB77ABC")
-slackker = SimpleCallback(client)
-
-@slackker.notifier
-def train_model():
-    return "done"
-
-slackker.notify(event="training_complete", status="completed")`,
-    teams: `from slackker.core import TeamsClient
-from slackker.callbacks.simple import SimpleCallback
-
-client = TeamsClient(
-  app_id="YOUR_AZURE_APP_ID",
-  tenant_id="YOUR_TENANT_ID",
-  chat_id="19:abc@thread.v2",
-  verbose=1
-)
-slackker = SimpleCallback(client)
-
-@slackker.notifier
-def train_model():
-  return "done"
-
-slackker.notify(event="training_complete", status="completed")`,
-    discord: `from slackker.core import DiscordClient
-from slackker.callbacks.simple import SimpleCallback
-
-client = DiscordClient(
-  token="MTIz...",
-  channel_id="123456789012345678",
-  verbose=1
-)
-slackker = SimpleCallback(client)
-
-@slackker.notifier
-def train_model():
-  return "done"
-
-slackker.notify(event="training_complete", status="completed")`,
-  },
-  basic: {
+const CODE_SNIPPETS = { hero: {
     telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
@@ -190,13 +134,147 @@ client = TelegramClient(
 notify = SimpleCallback(client)
 
 @notify.notifier
-def run_data_pipeline(source_path: str):
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+train_model(epochs=20)`,
+    slack: `from slackker.core import SlackClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = SlackClient(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+train_model(epochs=20)`,
+    teams: `from slackker.core import TeamsClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TeamsClient(
+    app_id="YOUR_AZURE_APP_ID",
+    tenant_id="YOUR_TENANT_ID",
+    chat_id="19:abc@thread.v2",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+train_model(epochs=20)`,
+    discord: `from slackker.core import DiscordClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = DiscordClient(
+    token="your_bot_token",
+    channel_id="123456789012345678",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+train_model(epochs=20)`,
+  }, decorator: {
+    telegram: `from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+# Return value is automatically sent as a notification
+train_model(epochs=20)`,
+    slack: `from slackker.core import SlackClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = SlackClient(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+# Return value is automatically sent as a notification
+train_model(epochs=20)`,
+    teams: `from slackker.core import TeamsClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TeamsClient(
+    app_id="YOUR_AZURE_APP_ID",
+    tenant_id="YOUR_TENANT_ID",
+    chat_id="19:abc@thread.v2",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+# Return value is automatically sent as a notification
+train_model(epochs=20)`,
+    discord: `from slackker.core import DiscordClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = DiscordClient(
+    token="your_bot_token",
+    channel_id="123456789012345678",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+@notify.notifier
+def train_model(epochs: int):
+    # ... your training code ...
+    return {"accuracy": 0.94, "loss": 0.12}
+
+# Return value is automatically sent as a notification
+train_model(epochs=20)`,
+  }, notify: {
+    telegram: `from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notify = SimpleCallback(client)
+
+def run_pipeline(source_path: str):
     rows_processed = 12500
     status = "success"
     return rows_processed, status
 
 if __name__ == "__main__":
-    rows, status = run_data_pipeline("./data/train.csv")
+    rows, status = run_pipeline("./data/train.csv")
+    # Send detailed update with custom fields and file attachment
     notify.notify(
         event="pipeline_finished",
         rows_processed=rows,
@@ -213,14 +291,14 @@ client = SlackClient(
 )
 notify = SimpleCallback(client)
 
-@notify.notifier
-def run_data_pipeline(source_path: str):
+def run_pipeline(source_path: str):
     rows_processed = 12500
     status = "success"
     return rows_processed, status
 
 if __name__ == "__main__":
-    rows, status = run_data_pipeline("./data/train.csv")
+    rows, status = run_pipeline("./data/train.csv")
+    # Send detailed update with custom fields and file attachment
     notify.notify(
         event="pipeline_finished",
         rows_processed=rows,
@@ -228,29 +306,29 @@ if __name__ == "__main__":
         attachment="./artifacts/summary.txt"
     )`,
     teams: `from slackker.core import TeamsClient
-  from slackker.callbacks.simple import SimpleCallback
+from slackker.callbacks.simple import SimpleCallback
 
-  client = TeamsClient(
+client = TeamsClient(
     app_id="YOUR_AZURE_APP_ID",
     tenant_id="YOUR_TENANT_ID",
     chat_id="19:abc@thread.v2",
     verbose=1
-  )
-  notify = SimpleCallback(client)
+)
+notify = SimpleCallback(client)
 
-  @notify.notifier
-  def run_data_pipeline(source_path: str):
+def run_pipeline(source_path: str):
     rows_processed = 12500
     status = "success"
     return rows_processed, status
 
-  if __name__ == "__main__":
-    rows, status = run_data_pipeline("./data/train.csv")
+if __name__ == "__main__":
+    rows, status = run_pipeline("./data/train.csv")
+    # Send detailed update with custom fields and file attachment
     notify.notify(
-      event="pipeline_finished",
-      rows_processed=rows,
-      status=status,
-      attachment="./artifacts/summary.txt"
+        event="pipeline_finished",
+        rows_processed=rows,
+        status=status,
+        attachment="./artifacts/summary.txt"
     )`,
     discord: `from slackker.core import DiscordClient
 from slackker.callbacks.simple import SimpleCallback
@@ -262,22 +340,319 @@ client = DiscordClient(
 )
 notify = SimpleCallback(client)
 
-@notify.notifier
-def run_data_pipeline(source_path: str):
+def run_pipeline(source_path: str):
     rows_processed = 12500
     status = "success"
     return rows_processed, status
 
 if __name__ == "__main__":
-    rows, status = run_data_pipeline("./data/train.csv")
+    rows, status = run_pipeline("./data/train.csv")
+    # Send detailed update with custom fields and file attachment
     notify.notify(
         event="pipeline_finished",
         rows_processed=rows,
         status=status,
         attachment="./artifacts/summary.txt"
     )`,
-  },
-  keras: {
+  }, "pipeline-sync": {
+    telegram: `import time
+from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+def main():
+    # Step 1
+    notifier.notify("📥 Step 1: Fetching data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 1 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    notifier.notify("⚙️ Step 2: Processing data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 2 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    notifier.stop()
+
+main()`,
+    slack: `import time
+from slackker.core import SlackClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = SlackClient(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+def main():
+    # Step 1
+    notifier.notify("📥 Step 1: Fetching data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 1 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    notifier.notify("⚙️ Step 2: Processing data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 2 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    notifier.stop()
+
+main()`,
+    teams: `import time
+from slackker.core import TeamsClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TeamsClient(
+    app_id="YOUR_AZURE_APP_ID",
+    tenant_id="YOUR_TENANT_ID",
+    chat_id="19:abc@thread.v2",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+def main():
+    # Step 1
+    notifier.notify("📥 Step 1: Fetching data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 1 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    notifier.notify("⚙️ Step 2: Processing data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 2 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    notifier.stop()
+
+main()`,
+    discord: `import time
+from slackker.core import DiscordClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = DiscordClient(
+    token="your_bot_token",
+    channel_id="123456789012345678",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+def main():
+    # Step 1
+    notifier.notify("📥 Step 1: Fetching data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 1 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    notifier.notify("⚙️ Step 2: Processing data...", status="started")
+    time.sleep(2)
+    if not notifier.ask("Step 2 done. Continue?"):
+        notifier.stop()
+        return
+    notifier.notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    notifier.stop()
+
+main()`,
+  }, "pipeline-async": {
+    telegram: `import asyncio
+from slackker.core import TelegramClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TelegramClient(
+    token="123456:ABC-DEF...",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+async def main():
+    # Step 1
+    await notifier.async_notify("📥 Step 1: Fetching data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 1 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    await notifier.async_notify("⚙️ Step 2: Processing data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 2 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    await notifier.async_stop()
+
+asyncio.run(main())`,
+    slack: `import asyncio
+from slackker.core import SlackClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = SlackClient(
+    token="xoxb-your-bot-token",
+    channel="A04AAB77ABC",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+async def main():
+    # Step 1
+    await notifier.async_notify("📥 Step 1: Fetching data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 1 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    await notifier.async_notify("⚙️ Step 2: Processing data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 2 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    await notifier.async_stop()
+
+asyncio.run(main())`,
+    teams: `import asyncio
+from slackker.core import TeamsClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = TeamsClient(
+    app_id="YOUR_AZURE_APP_ID",
+    tenant_id="YOUR_TENANT_ID",
+    chat_id="19:abc@thread.v2",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+async def main():
+    # Step 1
+    await notifier.async_notify("📥 Step 1: Fetching data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 1 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    await notifier.async_notify("⚙️ Step 2: Processing data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 2 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    await notifier.async_stop()
+
+asyncio.run(main())`,
+    discord: `import asyncio
+from slackker.core import DiscordClient
+from slackker.callbacks.simple import SimpleCallback
+
+client = DiscordClient(
+    token="your_bot_token",
+    channel_id="123456789012345678",
+    verbose=1
+)
+notifier = SimpleCallback(client)
+
+async def main():
+    # Step 1
+    await notifier.async_notify("📥 Step 1: Fetching data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 1 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 1: Data fetched", status="completed")
+
+    # Step 2
+    await notifier.async_notify("⚙️ Step 2: Processing data...", status="started")
+    await asyncio.sleep(2)
+    if not await notifier.async_ask("Step 2 done. Continue?"):
+        await notifier.async_stop()
+        return
+    await notifier.async_notify("✅ Step 2: Processing done", status="completed")
+
+    # Done
+    notifier.notify(
+        "🏁 Pipeline complete",
+        message="All steps finished ✅",
+        attachment="./report.pdf"
+    )
+    await notifier.async_stop()
+
+asyncio.run(main())`,
+  }, keras: {
     telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.keras import KerasCallback
 
@@ -370,8 +745,7 @@ history = model.fit(
     validation_data=(x_val, y_val),
     callbacks=[slackker_cb]
 )`,
-  },
-  lightning: {
+  }, lightning: {
     telegram: `from lightning.pytorch import Trainer
 from slackker.core import TelegramClient
 from slackker.callbacks.lightning import LightningCallback
@@ -514,5 +888,47 @@ document.querySelectorAll(".platform-toggle").forEach((toggle) => {
 
       codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
     });
+  }
+});
+
+// ── Mode toggle (feature/mode switcher inside any panel) ─────
+document.querySelectorAll(".mode-toggle").forEach((toggle) => {
+  const getActivePlatform = (container) => {
+    const pToggle = container.querySelector(".platform-toggle");
+    return (
+      pToggle?.querySelector(".plt-btn.active")?.dataset.platform ||
+      pToggle?.querySelector(".plt-select")?.value ||
+      "telegram"
+    );
+  };
+
+  const applyMode = (mode) => {
+    const container = toggle.closest(".example-panel");
+    const codeBlock = container.querySelector("code.code-python");
+    // Each mode-btn carries its own data-snippet; fall back to mode value
+    const activeBtn = toggle.querySelector(`.mode-btn[data-mode="${mode}"]`);
+    const snippet = activeBtn?.dataset.snippet || mode;
+    const platform = getActivePlatform(container);
+
+    if (!CODE_SNIPPETS[snippet]?.[platform]) return;
+
+    toggle
+      .querySelectorAll(".mode-btn")
+      .forEach((b) => b.classList.toggle("active", b.dataset.mode === mode));
+
+    const modeSelect = toggle.querySelector(".mode-select");
+    if (modeSelect) modeSelect.value = mode;
+
+    codeBlock.dataset.snippet = snippet;
+    codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
+  };
+
+  toggle.querySelectorAll(".mode-btn").forEach((btn) => {
+    btn.addEventListener("click", () => applyMode(btn.dataset.mode));
+  });
+
+  const modeSelect = toggle.querySelector(".mode-select");
+  if (modeSelect) {
+    modeSelect.addEventListener("change", (e) => applyMode(e.target.value));
   }
 });
