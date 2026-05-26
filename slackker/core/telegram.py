@@ -61,7 +61,7 @@ class TelegramClient(BaseClient):
                     url, params={"chat_id": self._chat_id, "text": text}
                 )
                 response.raise_for_status()
-            log.debug("Posted update on Telegram")
+            log.info("Posted update on Telegram")
         except httpx.HTTPStatusError as e:
             log.error(f"Telegram API error {e.response.status_code}: {e.response.text}")
         except Exception as e:
@@ -87,7 +87,7 @@ class TelegramClient(BaseClient):
                         files={"document": f},
                     )
                     response.raise_for_status()
-            log.debug("Uploaded attachment on Telegram")
+            log.info("Uploaded attachment on Telegram")
         except httpx.HTTPStatusError as e:
             log.error(f"Telegram API error {e.response.status_code}: {e.response.text}")
         except Exception as e:
@@ -113,7 +113,7 @@ class TelegramClient(BaseClient):
                         files={"photo": f},
                     )
                     response.raise_for_status()
-            log.debug("Uploaded image on Telegram")
+            log.info("Uploaded image on Telegram")
         except httpx.HTTPStatusError as e:
             log.error(f"Telegram API error {e.response.status_code}: {e.response.text}")
         except Exception as e:
