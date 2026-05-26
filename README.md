@@ -113,7 +113,7 @@ client = TeamsClient(
 | `token` | `str` | _required_ | Slack app / Telegram bot / Discord bot token |
 | `channel_id` | `str` | _required (Slack & Discord only)_ | Slack or Discord channel ID |
 | `chat_id` | `str` | `None` _(Telegram only)_ | Telegram chat ID — auto-discovered if omitted |
-| `verbose` | `int` | `0` | `0` = silent, `1` = info, `2` = debug |
+| `verbose` | `int` | `0` | `0` = WARNING/ERROR, `1` = INFO, `2` = DEBUG |
 
 **Teams-specific parameters:**
 
@@ -123,7 +123,7 @@ client = TeamsClient(
 | `tenant_id` | `str` | `"common"` | Azure AD tenant ID, or `"common"` for personal + org accounts |
 | `chat_id` | `str` | _required_ | Teams chat ID (e.g. `19:..._...@thread.v2`) — right-click a message → Copy link, extract from URL |
 | `token_cache_path` | `str` | `~/.slackker/teams_<app_id[:8]>.json` | Path to cache the access/refresh token |
-| `verbose` | `int` | `0` | `0` = silent, `1` = info, `2` = debug |
+| `verbose` | `int` | `0` | `0` = WARNING/ERROR, `1` = INFO, `2` = DEBUG |
 
 </details>
 

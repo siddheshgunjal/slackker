@@ -2,6 +2,8 @@ import asyncio
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
+from slackker.utils.logger import set_verbosity
+
 if TYPE_CHECKING:
     from slackker.core.models import IncomingMessage
 
@@ -27,6 +29,7 @@ class BaseClient(ABC):
 
     def __init__(self, verbose: int = 0):
         self._verbose = verbose
+        set_verbosity(verbose)
 
     @property
     def verbose(self) -> int:

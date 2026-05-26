@@ -39,18 +39,15 @@ class SlackClient(BaseClient):
 
     async def connect(self) -> bool:
         """Verify server connectivity and API token. Returns True on success."""
-        server = await network.check_connection(
-            url="api.slack.com", verbose=self._verbose
-        )
-        api = await network.verify_slack_token(token=self._token, verbose=self._verbose)
+        server = await network.check_connection(url="api.slack.com")
+        api = await network.verify_slack_token(token=self._token)
         self._connected = server and api
         return self._connected
 
     async def send_message(self, text: str) -> None:
         try:
             await self._client.chat_postMessage(channel=self._channel_id, text=text)
-            if self._verbose >= 1:
-                log.info(f"Posted update on {self._channel_id} channel")
+            log.info(f"Posted update on {self._channel_id} channel")
         except SlackApiError as e:
             log.error(f"Error posting update: {e}")
 
@@ -65,8 +62,7 @@ class SlackClient(BaseClient):
                 file=filepath,
                 initial_comment=initial_comment,
             )
-            if self._verbose >= 1:
-                log.debug(f"Uploaded attachment on {self._channel_id} channel")
+            log.debug(f"Uploaded attachment on {self._channel_id} channel")
         except SlackApiError as e:
             log.error(f"Error uploading attachment: {e}")
 

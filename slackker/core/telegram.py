@@ -39,16 +39,12 @@ class TelegramClient(BaseClient):
 
     async def connect(self) -> bool:
         """Verify server connectivity and discover chat_id if not provided."""
-        server = await network.check_connection(
-            url="api.telegram.org", verbose=self._verbose
-        )
+        server = await network.check_connection(url="api.telegram.org")
         if not server:
             return False
 
         if not self._chat_id:
-            self._chat_id = await network.get_telegram_chat_id(
-                token=self._token, verbose=self._verbose
-            )
+            self._chat_id = await network.get_telegram_chat_id(token=self._token)
 
         return self._chat_id is not None
 
@@ -65,8 +61,7 @@ class TelegramClient(BaseClient):
                     url, params={"chat_id": self._chat_id, "text": text}
                 )
                 response.raise_for_status()
-            if self._verbose >= 1:
-                log.debug("Posted update on Telegram")
+            log.info("Posted update on Telegram")
         except httpx.HTTPStatusError as e:
             log.error(f"Telegram API error {e.response.status_code}: {e.response.text}")
         except Exception as e:
@@ -92,8 +87,7 @@ class TelegramClient(BaseClient):
                         files={"document": f},
                     )
                     response.raise_for_status()
-            if self._verbose >= 1:
-                log.debug("Uploaded attachment on Telegram")
+            log.info("Uploaded attachment on Telegram")
         except httpx.HTTPStatusError as e:
             log.error(f"Telegram API error {e.response.status_code}: {e.response.text}")
         except Exception as e:
@@ -119,8 +113,7 @@ class TelegramClient(BaseClient):
                         files={"photo": f},
                     )
                     response.raise_for_status()
-            if self._verbose >= 1:
-                log.debug("Uploaded image on Telegram")
+            log.info("Uploaded image on Telegram")
         except httpx.HTTPStatusError as e:
             log.error(f"Telegram API error {e.response.status_code}: {e.response.text}")
         except Exception as e:
@@ -192,7 +185,9 @@ class TelegramClient(BaseClient):
                 )
             return result
         except httpx.HTTPStatusError as e:
-            log.error(f"Telegram fetch_messages error {e.response.status_code}: {e.response.text}")
+            log.error(
+                f"Telegram fetch_messages error {e.response.status_code}: {e.response.text}"
+            )
             return []
         except Exception as e:
             log.error(f"Telegram fetch_messages error: {e}")

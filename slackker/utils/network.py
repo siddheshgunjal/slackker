@@ -44,9 +44,7 @@ def _run_sync(coro):
         return asyncio.run(coro)
 
 
-async def check_connection(
-    url: str, retries: int = 3, delay: float = 30, verbose: int = 2
-) -> bool:
+async def check_connection(url: str, retries: int = 3, delay: float = 30) -> bool:
     """Check if a server is reachable. Retries indefinitely if retries=0, else up to `retries` times."""
     attempt = 0
     async with _make_async_client() as client:
@@ -56,38 +54,31 @@ async def check_connection(
                 resp = await client.head(
                     f"https://{url}", timeout=10, follow_redirects=True
                 )
-                if verbose >= 2:
-                    log.debug(
-                        f"Connection to '{url}' server successful! [{_ip_mode()}]"
-                    )
+                log.debug(f"Connection to '{url}' server successful! [{_ip_mode()}]")
                 return True
             except (httpx.RequestError, httpx.HTTPStatusError) as e:
                 if retries > 0 and attempt >= retries:
-                    if verbose >= 1:
-                        log.warning(
-                            f"Connection to '{url}' server failed after {attempt} attempts. "
-                            f"Reason: {e} [{_ip_mode()}]"
-                        )
-                    return False
-                if verbose >= 1:
                     log.warning(
-                        f"Connection to '{url}' server failed. "
-                        f"Trying again in {delay}s.. [attempt {attempt}] "
+                        f"Connection to '{url}' server failed after {attempt} attempts. "
                         f"Reason: {e} [{_ip_mode()}]"
                     )
+                    return False
+                log.warning(
+                    f"Connection to '{url}' server failed. "
+                    f"Trying again in {delay}s.. [attempt {attempt}] "
+                    f"Reason: {e} [{_ip_mode()}]"
+                )
                 await asyncio.sleep(delay)
 
 
 async def check_connection_quick(
-    url: str, max_retries: int = 3, delay: float = 10, verbose: int = 1
+    url: str, max_retries: int = 3, delay: float = 10
 ) -> bool:
     """Quick connectivity check with limited retries (for use during training epochs)."""
-    return await check_connection(
-        url=url, retries=max_retries, delay=delay, verbose=verbose
-    )
+    return await check_connection(url=url, retries=max_retries, delay=delay)
 
 
-async def verify_slack_token(token: str, verbose: int = 2) -> bool:
+async def verify_slack_token(token: str) -> bool:
     """Verify a Slack API token by calling api.test."""
     session = None
     if os.environ.get("SLACKKER_FORCE_IPV4", "").lower() in ("1", "true"):
@@ -104,8 +95,7 @@ async def verify_slack_token(token: str, verbose: int = 2) -> bool:
         else:
             client = AsyncWebClient(token=token)
         response = await client.api_test()
-        if verbose >= 2:
-            log.debug(f"Connection to Slack API successful! [{_ip_mode()}]")
+        log.debug(f"Connection to Slack API successful! [{_ip_mode()}]")
         return True
     except Exception as e:
         log.error(f"Invalid Slack API token: {e} [{_ip_mode()}]")
@@ -115,7 +105,7 @@ async def verify_slack_token(token: str, verbose: int = 2) -> bool:
             await session.close()
 
 
-async def get_telegram_chat_id(token: str, verbose: int = 2) -> str | None:
+async def get_telegram_chat_id(token: str) -> str | None:
     """Retrieve the chat_id from the first message sent to the Telegram bot."""
     url = f"https://api.telegram.org/bot{token}/getUpdates"
     try:
@@ -123,9 +113,8 @@ async def get_telegram_chat_id(token: str, verbose: int = 2) -> str | None:
             resp = await client.get(url)
             data = resp.json()
             chat_id = str(data["result"][0]["message"]["chat"]["id"])
-            if verbose >= 2:
-                log.debug(f"Connection to Telegram API successful! [{_ip_mode()}]")
-                log.debug(f"Found chat with 'chat_id'={chat_id}")
+            log.debug(f"Connection to Telegram API successful! [{_ip_mode()}]")
+            log.debug(f"Found chat with 'chat_id'={chat_id}")
             return chat_id
     except Exception as e:
         log.error(f"Could not connect to Telegram API: {e} [{_ip_mode()}]")
@@ -139,7 +128,6 @@ async def get_teams_device_code(
     app_id: str,
     tenant_id: str,
     scopes: list[str],
-    verbose: int = 2,
 ) -> dict | None:
     """Request a device code for interactive Microsoft Graph authentication.
 
@@ -156,8 +144,7 @@ async def get_teams_device_code(
         async with _make_async_client() as client:
             resp = await client.post(url, data=payload, timeout=10)
             resp.raise_for_status()
-            if verbose >= 2:
-                log.debug("Teams: Device code obtained successfully.")
+            log.debug("Teams: Device code obtained successfully.")
             return resp.json()
     except httpx.HTTPStatusError as e:
         log.error(
@@ -174,7 +161,6 @@ async def poll_teams_device_code_token(
     tenant_id: str,
     device_code: str,
     interval: int = 5,
-    verbose: int = 2,
 ) -> dict | None:
     """Poll for a token after the user completes device code authorisation.
 
@@ -201,8 +187,7 @@ async def poll_teams_device_code_token(
                 return None
 
             if "access_token" in data:
-                if verbose >= 2:
-                    log.debug("Teams: Device code authentication successful.")
+                log.debug("Teams: Device code authentication successful.")
                 return data
 
             error = data.get("error", "")
@@ -224,7 +209,6 @@ async def refresh_teams_access_token(
     tenant_id: str,
     refresh_token: str,
     scopes: list[str],
-    verbose: int = 2,
 ) -> dict | None:
     """Silently refresh a Microsoft Graph access token using a cached refresh token.
 
@@ -245,23 +229,21 @@ async def refresh_teams_access_token(
             resp.raise_for_status()
             data = resp.json()
             if "access_token" in data:
-                if verbose >= 2:
-                    log.debug("Teams: Access token refreshed silently.")
+                log.debug("Teams: Access token refreshed silently.")
                 return data
             log.error(f"Teams: Token refresh returned no access_token: {data}")
             return None
     except httpx.HTTPStatusError as e:
-        if verbose >= 1:
-            log.warning(
-                f"Teams: Token refresh failed ({e.response.status_code}), re-authentication required."
-            )
+        log.warning(
+            f"Teams: Token refresh failed ({e.response.status_code}), re-authentication required."
+        )
         return None
     except Exception as e:
         log.error(f"Teams: Token refresh error: {e}")
         return None
 
 
-async def verify_discord_token(token: str, verbose: int = 2) -> bool:
+async def verify_discord_token(token: str) -> bool:
     """Verify a Discord Bot token by calling /users/@me."""
     url = "https://discord.com/api/v10/users/@me"
     headers = {"Authorization": f"Bot {token}"}
@@ -269,8 +251,7 @@ async def verify_discord_token(token: str, verbose: int = 2) -> bool:
         async with _make_async_client() as client:
             resp = await client.get(url, headers=headers, timeout=10)
             resp.raise_for_status()
-            if verbose >= 2:
-                log.debug(f"Connection to Discord API successful! [{_ip_mode()}]")
+            log.debug(f"Connection to Discord API successful! [{_ip_mode()}]")
             return True
     except Exception as e:
         log.error(f"Invalid Discord Bot token: {e} [{_ip_mode()}]")
@@ -280,47 +261,45 @@ async def verify_discord_token(token: str, verbose: int = 2) -> bool:
 # --- Sync wrappers ---
 
 
-def check_connection_sync(
-    url: str, retries: int = 3, delay: float = 30, verbose: int = 2
-) -> bool:
-    return _run_sync(check_connection(url, retries, delay, verbose))
+def check_connection_sync(url: str, retries: int = 3, delay: float = 30) -> bool:
+    return _run_sync(check_connection(url, retries, delay))
 
 
 def check_connection_quick_sync(
-    url: str, max_retries: int = 3, delay: float = 10, verbose: int = 1
+    url: str, max_retries: int = 3, delay: float = 10
 ) -> bool:
-    return _run_sync(check_connection_quick(url, max_retries, delay, verbose))
+    return _run_sync(check_connection_quick(url, max_retries, delay))
 
 
-def verify_slack_token_sync(token: str, verbose: int = 2) -> bool:
-    return _run_sync(verify_slack_token(token, verbose))
+def verify_slack_token_sync(token: str) -> bool:
+    return _run_sync(verify_slack_token(token))
 
 
-def verify_discord_token_sync(token: str, verbose: int = 2) -> bool:
-    return _run_sync(verify_discord_token(token, verbose))
+def verify_discord_token_sync(token: str) -> bool:
+    return _run_sync(verify_discord_token(token))
 
 
-def get_telegram_chat_id_sync(token: str, verbose: int = 2) -> str | None:
-    return _run_sync(get_telegram_chat_id(token, verbose))
+def get_telegram_chat_id_sync(token: str) -> str | None:
+    return _run_sync(get_telegram_chat_id(token))
 
 
 def get_teams_device_code_sync(
-    app_id: str, tenant_id: str, scopes: list[str], verbose: int = 2
+    app_id: str, tenant_id: str, scopes: list[str]
 ) -> dict | None:
-    return _run_sync(get_teams_device_code(app_id, tenant_id, scopes, verbose))
+    return _run_sync(get_teams_device_code(app_id, tenant_id, scopes))
 
 
 def poll_teams_device_code_token_sync(
-    app_id: str, tenant_id: str, device_code: str, interval: int = 5, verbose: int = 2
+    app_id: str, tenant_id: str, device_code: str, interval: int = 5
 ) -> dict | None:
     return _run_sync(
-        poll_teams_device_code_token(app_id, tenant_id, device_code, interval, verbose)
+        poll_teams_device_code_token(app_id, tenant_id, device_code, interval)
     )
 
 
 def refresh_teams_access_token_sync(
-    app_id: str, tenant_id: str, refresh_token: str, scopes: list[str], verbose: int = 2
+    app_id: str, tenant_id: str, refresh_token: str, scopes: list[str]
 ) -> dict | None:
     return _run_sync(
-        refresh_teams_access_token(app_id, tenant_id, refresh_token, scopes, verbose)
+        refresh_teams_access_token(app_id, tenant_id, refresh_token, scopes)
     )
