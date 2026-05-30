@@ -8,6 +8,7 @@ from slackker.core import (
     TelegramClient,
 )
 from slackker.listener import CommandHandler, MessagePoller
+from slackker.mcp.handler import MCPHandler
 
 __author__ = "Siddhesh Gunjal"
 __email__ = "siddhu19@live.com"
@@ -52,6 +53,7 @@ __all__ = [
     "BaseClient",
     "IncomingMessage",
     "SimpleCallback",
+    "MCPHandler",
     "MessagePoller",
     "CommandHandler",
     "callbacks",
