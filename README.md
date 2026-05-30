@@ -273,6 +273,40 @@ SLACKKER_VERBOSE=1
 
 # MCP Config Snippets
 
+`slackker-mcp` is a **local stdio MCP server**, so it is compatible with MCP clients that launch a local command and pass env/config.
+
+### VS Code (`.vscode/mcp.json`)
+
+```json
+{
+  "servers": {
+    "slackker": {
+      "type": "stdio",
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+> You can also use args-based config if you prefer a JSON file over env vars:
+>
+> ```json
+> {
+>   "servers": {
+>     "slackker": {
+>       "type": "stdio",
+>       "command": "slackker-mcp",
+>       "args": ["--config", "/absolute/path/slackker_mcp.json"]
+>     }
+>   }
+> }
+> ```
+
 ### Claude Desktop (`claude_desktop_config.json`)
 
 ```json
@@ -309,7 +343,7 @@ SLACKKER_VERBOSE=1
 }
 ```
 
-### Continue / Roo Code-style MCP config
+### Cursor / Antigravity / Continue / Roo Code-style MCP config
 
 ```json
 {
@@ -325,6 +359,8 @@ SLACKKER_VERBOSE=1
   }
 }
 ```
+
+> Different clients may use different config file paths/names, but this `mcpServers` server object is the common stdio shape.
 
 # Use with [Keras][keras]
 ![keras-banner](https://i.postimg.cc/MpLBBTn7/slackker-keras.png)
