@@ -28,7 +28,7 @@ https://github.com/user-attachments/assets/41ab1ee9-4d3c-44d0-82b2-3194acbf7727
 * [SimpleCallback — any Python function](#simplecallback--any-python-function)
 * [Interactive Pipeline](#interactive-pipeline)
 * [MCP Server](#mcp-server)
-* [MCP Config Snippets](#mcp-config-snippets)
+* [Universal MCP Configuration](#universal-mcp-configuration)
 * [Keras](#use-with-keras)
 * [Lightning](#use-with-lightning)
 * [Legacy API (deprecated)](#legacy-api-deprecated)
@@ -271,11 +271,32 @@ SLACKKER_POLL_INTERVAL=2.0
 SLACKKER_VERBOSE=1
 ```
 
-# MCP Config Snippets
+# Universal MCP Configuration
 
-`slackker-mcp` is a **local stdio MCP server**, so it is compatible with MCP clients that launch a local command and pass env/config.
+`slackker-mcp` runs as a **local stdio MCP server**, so it works with MCP clients that can launch a local command.
 
-### VS Code (`.vscode/mcp.json`)
+## Compatibility Matrix
+
+| Client | Status | Config shape | Notes |
+|---|---|---|---|
+| VS Code | ✅ Verified | `servers.<name>` | MCP extension config (`.vscode/mcp.json`) |
+| Zed | ✅ Verified | `context_servers.<name>.command` | Uses `settings.json` |
+| Claude Desktop | ✅ Verified | `mcpServers.<name>` | Uses `claude_desktop_config.json` |
+| Claude Code (terminal) | ✅ Verified | `claude mcp add ...` or `.mcp.json` with `mcpServers` | Native MCP management commands |
+| OpenCode (terminal) | ✅ Verified | `mcp.<name>` with `type: "local"` | Uses `opencode.json` |
+| Roo Code | ✅ Verified | `mcpServers.<name>` | Global/project MCP files |
+| Cursor | 🟡 Common stdio pattern | `mcpServers.<name>` | AI-native fork; follows Claude/MCP standard |
+| Continue | 🟡 Common stdio pattern | `mcpServers.<name>` | Confirm exact file path per plugin/version |
+| Antigravity | 🟡 Common stdio pattern | `mcpServers.<name>` | AI-native fork; follows Claude/MCP standard |
+| Hermes / other terminal agents | 🟡 Stdio-compatible by design | Local stdio command + env | Works if host supports stdio MCP servers |
+
+## Snippets by client
+
+<details>
+<summary>Click to expand configuration snippets</summary>
+
+<details>
+<summary><strong>VS Code (`.vscode/mcp.json`)</strong></summary>
 
 ```json
 {
@@ -293,38 +314,10 @@ SLACKKER_VERBOSE=1
 }
 ```
 
-> You can also use args-based config if you prefer a JSON file over env vars:
->
-> ```json
-> {
->   "servers": {
->     "slackker": {
->       "type": "stdio",
->       "command": "slackker-mcp",
->       "args": ["--config", "/absolute/path/slackker_mcp.json"]
->     }
->   }
-> }
-> ```
+</details>
 
-### Claude Desktop (`claude_desktop_config.json`)
-
-```json
-{
-  "mcpServers": {
-    "slackker": {
-      "command": "slackker-mcp",
-      "env": {
-        "SLACKKER_PLATFORM": "slack",
-        "SLACKKER_TOKEN": "xoxb-...",
-        "SLACKKER_CHANNEL": "C04AAB77ABC"
-      }
-    }
-  }
-}
-```
-
-### Zed (`settings.json`)
+<details>
+<summary><strong>Zed (`settings.json`)</strong></summary>
 
 ```json
 {
@@ -343,7 +336,10 @@ SLACKKER_VERBOSE=1
 }
 ```
 
-### Cursor / Antigravity / Continue / Roo Code-style MCP config
+</details>
+
+<details>
+<summary><strong>Claude Desktop (`claude_desktop_config.json`)</strong></summary>
 
 ```json
 {
@@ -360,7 +356,130 @@ SLACKKER_VERBOSE=1
 }
 ```
 
-> Different clients may use different config file paths/names, but this `mcpServers` server object is the common stdio shape.
+</details>
+
+<details>
+<summary><strong>Claude Code (terminal)</strong></summary>
+
+Add from CLI:
+
+```sh
+claude mcp add --transport stdio \
+  --env SLACKKER_PLATFORM=slack \
+  --env SLACKKER_TOKEN=xoxb-... \
+  --env SLACKKER_CHANNEL=C04AAB77ABC \
+  slackker -- slackker-mcp
+```
+
+Or project config (`.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "slackker": {
+      "type": "stdio",
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>OpenCode (`opencode.json`)</strong></summary>
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "slackker": {
+      "type": "local",
+      "command": ["slackker-mcp"],
+      "enabled": true,
+      "environment": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+File-based config variant:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "slackker": {
+      "type": "local",
+      "command": ["slackker-mcp", "--config", "/absolute/path/slackker_mcp.json"],
+      "enabled": true
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Cursor / Continue / Roo / Antigravity (common stdio shape)</strong></summary>
+
+```json
+{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+> File path and top-level key names can vary by client/plugin version.
+
+</details>
+
+<details>
+<summary><strong>Hermes / other terminal MCP hosts</strong></summary>
+
+Use whichever config file your host expects, with these required fields:
+
+- transport: local/stdio
+- command: `slackker-mcp`
+- env: `SLACKKER_*` (or args `--config /path/to/slackker_mcp.json`)
+
+Minimal generic example:
+
+```json
+{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+</details>
 
 # Use with [Keras][keras]
 ![keras-banner](https://i.postimg.cc/MpLBBTn7/slackker-keras.png)
