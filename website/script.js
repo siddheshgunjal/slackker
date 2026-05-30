@@ -24,6 +24,41 @@ if (year) {
   year.textContent = new Date().getFullYear();
 }
 
+async function updateVersion() {
+  const versionElement = document.getElementById("version");
+  const ldJsonElement = document.getElementById("ld-json");
+
+  try {
+    const response = await fetch("https://pypi.org/pypi/slackker/json");
+    if (!response.ok) throw new Error("Network response was not ok");
+    const data = await response.json();
+    const version = data.info.version;
+
+    if (versionElement) {
+      versionElement.textContent = `slackker v${version}`;
+    }
+
+    if (ldJsonElement) {
+      try {
+        const ldJson = JSON.parse(ldJsonElement.textContent);
+        const softwareApp = ldJson["@graph"].find(
+          (item) => item["@type"] === "SoftwareApplication",
+        );
+        if (softwareApp) {
+          softwareApp.softwareVersion = version;
+          ldJsonElement.textContent = JSON.stringify(ldJson, null, 2);
+        }
+      } catch (e) {
+        console.error("Failed to parse or update JSON-LD:", e);
+      }
+    }
+  } catch (error) {
+    console.error("Failed to fetch version from PyPI:", error);
+  }
+}
+
+updateVersion();
+
 const revealElements = document.querySelectorAll(".reveal");
 const revealObserver = new IntersectionObserver(
   (entries) => {
@@ -123,7 +158,8 @@ applyPythonHighlighting();
 
 // ── Platform toggle ───────────────────────────────────────────
 
-const CODE_SNIPPETS = { hero: {
+const CODE_SNIPPETS = {
+  hero: {
     telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
@@ -188,7 +224,8 @@ def train_model(epochs: int):
     return {"accuracy": 0.94, "loss": 0.12}
 
 train_model(epochs=20)`,
-  }, decorator: {
+  },
+  decorator: {
     telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
@@ -257,7 +294,8 @@ def train_model(epochs: int):
 
 # Return value is automatically sent as a notification
 train_model(epochs=20)`,
-  }, notify: {
+  },
+  notify: {
     telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
 
@@ -354,7 +392,8 @@ if __name__ == "__main__":
         status=status,
         attachment="./artifacts/summary.txt"
     )`,
-  }, "pipeline-sync": {
+  },
+  "pipeline-sync": {
     telegram: `import time
 from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
@@ -503,7 +542,8 @@ def main():
     notifier.stop()
 
 main()`,
-  }, "pipeline-async": {
+  },
+  "pipeline-async": {
     telegram: `import asyncio
 from slackker.core import TelegramClient
 from slackker.callbacks.simple import SimpleCallback
@@ -652,7 +692,8 @@ async def main():
     await notifier.async_stop()
 
 asyncio.run(main())`,
-  }, keras: {
+  },
+  keras: {
     telegram: `from slackker.core import TelegramClient
 from slackker.callbacks.keras import KerasCallback
 
@@ -745,7 +786,8 @@ history = model.fit(
     validation_data=(x_val, y_val),
     callbacks=[slackker_cb]
 )`,
-  }, lightning: {
+  },
+  lightning: {
     telegram: `from lightning.pytorch import Trainer
 from slackker.core import TelegramClient
 from slackker.callbacks.lightning import LightningCallback
