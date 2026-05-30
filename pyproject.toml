@@ -37,6 +37,12 @@ Repository = "https://github.com/siddheshgunjal/slackker"
 Issues = "https://github.com/siddheshgunjal/slackker/issues"
 Changelog = "https://github.com/siddheshgunjal/slackker/releases"
 
+[project.optional-dependencies]
+mcp = ["mcp[cli]>=1.0.0"]
+
+[project.scripts]
+slackker-mcp = "slackker.mcp.server:main"
+
 [tool.hatch.build.targets.wheel]
 include = ["slackker/**"]
 exclude = ["tests/**", "website/**"]
