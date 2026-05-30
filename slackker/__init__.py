@@ -2,6 +2,7 @@ from slackker import callbacks
 from slackker.callbacks.simple import SimpleCallback
 from slackker.core import (
     BaseClient,
+    DiscordClient,
     IncomingMessage,
     SlackClient,
     TeamsClient,
@@ -12,7 +13,7 @@ from slackker.mcp.handler import MCPHandler
 
 __author__ = "Siddhesh Gunjal"
 __email__ = "siddhu19@live.com"
-__version__ = "1.5.0"
+__version__ = "1.5.1"
 
 # module level doc-string
 __doc__ = """
@@ -50,6 +51,7 @@ __all__ = [
     "SlackClient",
     "TelegramClient",
     "TeamsClient",
+    "DiscordClient",
     "BaseClient",
     "IncomingMessage",
     "SimpleCallback",
