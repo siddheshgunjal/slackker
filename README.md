@@ -27,6 +27,8 @@ https://github.com/user-attachments/assets/41ab1ee9-4d3c-44d0-82b2-3194acbf7727
 * [Create a Client](#create-a-client)
 * [SimpleCallback — any Python function](#simplecallback--any-python-function)
 * [Interactive Pipeline](#interactive-pipeline)
+* [MCP Server](#mcp-server)
+* [MCP Config Snippets](#mcp-config-snippets)
 * [Keras](#use-with-keras)
 * [Lightning](#use-with-lightning)
 * [Legacy API (deprecated)](#legacy-api-deprecated)
@@ -219,6 +221,110 @@ pipeline()
 ```
 
 **Async version:** use `await notifier.async_ask("...")` in async contexts.
+
+# MCP Server
+
+Use slackker as an MCP server so AI agents can call tools like a remote `SimpleCallback`:
+
+- `notify` → send event notifications (optional attachment + metadata)
+- `ask` → human approval gate (`continue` / `halt`)
+- `get_messages` → fetch recent channel messages
+- `get_status` → connection + listener status
+
+Install MCP extras:
+
+```sh
+pip install "slackker[mcp]"
+```
+
+Start the server (stdio transport):
+
+```sh
+slackker-mcp
+```
+
+You can also load config from a JSON file and override via CLI flags:
+
+```sh
+slackker-mcp --config ./slackker_mcp.json --poll-interval 1.0
+```
+
+Configuration is read from environment variables:
+
+```bash
+# Required for Slack / Telegram / Discord
+SLACKKER_PLATFORM=slack          # slack | telegram | discord | teams
+SLACKKER_TOKEN=xoxb-...          # required for slack/telegram/discord
+
+# Platform-specific target
+SLACKKER_CHANNEL=C04AAB77ABC     # Slack channel ID
+SLACKKER_CHAT_ID=123456          # Telegram chat ID (optional if auto-discovery works)
+SLACKKER_CHANNEL_ID=12345678     # Discord channel ID
+
+# Teams-specific
+SLACKKER_APP_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+SLACKKER_TENANT_ID=common
+SLACKKER_CHAT_ID=19:...@thread.v2
+
+# Optional runtime tuning
+SLACKKER_POLL_INTERVAL=2.0
+SLACKKER_VERBOSE=1
+```
+
+# MCP Config Snippets
+
+### Claude Desktop (`claude_desktop_config.json`)
+
+```json
+{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+### Zed (`settings.json`)
+
+```json
+{
+  "context_servers": {
+    "slackker": {
+      "command": {
+        "path": "slackker-mcp",
+        "env": {
+          "SLACKKER_PLATFORM": "slack",
+          "SLACKKER_TOKEN": "xoxb-...",
+          "SLACKKER_CHANNEL": "C04AAB77ABC"
+        }
+      }
+    }
+  }
+}
+```
+
+### Continue / Roo Code-style MCP config
+
+```json
+{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
 
 # Use with [Keras][keras]
 ![keras-banner](https://i.postimg.cc/MpLBBTn7/slackker-keras.png)
