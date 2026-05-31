@@ -293,24 +293,24 @@ class TestMCPConfig:
     def test_load_from_env_slack(self, monkeypatch):
         monkeypatch.setenv("SLACKKER_PLATFORM", "slack")
         monkeypatch.setenv("SLACKKER_TOKEN", "xoxb-test")
-        monkeypatch.setenv("SLACKKER_CHANNEL", "C123")
+        monkeypatch.setenv("SLACKKER_CHANNEL_ID", "C123")
         monkeypatch.setenv("SLACKKER_POLL_INTERVAL", "3.5")
 
         config = load_config()
 
         assert config.platform == "slack"
         assert config.token == "xoxb-test"
-        assert config.resolved_channel_id == "C123"
+        assert config.channel_id == "C123"
         assert config.poll_interval == 3.5
 
     def test_file_and_cli_override(self, tmp_path, monkeypatch):
         monkeypatch.setenv("SLACKKER_PLATFORM", "slack")
         monkeypatch.setenv("SLACKKER_TOKEN", "env-token")
-        monkeypatch.setenv("SLACKKER_CHANNEL", "CENV")
+        monkeypatch.setenv("SLACKKER_CHANNEL_ID", "CENV")
 
         config_file = tmp_path / "mcp_config.json"
         config_file.write_text(
-            '{"platform":"slack","token":"file-token","channel":"CFILE","poll_interval":9.0}'
+            '{"platform":"slack","token":"file-token","channel_id":"CFILE","poll_interval":9.0}'
         )
 
         config = load_config(
@@ -319,7 +319,7 @@ class TestMCPConfig:
         )
 
         assert config.token == "cli-token"  # CLI wins
-        assert config.resolved_channel_id == "CFILE"  # file wins over env
+        assert config.channel_id == "CFILE"  # file wins over env
         assert config.poll_interval == 2.0  # CLI wins
 
     def test_missing_required_values_raises(self):
@@ -327,7 +327,7 @@ class TestMCPConfig:
             load_config(
                 cli_overrides={
                     "platform": "slack",
-                    "channel": "C123",
+                    "channel_id": "C123",
                 }
             )
 
@@ -336,7 +336,7 @@ class TestMCPConfig:
             {
                 "platform": "slack",
                 "token": "xoxb-test",
-                "channel": "C123",
+                "channel_id": "C123",
             }
         )
 
@@ -375,7 +375,7 @@ class TestMCPConfig:
             )
 
     def test_validate_slack_missing_channel_raises(self):
-        with pytest.raises(ValueError, match="SLACKKER_CHANNEL"):
+        with pytest.raises(ValueError, match="SLACKKER_CHANNEL_ID"):
             MCPConfig.from_mapping(
                 {
                     "platform": "slack",
@@ -430,13 +430,21 @@ class TestMCPConfig:
     def test_load_env_config_strips_and_drops_empty(self, monkeypatch):
         monkeypatch.setenv("SLACKKER_PLATFORM", " slack ")
         monkeypatch.setenv("SLACKKER_TOKEN", "  ")
-        monkeypatch.setenv("SLACKKER_CHANNEL", " C123 ")
+        monkeypatch.setenv("SLACKKER_CHANNEL_ID", " C123 ")
 
         env = load_env_config()
 
         assert env["platform"] == "slack"
-        assert env["channel"] == "C123"
+        assert env["channel_id"] == "C123"
         assert "token" not in env
+
+    def test_load_config_env_requires_channel_id_for_slack(self, monkeypatch):
+        monkeypatch.setenv("SLACKKER_PLATFORM", "slack")
+        monkeypatch.setenv("SLACKKER_TOKEN", "xoxb-test")
+        monkeypatch.setenv("SLACKKER_CHANNEL", "C999")
+
+        with pytest.raises(ValueError, match="SLACKKER_CHANNEL_ID"):
+            load_config()
 
     def test_load_config_file_not_found_raises(self, tmp_path):
         missing = tmp_path / "missing.json"
@@ -478,7 +486,7 @@ class TestMCPConfig:
                 "slack",
                 "--token",
                 "xoxb-1",
-                "--channel",
+                "--channel-id",
                 "C123",
                 "--poll-interval",
                 "1.25",
@@ -489,7 +497,7 @@ class TestMCPConfig:
 
         assert args.platform == "slack"
         assert args.token == "xoxb-1"
-        assert args.channel == "C123"
+        assert args.channel_id == "C123"
         assert args.poll_interval == 1.25
         assert args.verbose == 2
 
@@ -500,7 +508,7 @@ class TestMCPConfig:
                 {
                     "platform": "slack",
                     "token": "file-token",
-                    "channel": "CFILE",
+                    "channel_id": "CFILE",
                     "poll_interval": 5.0,
                 }
             )
@@ -510,7 +518,6 @@ class TestMCPConfig:
             config=str(p),
             platform=None,
             token="cli-token",
-            channel=None,
             channel_id=None,
             chat_id=None,
             app_id=None,
@@ -522,12 +529,12 @@ class TestMCPConfig:
 
         cfg = load_config_from_args(args)
         assert cfg.token == "cli-token"
-        assert cfg.resolved_channel_id == "CFILE"
+        assert cfg.channel_id == "CFILE"
         assert cfg.poll_interval == 2.5
 
     def test_build_client_for_each_platform(self):
         slack_cfg = MCPConfig.from_mapping(
-            {"platform": "slack", "token": "x", "channel": "C1"}
+            {"platform": "slack", "token": "x", "channel_id": "C1"}
         )
         telegram_cfg = MCPConfig.from_mapping(
             {"platform": "telegram", "token": "123:ABC", "chat_id": "7"}
@@ -608,7 +615,7 @@ class TestMCPConfig:
             {
                 "platform": "slack",
                 "token": "x",
-                "channel": "C1",
+                "channel_id": "C1",
             }
         )
         client = DisconnectedMockClient()
@@ -626,7 +633,7 @@ class TestMCPConfig:
             {
                 "platform": "slack",
                 "token": "x",
-                "channel": "C1",
+                "channel_id": "C1",
             }
         )
         client = DisconnectedMockClient()
@@ -881,13 +888,13 @@ class TestMCPServerRuntime:
                 "slack",
                 "--token",
                 "xoxb-test",
-                "--channel",
+                "--channel-id",
                 "C123",
             ]
         )
         assert args.platform == "slack"
         assert args.token == "xoxb-test"
-        assert args.channel == "C123"
+        assert args.channel_id == "C123"
 
     def test_main_runs_server_and_stops_handler(self):
         fake_args = argparse.Namespace()

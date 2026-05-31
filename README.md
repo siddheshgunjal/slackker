@@ -257,9 +257,8 @@ SLACKKER_PLATFORM=slack          # slack | telegram | discord | teams
 SLACKKER_TOKEN=xoxb-...          # required for slack/telegram/discord
 
 # Platform-specific target
-SLACKKER_CHANNEL=C04AAB77ABC     # Slack channel ID
+SLACKKER_CHANNEL_ID=C04AAB77ABC  # Slack / Discord channel ID
 SLACKKER_CHAT_ID=123456          # Telegram chat ID (optional if auto-discovery works)
-SLACKKER_CHANNEL_ID=12345678     # Discord channel ID
 
 # Teams-specific
 SLACKKER_APP_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -307,7 +306,7 @@ SLACKKER_VERBOSE=1
       "env": {
         "SLACKKER_PLATFORM": "slack",
         "SLACKKER_TOKEN": "xoxb-...",
-        "SLACKKER_CHANNEL": "C04AAB77ABC"
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
       }
     }
   }
@@ -328,7 +327,7 @@ SLACKKER_VERBOSE=1
         "env": {
           "SLACKKER_PLATFORM": "slack",
           "SLACKKER_TOKEN": "xoxb-...",
-          "SLACKKER_CHANNEL": "C04AAB77ABC"
+          "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
         }
       }
     }
@@ -349,7 +348,7 @@ SLACKKER_VERBOSE=1
       "env": {
         "SLACKKER_PLATFORM": "slack",
         "SLACKKER_TOKEN": "xoxb-...",
-        "SLACKKER_CHANNEL": "C04AAB77ABC"
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
       }
     }
   }
@@ -367,7 +366,7 @@ Add from CLI:
 claude mcp add --transport stdio \
   --env SLACKKER_PLATFORM=slack \
   --env SLACKKER_TOKEN=xoxb-... \
-  --env SLACKKER_CHANNEL=C04AAB77ABC \
+  --env SLACKKER_CHANNEL_ID=C04AAB77ABC \
   slackker -- slackker-mcp
 ```
 
@@ -382,7 +381,7 @@ Or project config (`.mcp.json`):
       "env": {
         "SLACKKER_PLATFORM": "slack",
         "SLACKKER_TOKEN": "xoxb-...",
-        "SLACKKER_CHANNEL": "C04AAB77ABC"
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
       }
     }
   }
@@ -405,7 +404,7 @@ Or project config (`.mcp.json`):
       "environment": {
         "SLACKKER_PLATFORM": "slack",
         "SLACKKER_TOKEN": "xoxb-...",
-        "SLACKKER_CHANNEL": "C04AAB77ABC"
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
       }
     }
   }
@@ -440,7 +439,7 @@ File-based config variant:
       "env": {
         "SLACKKER_PLATFORM": "slack",
         "SLACKKER_TOKEN": "xoxb-...",
-        "SLACKKER_CHANNEL": "C04AAB77ABC"
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
       }
     }
   }
@@ -470,7 +469,7 @@ Minimal generic example:
       "env": {
         "SLACKKER_PLATFORM": "slack",
         "SLACKKER_TOKEN": "xoxb-...",
-        "SLACKKER_CHANNEL": "C04AAB77ABC"
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
       }
     }
   }

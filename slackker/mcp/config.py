@@ -51,7 +51,6 @@ class MCPConfig:
     token: str | None = None
 
     # Platform-specific channel identifiers
-    channel: str | None = None  # Slack alias for channel_id
     channel_id: str | None = None  # Slack / Discord
     chat_id: str | None = None  # Telegram / Teams
 
@@ -63,11 +62,6 @@ class MCPConfig:
     # Runtime behavior
     poll_interval: float = 2.0
     verbose: int = 0
-
-    @property
-    def resolved_channel_id(self) -> str | None:
-        """Return channel identifier (``channel_id`` with ``channel`` fallback)."""
-        return self.channel_id or self.channel
 
     def validate(self) -> None:
         self.platform = (self.platform or "").strip().lower()
@@ -88,15 +82,11 @@ class MCPConfig:
                 "SLACKKER_TOKEN is required for slack, telegram, and discord platforms."
             )
 
-        if self.platform == "slack" and not self.resolved_channel_id:
-            raise ValueError(
-                "SLACKKER_CHANNEL (or SLACKKER_CHANNEL_ID) is required for Slack."
-            )
+        if self.platform == "slack" and not self.channel_id:
+            raise ValueError("SLACKKER_CHANNEL_ID is required for Slack.")
 
-        if self.platform == "discord" and not self.resolved_channel_id:
-            raise ValueError(
-                "SLACKKER_CHANNEL_ID (or SLACKKER_CHANNEL) is required for Discord."
-            )
+        if self.platform == "discord" and not self.channel_id:
+            raise ValueError("SLACKKER_CHANNEL_ID is required for Discord.")
 
         if self.platform == "teams":
             if not self.app_id:
@@ -110,7 +100,6 @@ class MCPConfig:
         config = cls(
             platform=(data.get("platform") or data.get("SLACKKER_PLATFORM") or ""),
             token=_clean(data.get("token") or data.get("SLACKKER_TOKEN")),
-            channel=_clean(data.get("channel") or data.get("SLACKKER_CHANNEL")),
             channel_id=_clean(
                 data.get("channel_id") or data.get("SLACKKER_CHANNEL_ID")
             ),
@@ -150,7 +139,6 @@ def load_env_config() -> dict[str, Any]:
     result: dict[str, Any] = {
         "platform": _clean(os.getenv("SLACKKER_PLATFORM")),
         "token": _clean(os.getenv("SLACKKER_TOKEN")),
-        "channel": _clean(os.getenv("SLACKKER_CHANNEL")),
         "channel_id": _clean(os.getenv("SLACKKER_CHANNEL_ID")),
         "chat_id": _clean(os.getenv("SLACKKER_CHAT_ID")),
         "app_id": _clean(os.getenv("SLACKKER_APP_ID")),
@@ -212,7 +200,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
     parser.add_argument("--platform", choices=sorted(_SUPPORTED_PLATFORMS))
     parser.add_argument("--token")
-    parser.add_argument("--channel", help="Slack channel ID (alias for --channel-id).")
     parser.add_argument("--channel-id", help="Slack/Discord channel ID.")
     parser.add_argument("--chat-id", help="Telegram/Teams chat ID.")
 
@@ -237,7 +224,7 @@ def build_client(config: MCPConfig) -> BaseClient:
     if config.platform == "slack":
         return SlackClient(
             token=config.token or "",
-            channel_id=config.resolved_channel_id or "",
+            channel_id=config.channel_id or "",
             verbose=config.verbose,
         )
 
@@ -251,7 +238,7 @@ def build_client(config: MCPConfig) -> BaseClient:
     if config.platform == "discord":
         return DiscordClient(
             token=config.token or "",
-            channel_id=config.resolved_channel_id or "",
+            channel_id=config.channel_id or "",
             verbose=config.verbose,
         )
 
