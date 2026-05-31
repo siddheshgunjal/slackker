@@ -29,7 +29,7 @@ class MockClient(BaseClient):
         return "mock.example.com"
 
     @property
-    def is_connected(self):
+    def is_connected(self) -> bool:
         return True
 
     async def send_message(self, text):
@@ -96,7 +96,7 @@ class TestOnEpochEnd:
     def test_tracks_metrics_and_reports(self, mock_check):
         cb, client = _make_callback()
         logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
-        cb.on_epoch_end(batch=0, logs=logs)
+        cb.on_epoch_end(epoch=0, logs=logs)
 
         assert cb.n_epochs == 1
         assert len(cb.train_loss) == 1
@@ -112,7 +112,7 @@ class TestOnEpochEnd:
     def test_skips_report_without_internet(self, mock_check):
         cb, client = _make_callback()
         logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
-        cb.on_epoch_end(batch=0, logs=logs)
+        cb.on_epoch_end(epoch=0, logs=logs)
 
         assert cb.n_epochs == 1
         assert len(cb.train_loss) == 1
@@ -131,7 +131,7 @@ class TestOnEpochEnd:
             {"accuracy": 0.85, "loss": 0.35, "val_accuracy": 0.82, "val_loss": 0.40},
         ]
         for i, logs in enumerate(epochs_logs):
-            cb.on_epoch_end(batch=i, logs=logs)
+            cb.on_epoch_end(epoch=i, logs=logs)
 
         assert cb.n_epochs == 3
         assert len(cb.train_loss) == 3
@@ -199,7 +199,7 @@ class TestLogOrdering:
                 "val_accuracy": 0.4 + i * 0.1,
                 "val_loss": 1.0 - i * 0.1,
             }
-            cb.on_epoch_end(batch=i, logs=logs)
+            cb.on_epoch_end(epoch=i, logs=logs)
 
         assert cb.train_acc == pytest.approx([0.5, 0.6, 0.7])
         assert cb.train_loss == pytest.approx([0.9, 0.8, 0.7])
@@ -231,7 +231,7 @@ class TestCompleteWorkflow:
                 "val_accuracy": 0.65 + epoch * 0.03,
                 "val_loss": 0.65 - epoch * 0.05,
             }
-            cb.on_epoch_end(batch=epoch, logs=logs)
+            cb.on_epoch_end(epoch=epoch, logs=logs)
         cb.on_train_end()
 
         assert cb.n_epochs == 5
@@ -254,7 +254,7 @@ class TestKerasCallbackMessageFormatting:
             "val_accuracy": 0.7956,
             "val_loss": 0.5123,
         }
-        cb.on_epoch_end(batch=0, logs=logs)
+        cb.on_epoch_end(epoch=0, logs=logs)
 
         assert len(client.messages) == 1
         message = client.messages[0]
@@ -295,7 +295,7 @@ class TestKerasCallbackAdditionalBranches:
     )
     def test_on_epoch_end_incomplete_logs_skips_tracking(self, mock_check):
         cb, client = _make_callback()
-        cb.on_epoch_end(batch=0, logs={"accuracy": 0.8, "loss": 0.2})
+        cb.on_epoch_end(epoch=0, logs={"accuracy": 0.8, "loss": 0.2})
         # With < 4 log values, metrics are not tracked but epoch still counts
         assert cb.n_epochs == 1
         assert cb.train_loss == []
@@ -313,7 +313,7 @@ class TestKerasCallbackAdditionalBranches:
             "val_accuracy": 0.80,
             "val_loss": 0.50,
         }
-        cb.on_epoch_end(batch=0, logs=logs)
+        cb.on_epoch_end(epoch=0, logs=logs)
 
         assert cb.n_epochs == 1
         assert cb.valid_loss == [0.50]

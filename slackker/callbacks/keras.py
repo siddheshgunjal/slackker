@@ -58,7 +58,7 @@ class KerasCallback(Callback):
             f'Training on "{self.model_name}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
         )
 
-    def on_epoch_end(self, batch, logs=None):
+    def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
         log_values = list(logs.values())
 

@@ -53,6 +53,10 @@ class BaseClient(ABC):
         """Return the hostname used to check platform reachability, e.g. 'www.slack.com'."""
         ...
 
+    async def connect(self) -> bool:
+        """Verify server connectivity and discover chat_id if not provided."""
+        ...
+
     @abstractmethod
     async def send_message(self, text: str) -> None:
         """Send a text message to the configured channel."""
