@@ -9,6 +9,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from dotenv import dotenv_values
+
 from slackker.core import (
     BaseClient,
     DiscordClient,
@@ -20,6 +22,23 @@ from slackker.core.client import _run_sync
 from slackker.utils.logger import log
 
 _SUPPORTED_PLATFORMS = {"slack", "telegram", "discord", "teams"}
+
+
+def _load_dotenv_values(dotenv_path: str | Path | None = None) -> dict[str, str]:
+    """Read ``SLACKKER_*`` values from a local ``.env`` file."""
+    path = Path(dotenv_path) if dotenv_path else Path(".env")
+    if not path.is_file():
+        return {}
+
+    loaded: dict[str, str] = {}
+    for key, value in dotenv_values(path).items():
+        if not key or not key.startswith("SLACKKER_"):
+            continue
+        if value is None:
+            continue
+        loaded[key] = value
+
+    return loaded
 
 
 def _clean(value: str | None) -> str | None:
@@ -134,18 +153,31 @@ class MCPConfig:
         return asdict(self)
 
 
-def load_env_config() -> dict[str, Any]:
-    """Read supported ``SLACKKER_*`` environment variables."""
+def load_env_config(dotenv_path: str | Path | None = None) -> dict[str, Any]:
+    """Read supported ``SLACKKER_*`` values from env with ``.env`` fallback.
+
+    Resolution order inside this function:
+    1) ``.env`` values (if file exists)
+    2) process environment variables (override ``.env``)
+    """
+    dotenv_values = _load_dotenv_values(dotenv_path=dotenv_path)
+
+    env: dict[str, str] = {}
+    env.update(dotenv_values)
+    env.update(
+        {key: value for key, value in os.environ.items() if key.startswith("SLACKKER_")}
+    )
+
     result: dict[str, Any] = {
-        "platform": _clean(os.getenv("SLACKKER_PLATFORM")),
-        "token": _clean(os.getenv("SLACKKER_TOKEN")),
-        "channel_id": _clean(os.getenv("SLACKKER_CHANNEL_ID")),
-        "chat_id": _clean(os.getenv("SLACKKER_CHAT_ID")),
-        "app_id": _clean(os.getenv("SLACKKER_APP_ID")),
-        "tenant_id": _clean(os.getenv("SLACKKER_TENANT_ID")),
-        "teams_token_cache_path": _clean(os.getenv("SLACKKER_TEAMS_TOKEN_CACHE_PATH")),
-        "poll_interval": _clean(os.getenv("SLACKKER_POLL_INTERVAL")),
-        "verbose": _clean(os.getenv("SLACKKER_VERBOSE")),
+        "platform": _clean(env.get("SLACKKER_PLATFORM")),
+        "token": _clean(env.get("SLACKKER_TOKEN")),
+        "channel_id": _clean(env.get("SLACKKER_CHANNEL_ID")),
+        "chat_id": _clean(env.get("SLACKKER_CHAT_ID")),
+        "app_id": _clean(env.get("SLACKKER_APP_ID")),
+        "tenant_id": _clean(env.get("SLACKKER_TENANT_ID")),
+        "teams_token_cache_path": _clean(env.get("SLACKKER_TEAMS_TOKEN_CACHE_PATH")),
+        "poll_interval": _clean(env.get("SLACKKER_POLL_INTERVAL")),
+        "verbose": _clean(env.get("SLACKKER_VERBOSE")),
     }
     return {k: v for k, v in result.items() if v is not None}
 

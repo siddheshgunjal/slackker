@@ -438,6 +438,73 @@ class TestMCPConfig:
         assert env["channel_id"] == "C123"
         assert "token" not in env
 
+    def test_load_env_config_reads_dotenv_file(self, tmp_path, monkeypatch):
+        dotenv_path = tmp_path / ".env"
+        dotenv_path.write_text(
+            "\n".join(
+                [
+                    "# comment",
+                    "SLACKKER_PLATFORM=slack",
+                    "export SLACKKER_TOKEN='xoxb-dotenv'",
+                    "SLACKKER_CHANNEL_ID= C999 ",
+                    "UNRELATED=value",
+                ]
+            )
+        )
+
+        monkeypatch.delenv("SLACKKER_PLATFORM", raising=False)
+        monkeypatch.delenv("SLACKKER_TOKEN", raising=False)
+        monkeypatch.delenv("SLACKKER_CHANNEL_ID", raising=False)
+
+        env = load_env_config(dotenv_path=dotenv_path)
+
+        assert env["platform"] == "slack"
+        assert env["token"] == "xoxb-dotenv"
+        assert env["channel_id"] == "C999"
+
+    def test_load_env_config_process_env_overrides_dotenv(self, tmp_path, monkeypatch):
+        dotenv_path = tmp_path / ".env"
+        dotenv_path.write_text(
+            "\n".join(
+                [
+                    "SLACKKER_PLATFORM=slack",
+                    "SLACKKER_TOKEN=file-token",
+                    "SLACKKER_CHANNEL_ID=CFILE",
+                ]
+            )
+        )
+        monkeypatch.setenv("SLACKKER_TOKEN", "env-token")
+
+        env = load_env_config(dotenv_path=dotenv_path)
+
+        assert env["token"] == "env-token"
+        assert env["channel_id"] == "CFILE"
+
+    def test_load_config_reads_local_dotenv_when_env_not_exported(
+        self, tmp_path, monkeypatch
+    ):
+        dotenv_path = tmp_path / ".env"
+        dotenv_path.write_text(
+            "\n".join(
+                [
+                    "SLACKKER_PLATFORM=slack",
+                    "SLACKKER_TOKEN=xoxb-from-dotenv",
+                    "SLACKKER_CHANNEL_ID=C123DOT",
+                ]
+            )
+        )
+
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("SLACKKER_PLATFORM", raising=False)
+        monkeypatch.delenv("SLACKKER_TOKEN", raising=False)
+        monkeypatch.delenv("SLACKKER_CHANNEL_ID", raising=False)
+
+        config = load_config()
+
+        assert config.platform == "slack"
+        assert config.token == "xoxb-from-dotenv"
+        assert config.channel_id == "C123DOT"
+
     def test_load_config_env_requires_channel_id_for_slack(self, monkeypatch):
         monkeypatch.setenv("SLACKKER_PLATFORM", "slack")
         monkeypatch.setenv("SLACKKER_TOKEN", "xoxb-test")

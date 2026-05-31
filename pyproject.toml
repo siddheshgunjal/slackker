@@ -38,7 +38,10 @@ Issues = "https://github.com/siddheshgunjal/slackker/issues"
 Changelog = "https://github.com/siddheshgunjal/slackker/releases"
 
 [project.optional-dependencies]
-mcp = ["mcp[cli]>=1.0.0"]
+mcp = [
+    "mcp[cli]>=1.0.0",
+    "python-dotenv>=1.0.1",
+]
 
 [project.scripts]
 slackker-mcp = "slackker.mcp.server:main"

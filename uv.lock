@@ -3617,6 +3617,7 @@ dependencies = [
 [package.optional-dependencies]
 mcp = [
     { name = "mcp", extra = ["cli"] },
+    { name = "python-dotenv" },
 ]
 
 [package.dev-dependencies]
@@ -3643,6 +3644,7 @@ requires-dist = [
     { name = "mcp", extras = ["cli"], marker = "extra == 'mcp'", specifier = ">=1.0.0" },
     { name = "nest-asyncio", specifier = ">=1.6.0" },
     { name = "numpy", specifier = ">=1.24.4" },
+    { name = "python-dotenv", marker = "extra == 'mcp'", specifier = ">=1.0.1" },
     { name = "requests", specifier = ">=2.31.0" },
     { name = "slack-sdk", specifier = ">=3.39.0" },
 ]
