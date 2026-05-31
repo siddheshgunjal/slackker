@@ -28,7 +28,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --dev --extra mcp
 
       - name: Run tests with coverage
         run: uv run pytest tests/ -v --tb=short --cov=slackker --cov-report=term-missing
