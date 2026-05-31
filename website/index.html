@@ -95,6 +95,7 @@
       <a href="#quickstart">Quick Start</a>
       <a href="#setup">Client Setup</a>
       <a href="#usage">Usage</a>
+      <a href="#mcp">MCP Setup</a>
     </nav>
   </header>
 
@@ -679,6 +680,63 @@ def main():
 main()</code></pre>
         </article>
       </div>
+    </section>
+
+    <section id="mcp" class="section reveal">
+      <div class="section-head center-text">
+        <p class="eyebrow">Universal MCP setup</p>
+        <h2>Use slackker from your AI coding client</h2>
+        <p class="lead center-block">slackker runs as a local stdio MCP server. Pick your client below to get a ready-to-paste config snippet.</p>
+      </div>
+
+      <div class="steps-wrapper center-block">
+          <ol class="steps center-block">
+            <li class="glass"><span>1</span>Install MCP extras: <code>pip install "slackker[mcp]"</code></li>
+            <li class="glass"><span>2</span>Start the server with <code>slackker-mcp</code> (or <code>uv run slackker-mcp</code> if it is not on your <code>PATH</code>).</li>
+            <li class="glass"><span>3</span>Apply one of the client configs below and set your <code>SLACKKER_*</code> values.</li>
+          </ol>
+      </div>
+
+      <div class="example-panels">
+        <article class="example-panel glass active" role="region" aria-label="MCP config snippet">
+          <div class="ide-titlebar">
+            <span class="ide-dot dot-red"></span>
+            <span class="ide-dot dot-yellow"></span>
+            <span class="ide-dot dot-green"></span>
+            <span class="ide-filename">mcp-config.json</span>
+            <div class="platform-toggle dropdown-only" role="group" aria-label="Switch MCP client">
+              <span class="platform-label">Client: </span>
+              <select class="plt-select" aria-label="Switch MCP client">
+                <option value="vscode">VS Code</option>
+                <option value="zed">Zed</option>
+                <option value="claude-desktop">Claude Desktop</option>
+                <option value="claude-code">Claude Code</option>
+                <option value="opencode">OpenCode</option>
+                <option value="roo">Roo Code</option>
+                <option value="cursor">Cursor</option>
+                <option value="continue">Continue</option>
+                <option value="antigravity">Antigravity</option>
+                <option value="hermes">Hermes</option>
+              </select>
+            </div>
+          </div>
+<pre><code class="code-python" data-snippet="mcp">{
+  "servers": {
+    "slackker": {
+      "type": "stdio",
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}</code></pre>
+        </article>
+      </div>
+
+      <p class="mcp-footnote center-text">Need complete docs and compatibility notes? See <a href="https://github.com/siddheshgunjal/slackker#universal-mcp-configuration" target="_blank" rel="noreferrer">Universal MCP Configuration</a>.</p>
     </section>
 
     <section id="how-it-works" class="section reveal">

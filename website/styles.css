@@ -141,6 +141,14 @@ body {
     margin-right: auto;
 }
 
+.steps-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 1.2rem;
+}
+
 .eyebrow {
     color: #0f7a60;
     text-transform: uppercase;
@@ -367,30 +375,56 @@ h2 {
     gap: 0.25rem;
 }
 
-.mode-select {
-    display: none;
-    font-size: 0.85rem;
-    font-weight: 700;
-    padding: 0.2rem 0.55rem;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-    cursor: pointer;
-    outline: none;
-}
-
+.mode-select,
 .plt-select {
     display: none;
     font-size: 0.85rem;
     font-weight: 700;
-    padding: 0.2rem 0.55rem;
+    padding: 0.2rem 1.75rem 0.2rem 0.55rem;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.12);
+    background-color: rgba(255, 255, 255, 0.12);
     color: #ffffff;
     cursor: pointer;
     outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    line-height: 1.25;
+    vertical-align: middle;
+    background-image:
+        linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.92) 50%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.92) 50%, transparent 50%);
+    background-position:
+        calc(100% - 12px) 50%,
+        calc(100% - 7px) 50%;
+    background-size:
+        5px 5px,
+        5px 5px;
+    background-repeat: no-repeat;
+    transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        box-shadow 0.18s ease;
+}
+
+.mode-select:hover,
+.plt-select:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.35);
+}
+
+.mode-select:focus-visible,
+.plt-select:focus-visible {
+    border-color: rgba(62, 212, 174, 0.95);
+    background-color: rgba(255, 255, 255, 0.24);
+    box-shadow: 0 0 0 2px rgba(26, 171, 138, 0.32);
+}
+
+.mode-select option,
+.plt-select option {
+    color: #0d3328;
+    background: #eafaf4;
 }
 
 .plt-btn {
@@ -533,6 +567,37 @@ pre {
     font-weight: 800;
     margin-right: 0.6rem;
     vertical-align: middle;
+}
+
+/* ── MCP section ───────────────────────────────────────────── */
+.platform-toggle.dropdown-only .plt-btn {
+    display: none;
+}
+
+.platform-toggle.dropdown-only .plt-select {
+    display: block;
+    margin-left: auto;
+}
+
+.mcp-footnote {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.mcp-footnote a {
+    color: var(--teal);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.mcp-footnote a:hover {
+    text-decoration: underline;
+}
+
+.mcp-footnote a:focus-visible {
+    text-decoration: underline;
 }
 
 .cta-logo {
@@ -882,7 +947,13 @@ button:focus-visible,
     .mode-select,
     .plt-select {
         font-size: 0.7rem;
-        padding: 0.18rem 0.45rem;
+        padding: 0.18rem 1.45rem 0.18rem 0.45rem;
+        background-position:
+            calc(100% - 10px) 50%,
+            calc(100% - 6px) 50%;
+        background-size:
+            4px 4px,
+            4px 4px;
     }
 
     .titlebar-controls {

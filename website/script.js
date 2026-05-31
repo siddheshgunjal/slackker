@@ -74,8 +74,13 @@ const revealObserver = new IntersectionObserver(
 
 revealElements.forEach((element) => revealObserver.observe(element));
 
-const tabs = document.querySelectorAll(".example-tab:not(.setup-tab)");
-const panels = document.querySelectorAll(".example-panel:not(.setup-panel)");
+const usageSection = document.getElementById("usage");
+const tabs = usageSection
+  ? usageSection.querySelectorAll(".example-switch .example-tab")
+  : [];
+const panels = usageSection
+  ? usageSection.querySelectorAll(".example-panels .example-panel")
+  : [];
 
 function activateTab(targetId) {
   tabs.forEach((tab) => {
@@ -869,6 +874,135 @@ slackker_cb = LightningCallback(
 trainer = Trainer(max_epochs=12, callbacks=[slackker_cb])
 trainer.fit(model, train_loader, val_loader)`,
   },
+  mcp: {
+    vscode: `{
+  "servers": {
+    "slackker": {
+      "type": "stdio",
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}`,
+    zed: `{
+  "context_servers": {
+    "slackker": {
+      "command": {
+        "path": "slackker-mcp",
+        "env": {
+          "SLACKKER_PLATFORM": "slack",
+          "SLACKKER_TOKEN": "xoxb-...",
+          "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+        }
+      }
+    }
+  }
+}`,
+    "claude-desktop": `{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}`,
+    "claude-code": `{
+  "mcpServers": {
+    "slackker": {
+      "type": "stdio",
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}`,
+    opencode: `{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "slackker": {
+      "type": "local",
+      "command": ["slackker-mcp"],
+      "enabled": true,
+      "environment": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}`,
+    roo: `{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}`,
+    cursor: `{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}`,
+    continue: `{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}`,
+    antigravity: `{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}`,
+    hermes: `{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}`,
+  },
 };
 
 // ── Setup tab switcher ───────────────────────────────────────
@@ -906,6 +1040,11 @@ document.querySelectorAll(".platform-toggle").forEach((toggle) => {
       toggle
         .querySelectorAll(".plt-btn")
         .forEach((b) => b.classList.toggle("active", b === btn));
+
+      const select = toggle.querySelector(".plt-select");
+      if (select) {
+        select.value = platform;
+      }
 
       codeBlock.innerHTML = highlightPython(CODE_SNIPPETS[snippet][platform]);
     });
