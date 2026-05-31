@@ -242,7 +242,25 @@ Start the server (stdio transport):
 slackker-mcp
 ```
 
-You can also load config from a JSON file and override via CLI flags:
+## CLI run methods
+
+If `slackker-mcp` is not on your shell `PATH`, use one of these:
+
+```sh
+# Run via uv in the current project environment
+uv run slackker-mcp
+
+# Run as a Python module (bypasses PATH lookup)
+python -m slackker.mcp.server
+```
+
+You can also configure everything with CLI flags only:
+
+```sh
+slackker-mcp --platform slack --token xoxb-... --channel-id C04AAB77ABC
+```
+
+Or load config from a JSON file and still override via flags:
 
 ```sh
 slackker-mcp --config ./slackker_mcp.json --poll-interval 1.0
@@ -268,6 +286,9 @@ SLACKKER_CHAT_ID=19:...@thread.v2
 SLACKKER_POLL_INTERVAL=2.0
 SLACKKER_VERBOSE=1
 ```
+
+`slackker-mcp` automatically reads a local `.env` file from the current working directory.
+If the same `SLACKKER_*` key is set in both places, the exported process environment value wins.
 
 # Universal MCP Configuration
 
