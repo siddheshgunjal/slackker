@@ -162,7 +162,7 @@ body {
     color: #0f7a60;
     text-transform: uppercase;
     letter-spacing: 0.12em;
-    font-size: 1rem;
+    font-size: 1.35rem;
     font-weight: 700;
 }
 
@@ -187,7 +187,7 @@ h2 {
 .lead {
     max-width: 85ch;
     color: var(--muted);
-    font-size: 1.05rem;
+    font-size: 1.15rem;
 }
 
 .hero-cta {
@@ -592,7 +592,7 @@ pre {
     margin-top: 1rem;
     margin-bottom: 0;
     color: var(--muted);
-    font-size: 0.95rem;
+    font-size: 1.15rem;
 }
 
 .mcp-footnote a {
@@ -923,7 +923,7 @@ button:focus-visible,
     }
 
     .lead {
-        font-size: 0.92rem;
+        font-size: 1rem;
     }
 
     .hero-code code.code-python,
@@ -1208,6 +1208,9 @@ button:focus-visible,
     font-size: 1rem;
     color: var(--teal);
     text-decoration: underline;
+    font-weight: 600;
+    padding: 0.45rem;
+    border-radius: 1rem;
 }
 
 .setup-step-num {
