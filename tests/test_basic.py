@@ -228,7 +228,7 @@ class DisconnectedMockClient(MockClient):
         self._connected = False
 
     @property
-    def is_connected(self):
+    def is_connected(self):  # type: ignore
         return self._connected
 
     async def connect(self):

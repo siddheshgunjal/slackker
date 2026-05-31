@@ -93,7 +93,7 @@ class TestLightningCallbackInit:
         m = MockClient()
         with pytest.raises(SystemExit):
             LightningCallback(
-                client=m, model_name="M", track_logs="train_loss", monitor="train_loss"
+                client=m, model_name="M", track_logs="train_loss", monitor="train_loss"  # type: ignore
             )
 
     def test_init_monitor_must_be_in_track_logs(self):
@@ -108,7 +108,7 @@ class TestLightningCallbackInit:
 
     def test_init_monitor_none_warns(self, capsys):
         # monitor=None should warn but not crash
-        cb, _ = _make_callback(monitor=None)
+        cb, _ = _make_callback(monitor=None)  # type: ignore
         assert cb.monitor is None
 
     def test_init_rejects_bad_format(self):
@@ -129,7 +129,7 @@ class TestLightningCallbackInit:
 class TestOnFitStart:
     def test_posts_training_start(self):
         cb, client = _make_callback()
-        cb.on_fit_start(trainer=None, pl_module=None)
+        cb.on_fit_start(trainer=None, pl_module=None)  # type: ignore
         assert len(client.messages) == 1
         assert "TestModel" in client.messages[0]
         assert "started at" in client.messages[0]
@@ -154,7 +154,7 @@ class TestOnTrainEpochEnd:
                 "val_acc": 0.67,
             }
         )
-        cb.on_train_epoch_end(trainer=trainer, pl_module=None)
+        cb.on_train_epoch_end(trainer=trainer, pl_module=None)  # type: ignore
 
         assert cb.n_epochs == 1
         assert cb.training_logs["train_loss"] == [0.90]
@@ -177,7 +177,7 @@ class TestOnTrainEpochEnd:
                 "val_acc": 0.67,
             }
         )
-        cb.on_train_epoch_end(trainer=trainer, pl_module=None)
+        cb.on_train_epoch_end(trainer=trainer, pl_module=None)  # type: ignore
 
         assert cb.n_epochs == 1
         assert cb.training_logs["val_loss"] == [0.84]
@@ -198,7 +198,7 @@ class TestOnFitEnd:
         }
         cb.n_epochs = 3
 
-        cb.on_fit_end(trainer=None, pl_module=None)
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         found = any("Best epoch was, Epoch 1" in m for m in client.messages)
         assert found
@@ -211,17 +211,17 @@ class TestOnFitEnd:
         }
         cb.n_epochs = 3
 
-        cb.on_fit_end(trainer=None, pl_module=None)
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         found = any("Best epoch was, Epoch 1" in m for m in client.messages)
         assert found
 
     def test_no_monitor_fallback_message(self):
-        cb, client = _make_callback(monitor=None)
+        cb, client = _make_callback(monitor=None)  # type: ignore
         cb.training_logs = {"train_loss": [0.9], "val_loss": [0.8]}
         cb.n_epochs = 1
 
-        cb.on_fit_end(trainer=None, pl_module=None)
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         found = any("monitor' was not provided" in m for m in client.messages)
         assert found
@@ -235,7 +235,7 @@ class TestOnFitEnd:
         cb.training_logs = {"train_loss": [0.9, 0.7], "val_loss": [0.8, 0.6]}
         cb.n_epochs = 2
 
-        cb.on_fit_end(trainer=None, pl_module=None)
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         assert len(client.uploaded_images) == 2
         mock_plots.assert_called_once()
@@ -257,7 +257,7 @@ class TestCompleteWorkflow:
     def test_full_training(self, mock_plots, mock_check):
         cb, client = _make_callback(send_plot=True)
 
-        cb.on_fit_start(trainer=None, pl_module=None)
+        cb.on_fit_start(trainer=None, pl_module=None)  # type: ignore
         for epoch in range(6):
             trainer = _trainer_with_metrics(
                 {
@@ -267,8 +267,8 @@ class TestCompleteWorkflow:
                     "val_acc": 0.62 + (0.03 * epoch),
                 }
             )
-            cb.on_train_epoch_end(trainer=trainer, pl_module=None)
-        cb.on_fit_end(trainer=None, pl_module=None)
+            cb.on_train_epoch_end(trainer=trainer, pl_module=None)  # type: ignore
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         assert cb.n_epochs == 6
         assert len(cb.training_logs["train_loss"]) == 6
@@ -288,7 +288,7 @@ class DisconnectedMockClient(MockClient):
         self._connected = False
 
     @property
-    def is_connected(self):
+    def is_connected(self):  # type: ignore
         return self._connected
 
     async def connect(self):

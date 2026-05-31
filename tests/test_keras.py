@@ -286,7 +286,7 @@ class TestKerasCallbackAdditionalBranches:
     def test_init_export_none_raises(self):
         m = MockClient()
         with pytest.raises(ValueError, match="Unsupported export format"):
-            KerasCallback(client=m, model_name="M", export=None)
+            KerasCallback(client=m, model_name="M", export=None)  # type: ignore
 
     @patch(
         "slackker.callbacks.keras.network.check_connection_quick",
