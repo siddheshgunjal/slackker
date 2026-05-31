@@ -37,10 +37,7 @@ New API (recommended):
     from slackker.callbacks.keras import KerasCallback
     from slackker.callbacks.lightning import LightningCallback
 
-Legacy API (deprecated, still works):
-    from slackker.callbacks.basic import Update, SlackUpdate, TelegramUpdate
-    from slackker.callbacks.keras import SlackUpdate, TelegramUpdate
-    from slackker.callbacks.lightning import SlackUpdate, TelegramUpdate
+
 
 References
 ----------

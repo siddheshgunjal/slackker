@@ -31,7 +31,6 @@ https://github.com/user-attachments/assets/41ab1ee9-4d3c-44d0-82b2-3194acbf7727
 * [Universal MCP Configuration](#universal-mcp-configuration)
 * [Keras](#use-with-keras)
 * [Lightning](#use-with-lightning)
-* [Legacy API (deprecated)](#legacy-api-deprecated)
 * [Support](#support-sparkles)
 * [Citation](#citation-page_facing_up)
 * [Maintainer](#maintainer-sunglasses)
@@ -617,68 +616,6 @@ trainer.fit(model, train_loader, val_loader)
 </details>
 
 ---
-
-# Legacy API (deprecated)
-
-> **Note:** The old `Update`, `SlackUpdate`, and `TelegramUpdate` classes still work but emit a `DeprecationWarning`. They will be removed in a future release. Please migrate to `SimpleCallback` and the new client-based API shown above.
-
-<details>
-<summary><strong>Click to expand legacy usage examples</strong></summary>
-
-### Basic callbacks (legacy)
-```python
-from slackker.callbacks.basic import SlackUpdate   # or TelegramUpdate
-
-# Slack
-slackker = SlackUpdate(
-    token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel_id="C04AAB77ABC",
-)
-
-# Telegram
-slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG")
-
-@slackker.notifier
-def your_function():
-    return value_1, value_2
-
-slackker.notify(event="done", value_1=value_1)
-```
-
-### Keras callbacks (legacy)
-```python
-from slackker.callbacks.keras import SlackUpdate   # or TelegramUpdate
-
-slackker = SlackUpdate(
-    token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel_id="C04AAB77ABC",
-    ModelName="Keras_NN",
-    export="png",
-    SendPlot=True,
-)
-
-history = model.fit(..., callbacks=[slackker])
-```
-
-### Lightning callbacks (legacy)
-```python
-from slackker.callbacks.lightning import SlackUpdate   # or TelegramUpdate
-
-slackker = SlackUpdate(
-    token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel_id="C04AAB77ABC",
-    ModelName="Lightning NN",
-    TrackLogs=["train_loss", "train_acc", "val_loss", "val_acc"],
-    monitor="val_loss",
-    export="png",
-    SendPlot=True,
-)
-
-trainer = Trainer(max_epochs=2, callbacks=[slackker])
-trainer.fit(model, train_loader, test_loader)
-```
-
-</details>
 
 #  Support :sparkles:
 If you get stuck, we’re here to help. The following are the best ways to get assistance working through your issue:

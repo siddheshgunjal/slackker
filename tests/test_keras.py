@@ -1,15 +1,10 @@
-"""
-Comprehensive tests for slackker.callbacks.keras module.
-Tests cover the new unified KerasCallback class and backward-compatible shims.
-"""
+"""Comprehensive tests for `slackker.callbacks.keras` module."""
 
-import warnings
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-import numpy as np
 import pytest
 
-from slackker.callbacks.keras import KerasCallback, SlackUpdate, TelegramUpdate
+from slackker.callbacks.keras import KerasCallback
 from slackker.core.client import BaseClient
 
 # ── Fixtures ──────────────────────────────────────────────────
@@ -243,70 +238,6 @@ class TestCompleteWorkflow:
         assert len(client.messages) >= 7  # 1 begin + 5 epochs + 2 end summaries
 
 
-# ── Backward-compat shim tests ───────────────────────────────
-
-
-class TestSlackUpdateShim:
-    @patch("slackker.callbacks.keras.SlackClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            cb = SlackUpdate(token="xoxb-test", channel_id="C123", ModelName="M")
-            assert any(issubclass(x.category, DeprecationWarning) for x in w)
-
-    @patch("slackker.callbacks.keras.SlackClient")
-    def test_shim_preserves_old_attrs(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = SlackUpdate(
-                token="xoxb-test",
-                channel_id="C123",
-                ModelName="M",
-                SendPlot=True,
-                verbose=2,
-            )
-
-        assert cb.ModelName == "M"
-        assert cb.SendPlot is True
-        assert cb.verbose == 2
-
-    def test_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = SlackUpdate(token=None, channel_id="C123", ModelName="M")
-        assert not hasattr(cb, "client")
-
-
-class TestTelegramUpdateShim:
-    @patch("slackker.callbacks.keras.TelegramClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client.chat_id = "99999"
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            cb = TelegramUpdate(token="123:ABC", ModelName="M")
-            assert any(issubclass(x.category, DeprecationWarning) for x in w)
-
-    def test_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = TelegramUpdate(token=None, ModelName="M")
-        assert not hasattr(cb, "client")
-
-
 class TestKerasCallbackMessageFormatting:
     """Test message formatting in Keras callbacks using MockClient."""
 
@@ -440,36 +371,6 @@ class TestAutoConnect:
         client = MockClient()  # is_connected always True
         KerasCallback(client=client, model_name="M", export="png")
         assert client.is_connected
-
-
-class TestKerasShimConnectFails:
-    """Cover the connect-failed error log branches in SlackUpdate and TelegramUpdate."""
-
-    @patch("slackker.callbacks.keras.SlackClient")
-    def test_slack_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = SlackUpdate(token="xoxb-test", channel_id="C123", ModelName="M")
-
-        assert not hasattr(obj, "client")
-
-    @patch("slackker.callbacks.keras.TelegramClient")
-    def test_telegram_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_client.chat_id = None
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = TelegramUpdate(token="123:ABC", ModelName="M")
-
-        assert not hasattr(obj, "client")
 
 
 if __name__ == "__main__":

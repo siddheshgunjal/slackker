@@ -1,16 +1,11 @@
-"""
-Tests for slackker.callbacks.lightning module.
-Tests cover the new unified LightningCallback class and backward-compatible shims.
-"""
+"""Tests for `slackker.callbacks.lightning` module."""
 
-import warnings
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-import numpy as np
 import pytest
 
-from slackker.callbacks.lightning import LightningCallback, SlackUpdate, TelegramUpdate
+from slackker.callbacks.lightning import LightningCallback
 from slackker.core.client import BaseClient
 
 # ── Fixtures ──────────────────────────────────────────────────
@@ -281,95 +276,6 @@ class TestCompleteWorkflow:
         assert len(client.messages) == 8
 
 
-# ── Backward-compat shim tests ───────────────────────────────
-
-
-class TestSlackUpdateShim:
-    @patch("slackker.callbacks.lightning.SlackClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            cb = SlackUpdate(
-                token="xoxb-test",
-                channel_id="C123",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-            assert any(issubclass(x.category, DeprecationWarning) for x in w)
-
-    @patch("slackker.callbacks.lightning.SlackClient")
-    def test_shim_preserves_old_attrs(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = SlackUpdate(
-                token="xoxb-test",
-                channel_id="C123",
-                ModelName="M",
-                TrackLogs=["train_loss", "val_loss"],
-                monitor="val_loss",
-                SendPlot=True,
-                verbose=2,
-            )
-
-        assert cb.ModelName == "M"
-        assert cb.TrackLogs == ["train_loss", "val_loss"]
-        assert cb.SendPlot is True
-        assert cb.verbose == 2
-
-    def test_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = SlackUpdate(
-                token=None,
-                channel_id="C123",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-        assert not hasattr(cb, "client")
-
-
-class TestTelegramUpdateShim:
-    @patch("slackker.callbacks.lightning.TelegramClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client.chat_id = "99999"
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            cb = TelegramUpdate(
-                token="123:ABC",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-            assert any(issubclass(x.category, DeprecationWarning) for x in w)
-
-    def test_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = TelegramUpdate(
-                token=None,
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-        assert not hasattr(cb, "client")
-
-
 # ── Auto-connect tests ───────────────────────────────────────
 
 
@@ -415,47 +321,6 @@ class TestAutoConnect:
             monitor="train_loss",
         )
         assert client.is_connected
-
-
-class TestLightningShimConnectFails:
-    """Cover the connect-failed error log branches in SlackUpdate and TelegramUpdate."""
-
-    @patch("slackker.callbacks.lightning.SlackClient")
-    def test_slack_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = SlackUpdate(
-                token="xoxb-test",
-                channel_id="C123",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-
-        assert not hasattr(obj, "client")
-
-    @patch("slackker.callbacks.lightning.TelegramClient")
-    def test_telegram_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_client.chat_id = None
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = TelegramUpdate(
-                token="123:ABC",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-
-        assert not hasattr(obj, "client")
 
 
 if __name__ == "__main__":
