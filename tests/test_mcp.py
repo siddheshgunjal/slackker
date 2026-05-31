@@ -975,16 +975,31 @@ class TestMCPServerRuntime:
         fake_handler = MagicMock()
         fake_app = SimpleNamespace(mcp=object(), handler=fake_handler)
 
+        startup_logger = MagicMock()
+
         with patch("slackker.mcp.server.parse_args", return_value=fake_args):
             with patch(
                 "slackker.mcp.server.load_config_from_args", return_value=fake_config
             ):
                 with patch("slackker.mcp.server.create_app", return_value=fake_app):
                     with patch("slackker.mcp.server._run_mcp") as run_mcp:
-                        main([])
+                        with patch.object(
+                            mcp_server_module.log, "bind", return_value=startup_logger
+                        ) as bind_mock:
+                            with patch.object(
+                                mcp_server_module.log, "success"
+                            ) as success:
+                                main([])
 
         run_mcp.assert_called_once_with(fake_app.mcp)
         fake_handler.stop.assert_called_once()
+        bind_mock.assert_called_once_with(always=True)
+        startup_logger.success.assert_called_once()
+        assert (
+            "MCP server started successfully"
+            in startup_logger.success.call_args.args[0]
+        )
+        success.assert_not_called()
 
     def test_main_handles_keyboard_interrupt_and_stops(self):
         fake_args = argparse.Namespace()
@@ -998,6 +1013,8 @@ class TestMCPServerRuntime:
         fake_handler = MagicMock()
         fake_app = SimpleNamespace(mcp=object(), handler=fake_handler)
 
+        startup_logger = MagicMock()
+
         with patch("slackker.mcp.server.parse_args", return_value=fake_args):
             with patch(
                 "slackker.mcp.server.load_config_from_args", return_value=fake_config
@@ -1006,10 +1023,21 @@ class TestMCPServerRuntime:
                     with patch(
                         "slackker.mcp.server._run_mcp", side_effect=KeyboardInterrupt
                     ):
-                        with patch.object(mcp_server_module.log, "info") as info:
-                            main([])
+                        with patch.object(
+                            mcp_server_module.log, "bind", return_value=startup_logger
+                        ) as bind_mock:
+                            with patch.object(
+                                mcp_server_module.log, "success"
+                            ) as success:
+                                main([])
 
-        info.assert_called_once()
+        bind_mock.assert_called_once_with(always=True)
+        startup_logger.success.assert_called_once()
+        assert (
+            "MCP server started successfully"
+            in startup_logger.success.call_args.args[0]
+        )
+        success.assert_called_once_with("MCP server interrupted by user.")
         fake_handler.stop.assert_called_once()
 
 

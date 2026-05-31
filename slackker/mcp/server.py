@@ -177,16 +177,41 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _log_startup_success(config: MCPConfig, app: Any) -> None:
+    """Emit a concise startup success log for MCP server boot."""
+    tools = getattr(app, "tools", None)
+    if isinstance(tools, dict):
+        tool_names = ", ".join(tools.keys())
+    else:
+        tool_names = "unknown"
+
+    client = getattr(app, "client", None)
+    client_connected = getattr(client, "is_connected", "unknown")
+
+    log.bind(always=True).success(
+        "\nMCP server started successfully\n"
+        "---------------------------------\n"
+        f"Transport:       stdio\n"
+        f"Platform:        {config.platform}\n"
+        f"Poll Interval:   {config.poll_interval}\n"
+        f"Client Connected: {client_connected}\n"
+        f"Tools:           [{tool_names}]\n"
+        "---------------------------------"
+    )
+
+
 def main(argv: list[str] | None = None) -> None:
     """Run the ``slackker-mcp`` command-line entry point."""
     args = parse_args(argv)
     config = load_config_from_args(args)
     app = create_app(config)
 
+    _log_startup_success(config, app)
+
     try:
         _run_mcp(app.mcp)
     except KeyboardInterrupt:
-        log.info("MCP server interrupted by user.")
+        log.success("MCP server interrupted by user.")
     finally:
         app.handler.stop()
 
