@@ -7,7 +7,6 @@ import warnings
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import numpy as np
 import pytest
 
 from slackker.callbacks.lightning import LightningCallback, SlackUpdate, TelegramUpdate

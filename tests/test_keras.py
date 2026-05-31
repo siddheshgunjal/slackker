@@ -33,7 +33,7 @@ class MockClient(BaseClient):
         return "mock.example.com"
 
     @property
-    def is_connected(self):
+    def is_connected(self) -> bool:
         return True
 
     async def send_message(self, text):
