@@ -1,16 +1,11 @@
-"""
-Tests for slackker.callbacks.lightning module.
-Tests cover the new unified LightningCallback class and backward-compatible shims.
-"""
+"""Tests for `slackker.callbacks.lightning` module."""
 
-import warnings
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-import numpy as np
 import pytest
 
-from slackker.callbacks.lightning import LightningCallback, SlackUpdate, TelegramUpdate
+from slackker.callbacks.lightning import LightningCallback
 from slackker.core.client import BaseClient
 
 # ── Fixtures ──────────────────────────────────────────────────
@@ -98,7 +93,7 @@ class TestLightningCallbackInit:
         m = MockClient()
         with pytest.raises(SystemExit):
             LightningCallback(
-                client=m, model_name="M", track_logs="train_loss", monitor="train_loss"
+                client=m, model_name="M", track_logs="train_loss", monitor="train_loss"  # type: ignore
             )
 
     def test_init_monitor_must_be_in_track_logs(self):
@@ -113,7 +108,7 @@ class TestLightningCallbackInit:
 
     def test_init_monitor_none_warns(self, capsys):
         # monitor=None should warn but not crash
-        cb, _ = _make_callback(monitor=None)
+        cb, _ = _make_callback(monitor=None)  # type: ignore
         assert cb.monitor is None
 
     def test_init_rejects_bad_format(self):
@@ -134,7 +129,7 @@ class TestLightningCallbackInit:
 class TestOnFitStart:
     def test_posts_training_start(self):
         cb, client = _make_callback()
-        cb.on_fit_start(trainer=None, pl_module=None)
+        cb.on_fit_start(trainer=None, pl_module=None)  # type: ignore
         assert len(client.messages) == 1
         assert "TestModel" in client.messages[0]
         assert "started at" in client.messages[0]
@@ -159,7 +154,7 @@ class TestOnTrainEpochEnd:
                 "val_acc": 0.67,
             }
         )
-        cb.on_train_epoch_end(trainer=trainer, pl_module=None)
+        cb.on_train_epoch_end(trainer=trainer, pl_module=None)  # type: ignore
 
         assert cb.n_epochs == 1
         assert cb.training_logs["train_loss"] == [0.90]
@@ -182,7 +177,7 @@ class TestOnTrainEpochEnd:
                 "val_acc": 0.67,
             }
         )
-        cb.on_train_epoch_end(trainer=trainer, pl_module=None)
+        cb.on_train_epoch_end(trainer=trainer, pl_module=None)  # type: ignore
 
         assert cb.n_epochs == 1
         assert cb.training_logs["val_loss"] == [0.84]
@@ -203,7 +198,7 @@ class TestOnFitEnd:
         }
         cb.n_epochs = 3
 
-        cb.on_fit_end(trainer=None, pl_module=None)
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         found = any("Best epoch was, Epoch 1" in m for m in client.messages)
         assert found
@@ -216,17 +211,17 @@ class TestOnFitEnd:
         }
         cb.n_epochs = 3
 
-        cb.on_fit_end(trainer=None, pl_module=None)
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         found = any("Best epoch was, Epoch 1" in m for m in client.messages)
         assert found
 
     def test_no_monitor_fallback_message(self):
-        cb, client = _make_callback(monitor=None)
+        cb, client = _make_callback(monitor=None)  # type: ignore
         cb.training_logs = {"train_loss": [0.9], "val_loss": [0.8]}
         cb.n_epochs = 1
 
-        cb.on_fit_end(trainer=None, pl_module=None)
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         found = any("monitor' was not provided" in m for m in client.messages)
         assert found
@@ -240,7 +235,7 @@ class TestOnFitEnd:
         cb.training_logs = {"train_loss": [0.9, 0.7], "val_loss": [0.8, 0.6]}
         cb.n_epochs = 2
 
-        cb.on_fit_end(trainer=None, pl_module=None)
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         assert len(client.uploaded_images) == 2
         mock_plots.assert_called_once()
@@ -262,7 +257,7 @@ class TestCompleteWorkflow:
     def test_full_training(self, mock_plots, mock_check):
         cb, client = _make_callback(send_plot=True)
 
-        cb.on_fit_start(trainer=None, pl_module=None)
+        cb.on_fit_start(trainer=None, pl_module=None)  # type: ignore
         for epoch in range(6):
             trainer = _trainer_with_metrics(
                 {
@@ -272,102 +267,13 @@ class TestCompleteWorkflow:
                     "val_acc": 0.62 + (0.03 * epoch),
                 }
             )
-            cb.on_train_epoch_end(trainer=trainer, pl_module=None)
-        cb.on_fit_end(trainer=None, pl_module=None)
+            cb.on_train_epoch_end(trainer=trainer, pl_module=None)  # type: ignore
+        cb.on_fit_end(trainer=None, pl_module=None)  # type: ignore
 
         assert cb.n_epochs == 6
         assert len(cb.training_logs["train_loss"]) == 6
         # 1 begin + 6 epochs + 1 summary
         assert len(client.messages) == 8
-
-
-# ── Backward-compat shim tests ───────────────────────────────
-
-
-class TestSlackUpdateShim:
-    @patch("slackker.callbacks.lightning.SlackClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            cb = SlackUpdate(
-                token="xoxb-test",
-                channel_id="C123",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-            assert any(issubclass(x.category, DeprecationWarning) for x in w)
-
-    @patch("slackker.callbacks.lightning.SlackClient")
-    def test_shim_preserves_old_attrs(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = SlackUpdate(
-                token="xoxb-test",
-                channel_id="C123",
-                ModelName="M",
-                TrackLogs=["train_loss", "val_loss"],
-                monitor="val_loss",
-                SendPlot=True,
-                verbose=2,
-            )
-
-        assert cb.ModelName == "M"
-        assert cb.TrackLogs == ["train_loss", "val_loss"]
-        assert cb.SendPlot is True
-        assert cb.verbose == 2
-
-    def test_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = SlackUpdate(
-                token=None,
-                channel_id="C123",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-        assert not hasattr(cb, "client")
-
-
-class TestTelegramUpdateShim:
-    @patch("slackker.callbacks.lightning.TelegramClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client.chat_id = "99999"
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            cb = TelegramUpdate(
-                token="123:ABC",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-            assert any(issubclass(x.category, DeprecationWarning) for x in w)
-
-    def test_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = TelegramUpdate(
-                token=None,
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-        assert not hasattr(cb, "client")
 
 
 # ── Auto-connect tests ───────────────────────────────────────
@@ -382,7 +288,7 @@ class DisconnectedMockClient(MockClient):
         self._connected = False
 
     @property
-    def is_connected(self):
+    def is_connected(self):  # type: ignore
         return self._connected
 
     async def connect(self):
@@ -415,47 +321,6 @@ class TestAutoConnect:
             monitor="train_loss",
         )
         assert client.is_connected
-
-
-class TestLightningShimConnectFails:
-    """Cover the connect-failed error log branches in SlackUpdate and TelegramUpdate."""
-
-    @patch("slackker.callbacks.lightning.SlackClient")
-    def test_slack_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = SlackUpdate(
-                token="xoxb-test",
-                channel_id="C123",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-
-        assert not hasattr(obj, "client")
-
-    @patch("slackker.callbacks.lightning.TelegramClient")
-    def test_telegram_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_client.chat_id = None
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = TelegramUpdate(
-                token="123:ABC",
-                ModelName="M",
-                TrackLogs=["train_loss"],
-                monitor="train_loss",
-            )
-
-        assert not hasattr(obj, "client")
 
 
 if __name__ == "__main__":

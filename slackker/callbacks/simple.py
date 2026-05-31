@@ -51,7 +51,7 @@ class SimpleCallback:
     def _sync_run(self, coro):
         """Submit *coro* to the persistent background loop and block until done."""
         self._ensure_sync_loop()
-        return asyncio.run_coroutine_threadsafe(coro, self._sync_loop).result()
+        return asyncio.run_coroutine_threadsafe(coro, self._sync_loop).result()  # type: ignore
 
     # ── Internal listener lifecycle ───────────────────────────────────────────
 
@@ -78,7 +78,7 @@ class SimpleCallback:
             # Stop the listener inside the persistent loop, then shut it down
             asyncio.run_coroutine_threadsafe(self.async_stop(), self._sync_loop).result()
             self._sync_loop.call_soon_threadsafe(self._sync_loop.stop)
-            self._sync_thread.join(timeout=5)
+            self._sync_thread.join(timeout=5)  # type: ignore
             self._sync_loop = None
             self._sync_thread = None
         else:
@@ -123,7 +123,7 @@ class SimpleCallback:
             f"(Reply *{halt_on}* to halt, anything else or no reply to continue. "
             f"{int(timeout)} s timeout → auto-continues)"
         )
-        reply = await self._listener.poller.wait_for_reply(timeout=timeout)
+        reply = await self._listener.poller.wait_for_reply(timeout=timeout)  # type: ignore
         if reply is not None and reply.text.strip().lower() == halt_on.lower():
             await self.client.send_message(f"🛑 Halted by {reply.sender}.")
             return False

@@ -1,4 +1,3 @@
-import warnings
 from datetime import datetime
 
 import numpy as np
@@ -6,7 +5,6 @@ from keras.callbacks import Callback
 
 from slackker.core.client import BaseClient, _run_sync
 from slackker.utils import network, plotting
-from slackker.utils.logger import log
 
 
 class KerasCallback(Callback):
@@ -60,7 +58,7 @@ class KerasCallback(Callback):
             f'Training on "{self.model_name}" started at {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}'
         )
 
-    def on_epoch_end(self, batch, logs=None):
+    def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
         log_values = list(logs.values())
 
@@ -112,75 +110,3 @@ class KerasCallback(Callback):
             )
             for path in paths:
                 self.client.upload_image_sync(path, comment=f"{self.model_name} 📎")
-
-
-# ──────────────────────────────────────────────
-# Backward-compatible shims (deprecated)
-# ──────────────────────────────────────────────
-
-from slackker.core.slack import SlackClient
-from slackker.core.telegram import TelegramClient
-
-
-class SlackUpdate(KerasCallback):
-    """Deprecated: Use KerasCallback(SlackClient(...), ...) instead."""
-
-    def __init__(
-        self, token, channel_id, ModelName, export="png", SendPlot=False, verbose=0
-    ):
-        warnings.warn(
-            "SlackUpdate is deprecated. Use KerasCallback(SlackClient(token, channel_id), model_name) instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if token is None:
-            log.error("Please enter a valid Slack API Token.")
-            return
-
-        client = SlackClient(token=token, channel_id=channel_id, verbose=verbose)
-        connected = _run_sync(client.connect())
-        if not connected:
-            log.error("Failed to connect to Slack.")
-            return
-
-        super().__init__(
-            client=client, model_name=ModelName, export=export, send_plot=SendPlot
-        )
-
-        # Expose old attribute names for backward compat
-        self.ModelName = ModelName
-        self.SendPlot = SendPlot
-        self.verbose = verbose
-        self._sdk_client = client._client
-        self.channel_id = channel_id
-
-
-class TelegramUpdate(KerasCallback):
-    """Deprecated: Use KerasCallback(TelegramClient(...), ...) instead."""
-
-    def __init__(self, token, ModelName, export="png", SendPlot=False, verbose=0):
-        warnings.warn(
-            "TelegramUpdate is deprecated. Use KerasCallback(TelegramClient(token), model_name) instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if token is None:
-            log.error("Please enter a valid Telegram API Token.")
-            return
-
-        client = TelegramClient(token=token, verbose=verbose)
-        connected = _run_sync(client.connect())
-        if not connected:
-            log.error("Failed to connect to Telegram.")
-            return
-
-        super().__init__(
-            client=client, model_name=ModelName, export=export, send_plot=SendPlot
-        )
-
-        # Expose old attribute names for backward compat
-        self.ModelName = ModelName
-        self.SendPlot = SendPlot
-        self.verbose = verbose
-        self.token = token
-        self.channel = client.chat_id

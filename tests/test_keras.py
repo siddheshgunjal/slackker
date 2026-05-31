@@ -1,15 +1,10 @@
-"""
-Comprehensive tests for slackker.callbacks.keras module.
-Tests cover the new unified KerasCallback class and backward-compatible shims.
-"""
+"""Comprehensive tests for `slackker.callbacks.keras` module."""
 
-import warnings
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
-import numpy as np
 import pytest
 
-from slackker.callbacks.keras import KerasCallback, SlackUpdate, TelegramUpdate
+from slackker.callbacks.keras import KerasCallback
 from slackker.core.client import BaseClient
 
 # ── Fixtures ──────────────────────────────────────────────────
@@ -34,7 +29,7 @@ class MockClient(BaseClient):
         return "mock.example.com"
 
     @property
-    def is_connected(self):
+    def is_connected(self) -> bool:
         return True
 
     async def send_message(self, text):
@@ -101,7 +96,7 @@ class TestOnEpochEnd:
     def test_tracks_metrics_and_reports(self, mock_check):
         cb, client = _make_callback()
         logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
-        cb.on_epoch_end(batch=0, logs=logs)
+        cb.on_epoch_end(epoch=0, logs=logs)
 
         assert cb.n_epochs == 1
         assert len(cb.train_loss) == 1
@@ -117,7 +112,7 @@ class TestOnEpochEnd:
     def test_skips_report_without_internet(self, mock_check):
         cb, client = _make_callback()
         logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
-        cb.on_epoch_end(batch=0, logs=logs)
+        cb.on_epoch_end(epoch=0, logs=logs)
 
         assert cb.n_epochs == 1
         assert len(cb.train_loss) == 1
@@ -136,7 +131,7 @@ class TestOnEpochEnd:
             {"accuracy": 0.85, "loss": 0.35, "val_accuracy": 0.82, "val_loss": 0.40},
         ]
         for i, logs in enumerate(epochs_logs):
-            cb.on_epoch_end(batch=i, logs=logs)
+            cb.on_epoch_end(epoch=i, logs=logs)
 
         assert cb.n_epochs == 3
         assert len(cb.train_loss) == 3
@@ -204,7 +199,7 @@ class TestLogOrdering:
                 "val_accuracy": 0.4 + i * 0.1,
                 "val_loss": 1.0 - i * 0.1,
             }
-            cb.on_epoch_end(batch=i, logs=logs)
+            cb.on_epoch_end(epoch=i, logs=logs)
 
         assert cb.train_acc == pytest.approx([0.5, 0.6, 0.7])
         assert cb.train_loss == pytest.approx([0.9, 0.8, 0.7])
@@ -236,75 +231,11 @@ class TestCompleteWorkflow:
                 "val_accuracy": 0.65 + epoch * 0.03,
                 "val_loss": 0.65 - epoch * 0.05,
             }
-            cb.on_epoch_end(batch=epoch, logs=logs)
+            cb.on_epoch_end(epoch=epoch, logs=logs)
         cb.on_train_end()
 
         assert cb.n_epochs == 5
         assert len(client.messages) >= 7  # 1 begin + 5 epochs + 2 end summaries
-
-
-# ── Backward-compat shim tests ───────────────────────────────
-
-
-class TestSlackUpdateShim:
-    @patch("slackker.callbacks.keras.SlackClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            cb = SlackUpdate(token="xoxb-test", channel_id="C123", ModelName="M")
-            assert any(issubclass(x.category, DeprecationWarning) for x in w)
-
-    @patch("slackker.callbacks.keras.SlackClient")
-    def test_shim_preserves_old_attrs(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = SlackUpdate(
-                token="xoxb-test",
-                channel_id="C123",
-                ModelName="M",
-                SendPlot=True,
-                verbose=2,
-            )
-
-        assert cb.ModelName == "M"
-        assert cb.SendPlot is True
-        assert cb.verbose == 2
-
-    def test_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = SlackUpdate(token=None, channel_id="C123", ModelName="M")
-        assert not hasattr(cb, "client")
-
-
-class TestTelegramUpdateShim:
-    @patch("slackker.callbacks.keras.TelegramClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_client.chat_id = "99999"
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            cb = TelegramUpdate(token="123:ABC", ModelName="M")
-            assert any(issubclass(x.category, DeprecationWarning) for x in w)
-
-    def test_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            cb = TelegramUpdate(token=None, ModelName="M")
-        assert not hasattr(cb, "client")
 
 
 class TestKerasCallbackMessageFormatting:
@@ -323,7 +254,7 @@ class TestKerasCallbackMessageFormatting:
             "val_accuracy": 0.7956,
             "val_loss": 0.5123,
         }
-        cb.on_epoch_end(batch=0, logs=logs)
+        cb.on_epoch_end(epoch=0, logs=logs)
 
         assert len(client.messages) == 1
         message = client.messages[0]
@@ -355,7 +286,7 @@ class TestKerasCallbackAdditionalBranches:
     def test_init_export_none_raises(self):
         m = MockClient()
         with pytest.raises(ValueError, match="Unsupported export format"):
-            KerasCallback(client=m, model_name="M", export=None)
+            KerasCallback(client=m, model_name="M", export=None)  # type: ignore
 
     @patch(
         "slackker.callbacks.keras.network.check_connection_quick",
@@ -364,7 +295,7 @@ class TestKerasCallbackAdditionalBranches:
     )
     def test_on_epoch_end_incomplete_logs_skips_tracking(self, mock_check):
         cb, client = _make_callback()
-        cb.on_epoch_end(batch=0, logs={"accuracy": 0.8, "loss": 0.2})
+        cb.on_epoch_end(epoch=0, logs={"accuracy": 0.8, "loss": 0.2})
         # With < 4 log values, metrics are not tracked but epoch still counts
         assert cb.n_epochs == 1
         assert cb.train_loss == []
@@ -382,7 +313,7 @@ class TestKerasCallbackAdditionalBranches:
             "val_accuracy": 0.80,
             "val_loss": 0.50,
         }
-        cb.on_epoch_end(batch=0, logs=logs)
+        cb.on_epoch_end(epoch=0, logs=logs)
 
         assert cb.n_epochs == 1
         assert cb.valid_loss == [0.50]
@@ -440,36 +371,6 @@ class TestAutoConnect:
         client = MockClient()  # is_connected always True
         KerasCallback(client=client, model_name="M", export="png")
         assert client.is_connected
-
-
-class TestKerasShimConnectFails:
-    """Cover the connect-failed error log branches in SlackUpdate and TelegramUpdate."""
-
-    @patch("slackker.callbacks.keras.SlackClient")
-    def test_slack_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_client._client = MagicMock()
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = SlackUpdate(token="xoxb-test", channel_id="C123", ModelName="M")
-
-        assert not hasattr(obj, "client")
-
-    @patch("slackker.callbacks.keras.TelegramClient")
-    def test_telegram_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_client.chat_id = None
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = TelegramUpdate(token="123:ABC", ModelName="M")
-
-        assert not hasattr(obj, "client")
 
 
 if __name__ == "__main__":

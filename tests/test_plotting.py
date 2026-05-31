@@ -1,7 +1,6 @@
 """Tests for slackker.utils.plotting."""
 
-import pytest
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 from slackker.utils.plotting import generate_plot, generate_and_get_plots
 
 

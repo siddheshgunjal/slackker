@@ -9,10 +9,11 @@ from slackker.core import (
     TelegramClient,
 )
 from slackker.listener import CommandHandler, MessagePoller
+from slackker.mcp.handler import MCPHandler
 
 __author__ = "Siddhesh Gunjal"
 __email__ = "siddhu19@live.com"
-__version__ = "1.5.1"
+__version__ = "2.0.0"
 
 # module level doc-string
 __doc__ = """
@@ -30,16 +31,13 @@ backend via the BaseClient abstraction.
 Bidirectional communication — send updates *and* receive commands:
     from slackker.listener import MessagePoller, CommandHandler
 
-New API (recommended):
+API Reference:
     from slackker.core import SlackClient, TelegramClient, TeamsClient, DiscordClient
     from slackker.callbacks.simple import SimpleCallback
     from slackker.callbacks.keras import KerasCallback
     from slackker.callbacks.lightning import LightningCallback
 
-Legacy API (deprecated, still works):
-    from slackker.callbacks.basic import Update, SlackUpdate, TelegramUpdate
-    from slackker.callbacks.keras import SlackUpdate, TelegramUpdate
-    from slackker.callbacks.lightning import SlackUpdate, TelegramUpdate
+
 
 References
 ----------
@@ -54,6 +52,7 @@ __all__ = [
     "BaseClient",
     "IncomingMessage",
     "SimpleCallback",
+    "MCPHandler",
     "MessagePoller",
     "CommandHandler",
     "callbacks",

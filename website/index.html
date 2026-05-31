@@ -6,19 +6,19 @@
   <title>slackker — Real-time Pipeline Notifications</title>
   <link rel="canonical" href="https://slackker.com/" />
   <!-- Meta tags for SEO and social sharing -->
-  <meta name="description" content="Monitor any Python pipeline & AI training run in real-time via Slack, Telegram and Microsoft Teams with slackker." />
+  <meta name="description" content="Monitor Agentic pipeline & AI training run in real-time via Slack, Telegram, Discord and Microsoft Teams with slackker." />
   <meta name="keywords" content="python notifications, slack notifications, telegram notifications, teams notifications, ml pipeline monitoring, keras callback, pytorch lightning callback, data pipeline alerts, slackker" />
   <meta name="author" content="Siddhesh Gunjal" />
   <meta name="robots" content="index, follow" />
   <meta property="og:title" content="slackker — Real-time Pipeline Notifications">
-  <meta property="og:description" content="Monitor any Python pipeline & AI training run in real-time via Slack, Telegram,and Microsoft Teams with slackker.">
+  <meta property="og:description" content="Monitor Agentic pipeline & AI training run in real-time via Slack, Telegram, Discord and Microsoft Teams with slackker.">
   <meta property="og:image" content="https://raw.githubusercontent.com/siddheshgunjal/slackker/refs/heads/main/website/assets/slackker_logo_wide.webp">
   <meta property="og:url" content="https://slackker.com/">
   <meta property="og:site_name" content="slackker">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="slackker — Real-time Pipeline Notifications">
-  <meta name="twitter:description" content="Monitor any Python pipeline & AI training run in real-time via Slack, Telegram and Microsoft Teams with slackker.">
+  <meta name="twitter:description" content="Monitor Agentic pipeline & AI training run in real-time via Slack, Telegram, Discord and Microsoft Teams with slackker.">
   <meta name="twitter:image" content="https://raw.githubusercontent.com/siddheshgunjal/slackker/refs/heads/main/website/assets/slackker_logo_wide.webp">
   <meta name="twitter:site" content="@gunjal_siddhesh">
   <meta name="twitter:creator" content="@gunjal_siddhesh">
@@ -41,7 +41,7 @@
           "@type": "WebSite",
           "name": "slackker",
           "url": "https://slackker.com/",
-          "description": "Monitor any Python pipeline & AI training run in real-time via Slack, Telegram and Microsoft Teams with slackker.",
+          "description": "Monitor Agentic pipeline & AI training run in real-time via Slack, Telegram, Discord and Microsoft Teams with slackker.",
           "publisher": {
             "@type": "Person",
             "name": "Siddhesh Gunjal"
@@ -53,7 +53,7 @@
           "applicationCategory": "DeveloperApplication",
           "operatingSystem": "Linux, macOS, Windows",
           "softwareVersion": "1.4.0",
-          "description": "Python package for monitoring your pipeline and model training status in real-time on Slack, Telegram, and Microsoft Teams.",
+          "description": "Python package for monitoring your pipeline and model training status in real-time on Slack, Telegram, Discord and Microsoft Teams.",
           "url": "https://slackker.com/",
           "downloadUrl": "https://pypi.org/project/slackker/",
           "codeRepository": "https://github.com/siddheshgunjal/slackker",
@@ -95,15 +95,16 @@
       <a href="#quickstart">Quick Start</a>
       <a href="#setup">Client Setup</a>
       <a href="#usage">Usage</a>
+      <a href="#mcp">MCP Setup</a>
     </nav>
   </header>
 
   <main id="home" class="site-main">
     <section class="hero reveal center-text">
-      <p class="eyebrow">Real-time notifications for any Python pipeline</p>
+      <p class="eyebrow">Real-time notifications for your Agentic pipeline</p>
       <h1>Run anything.<br />Know instantly. Stay anywhere.</h1>
       <p class="lead center-block">
-        slackker sends real-time notifications to Slack, Telegram, Discord, or Microsoft Teams for any Python pipeline,
+        slackker sends real-time notifications to Slack, Telegram, Discord, or Microsoft Teams for your Agentic pipeline,
         ML training run, or automation workflow — complete with metrics, outputs, and optional plots.
       </p>
       <div class="hero-cta center-wrap">
@@ -214,9 +215,9 @@ train_model(epochs=20)</code></pre>
       <ol class="steps center-block">
         <li class="glass"><span>1</span>Install package: <code>pip install slackker</code></li>
         <li class="glass"><span>2</span>Setup either Slack, Telegram, or Teams credentials.</li>
-        <li class="glass"><span>3</span>Create a <code>SlackClient</code>, <code>TelegramClient</code>, or <code>TeamsClient</code> with your credentials.</li>
+        <li class="glass"><span>3</span>Create a <code>SlackClient</code>, <code>TelegramClient</code>, <code>DiscordClient</code> or <code>TeamsClient</code> with your credentials.</li>
         <li class="glass"><span>4</span>Pass the client to <code>SimpleCallback</code>, <code>KerasCallback</code>, or <code>LightningCallback</code>.</li>
-        <li class="glass"><span>5</span>Run training and receive updates plus optional exported plots.</li>
+        <li class="glass"><span>5</span>Run pipeline and receive updates plus optional exported plots.</li>
       </ol>
     </section>
 
@@ -597,6 +598,30 @@ client = TelegramClient(
     token="123456:ABC-DEF...",
     verbose=1
 )
+
+class LightningModel(LightningModule):
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("train_loss", loss, on_epoch=True)
+        self.log("train_acc", accuracy, on_epoch=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("val_loss", loss, on_epoch=True)
+        self.log("val_acc", accuracy, on_epoch=True)
+        return loss
+
+model = LightningModel()
+
 slackker_cb = LightningCallback(
     client=client,
     model_name="LightningClassifier",
@@ -679,6 +704,65 @@ def main():
 main()</code></pre>
         </article>
       </div>
+    </section>
+
+    <section id="mcp" class="section reveal">
+      <div class="section-head center-text">
+        <p class="eyebrow">Universal MCP setup</p>
+        <h2>Use slackker from your AI coding client</h2>
+        <p class="lead center-block">slackker runs as a local stdio MCP server. Pick your client below to get a ready-to-paste config snippet.</p>
+      </div>
+
+      <div class="steps-wrapper center-block">
+          <ol class="steps center-block">
+            <li class="glass"><span>1</span>Install MCP extras: <code>pip install "slackker[mcp]"</code></li>
+            <li class="glass"><span>2</span>Start the server with <code>slackker-mcp</code> (or <code>uv run slackker-mcp</code> if it is not on your <code>PATH</code>).</li>
+            <li class="glass"><span>3</span>Set your <code>SLACKKER_*</code> values in your <code>.env</code> file. See <a href="https://github.com/siddheshgunjal/slackker/blob/main/.env.example" target="_blank">.env.example</a> for reference.</li>
+            <li class="glass"><span>4</span>Apply below config based on your choice of client</li>
+            <li class="glass"><span>5</span>Exposed MCP Tools: <code>notify</code>, <code>ask</code>, <code>get_messages</code> and <code>get_status</code> Know more<a href="https://github.com/siddheshgunjal/slackker#mcp-server" target="_blank">here</a></li>
+          </ol>
+      </div>
+
+      <div class="example-panels">
+        <article class="example-panel glass active" role="region" aria-label="MCP config snippet">
+          <div class="ide-titlebar">
+            <span class="ide-dot dot-red"></span>
+            <span class="ide-dot dot-yellow"></span>
+            <span class="ide-dot dot-green"></span>
+            <span class="ide-filename">mcp-config.json</span>
+            <div class="platform-toggle dropdown-only" role="group" aria-label="Switch MCP client">
+              <span class="platform-label">Client: </span>
+              <select class="plt-select" aria-label="Switch MCP client">
+                <option value="vscode">VS Code</option>
+                <option value="zed">Zed</option>
+                <option value="claude-desktop">Claude Desktop</option>
+                <option value="claude-code">Claude Code</option>
+                <option value="opencode">OpenCode</option>
+                <option value="roo">Roo Code</option>
+                <option value="cursor">Cursor</option>
+                <option value="continue">Continue</option>
+                <option value="antigravity">Antigravity</option>
+                <option value="hermes">Hermes</option>
+              </select>
+            </div>
+          </div>
+<pre><code class="code-python" data-snippet="mcp">{
+  "servers": {
+    "slackker": {
+      "type": "stdio",
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}</code></pre>
+        </article>
+      </div>
+
+      <p class="mcp-footnote center-text">Need complete docs and compatibility notes? See <a href="https://github.com/siddheshgunjal/slackker#universal-mcp-configuration" target="_blank">Universal MCP Configuration</a>.</p>
     </section>
 
     <section id="how-it-works" class="section reveal">

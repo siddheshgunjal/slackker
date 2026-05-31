@@ -27,9 +27,10 @@ https://github.com/user-attachments/assets/41ab1ee9-4d3c-44d0-82b2-3194acbf7727
 * [Create a Client](#create-a-client)
 * [SimpleCallback — any Python function](#simplecallback--any-python-function)
 * [Interactive Pipeline](#interactive-pipeline)
+* [MCP Server](#mcp-server)
+* [Universal MCP Configuration](#universal-mcp-configuration)
 * [Keras](#use-with-keras)
 * [Lightning](#use-with-lightning)
-* [Legacy API (deprecated)](#legacy-api-deprecated)
 * [Support](#support-sparkles)
 * [Citation](#citation-page_facing_up)
 * [Maintainer](#maintainer-sunglasses)
@@ -220,6 +221,285 @@ pipeline()
 
 **Async version:** use `await notifier.async_ask("...")` in async contexts.
 
+# MCP Server
+
+Use slackker as an MCP server so AI agents can call tools like a remote `SimpleCallback`:
+
+- `notify` → send event notifications (optional attachment + metadata)
+- `ask` → human approval gate (`continue` / `halt`)
+- `get_messages` → fetch recent channel messages
+- `get_status` → connection + listener status
+
+Install MCP extras:
+
+```sh
+pip install "slackker[mcp]"
+```
+
+Start the server (stdio transport):
+
+```sh
+slackker-mcp
+```
+
+## CLI run methods
+
+If `slackker-mcp` is not on your shell `PATH`, use one of these:
+
+```sh
+# Run via uv in the current project environment
+uv run slackker-mcp
+
+# Run as a Python module (bypasses PATH lookup)
+python -m slackker.mcp.server
+```
+
+You can also configure everything with CLI flags only:
+
+```sh
+slackker-mcp --platform slack --token xoxb-... --channel-id C04AAB77ABC
+```
+
+Or load config from a JSON file and still override via flags:
+
+```sh
+slackker-mcp --config ./slackker_mcp.json --poll-interval 1.0
+```
+
+Configuration is read from environment variables:
+
+```bash
+# Required for Slack / Telegram / Discord
+SLACKKER_PLATFORM=slack          # slack | telegram | discord | teams
+SLACKKER_TOKEN=xoxb-...          # required for slack/telegram/discord
+
+# Platform-specific target
+SLACKKER_CHANNEL_ID=C04AAB77ABC  # Slack / Discord channel ID
+SLACKKER_CHAT_ID=123456          # Telegram chat ID (optional if auto-discovery works)
+
+# Teams-specific
+SLACKKER_APP_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+SLACKKER_TENANT_ID=common
+SLACKKER_CHAT_ID=19:...@thread.v2
+
+# Optional runtime tuning
+SLACKKER_POLL_INTERVAL=2.0
+SLACKKER_VERBOSE=1
+```
+
+`slackker-mcp` automatically reads a local `.env` file from the current working directory.
+If the same `SLACKKER_*` key is set in both places, the exported process environment value wins.
+
+# Universal MCP Configuration
+
+`slackker-mcp` runs as a **local stdio MCP server**, so it works with MCP clients that can launch a local command.
+
+## Compatibility Matrix
+
+| Client | Status | Config shape | Notes |
+|---|---|---|---|
+| VS Code | ✅ Verified | `servers.<name>` | MCP extension config (`.vscode/mcp.json`) |
+| Zed | ✅ Verified | `context_servers.<name>.command` | Uses `settings.json` |
+| Claude Desktop | ✅ Verified | `mcpServers.<name>` | Uses `claude_desktop_config.json` |
+| Claude Code (terminal) | ✅ Verified | `claude mcp add ...` or `.mcp.json` with `mcpServers` | Native MCP management commands |
+| OpenCode (terminal) | ✅ Verified | `mcp.<name>` with `type: "local"` | Uses `opencode.json` |
+| Roo Code | ✅ Verified | `mcpServers.<name>` | Global/project MCP files |
+| Cursor | 🟡 Common stdio pattern | `mcpServers.<name>` | AI-native fork; follows Claude/MCP standard |
+| Continue | 🟡 Common stdio pattern | `mcpServers.<name>` | Confirm exact file path per plugin/version |
+| Antigravity | 🟡 Common stdio pattern | `mcpServers.<name>` | AI-native fork; follows Claude/MCP standard |
+| Hermes / other terminal agents | 🟡 Stdio-compatible by design | Local stdio command + env | Works if host supports stdio MCP servers |
+
+## Snippets by client
+
+<details>
+<summary>Click to expand configuration snippets</summary>
+
+<details>
+<summary><strong>VS Code (`.vscode/mcp.json`)</strong></summary>
+
+```json
+{
+  "servers": {
+    "slackker": {
+      "type": "stdio",
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Zed (`settings.json`)</strong></summary>
+
+```json
+{
+  "context_servers": {
+    "slackker": {
+      "command": {
+        "path": "slackker-mcp",
+        "env": {
+          "SLACKKER_PLATFORM": "slack",
+          "SLACKKER_TOKEN": "xoxb-...",
+          "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+        }
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Claude Desktop (`claude_desktop_config.json`)</strong></summary>
+
+```json
+{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Claude Code (terminal)</strong></summary>
+
+Add from CLI:
+
+```sh
+claude mcp add --transport stdio \
+  --env SLACKKER_PLATFORM=slack \
+  --env SLACKKER_TOKEN=xoxb-... \
+  --env SLACKKER_CHANNEL_ID=C04AAB77ABC \
+  slackker -- slackker-mcp
+```
+
+Or project config (`.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "slackker": {
+      "type": "stdio",
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>OpenCode (`opencode.json`)</strong></summary>
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "slackker": {
+      "type": "local",
+      "command": ["slackker-mcp"],
+      "enabled": true,
+      "environment": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+File-based config variant:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "slackker": {
+      "type": "local",
+      "command": ["slackker-mcp", "--config", "/absolute/path/slackker_mcp.json"],
+      "enabled": true
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Cursor / Continue / Roo / Antigravity (common stdio shape)</strong></summary>
+
+```json
+{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+> File path and top-level key names can vary by client/plugin version.
+
+</details>
+
+<details>
+<summary><strong>Hermes / other terminal MCP hosts</strong></summary>
+
+Use whichever config file your host expects, with these required fields:
+
+- transport: local/stdio
+- command: `slackker-mcp`
+- env: `SLACKKER_*` (or args `--config /path/to/slackker_mcp.json`)
+
+Minimal generic example:
+
+```json
+{
+  "mcpServers": {
+    "slackker": {
+      "command": "slackker-mcp",
+      "env": {
+        "SLACKKER_PLATFORM": "slack",
+        "SLACKKER_TOKEN": "xoxb-...",
+        "SLACKKER_CHANNEL_ID": "C04AAB77ABC"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+</details>
+
 # Use with [Keras][keras]
 ![keras-banner](https://i.postimg.cc/MpLBBTn7/slackker-keras.png)
 
@@ -357,68 +637,6 @@ trainer.fit(model, train_loader, val_loader)
 </details>
 
 ---
-
-# Legacy API (deprecated)
-
-> **Note:** The old `Update`, `SlackUpdate`, and `TelegramUpdate` classes still work but emit a `DeprecationWarning`. They will be removed in a future release. Please migrate to `SimpleCallback` and the new client-based API shown above.
-
-<details>
-<summary><strong>Click to expand legacy usage examples</strong></summary>
-
-### Basic callbacks (legacy)
-```python
-from slackker.callbacks.basic import SlackUpdate   # or TelegramUpdate
-
-# Slack
-slackker = SlackUpdate(
-    token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel_id="C04AAB77ABC",
-)
-
-# Telegram
-slackker = TelegramUpdate(token="1234567890:AAAAA_A111BBBBBCCC2DD3eEe44f5GGGgGG")
-
-@slackker.notifier
-def your_function():
-    return value_1, value_2
-
-slackker.notify(event="done", value_1=value_1)
-```
-
-### Keras callbacks (legacy)
-```python
-from slackker.callbacks.keras import SlackUpdate   # or TelegramUpdate
-
-slackker = SlackUpdate(
-    token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel_id="C04AAB77ABC",
-    ModelName="Keras_NN",
-    export="png",
-    SendPlot=True,
-)
-
-history = model.fit(..., callbacks=[slackker])
-```
-
-### Lightning callbacks (legacy)
-```python
-from slackker.callbacks.lightning import SlackUpdate   # or TelegramUpdate
-
-slackker = SlackUpdate(
-    token="xoxb-123234234235-123234234235-adedce74748c3844747aed",
-    channel_id="C04AAB77ABC",
-    ModelName="Lightning NN",
-    TrackLogs=["train_loss", "train_acc", "val_loss", "val_acc"],
-    monitor="val_loss",
-    export="png",
-    SendPlot=True,
-)
-
-trainer = Trainer(max_epochs=2, callbacks=[slackker])
-trainer.fit(model, train_loader, test_loader)
-```
-
-</details>
 
 #  Support :sparkles:
 If you get stuck, we’re here to help. The following are the best ways to get assistance working through your issue:

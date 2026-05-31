@@ -4,20 +4,20 @@ This folder contains the complete test suite for `slackker`. All test documentat
 
 ## Test Files
 
-- `test_basic.py`: Basic callback tests (`SlackUpdate`, `TelegramUpdate`) for decorators and script notifications.
-- `test_keras.py`: Keras callback tests (`SlackUpdate`, `TelegramUpdate`) for train lifecycle reporting.
-- `test_lightning.py`: Lightning callback tests (`SlackUpdate`, `TelegramUpdate`) for fit lifecycle reporting.
+- `test_basic.py`: `SimpleCallback` tests for decorators, notifications, and interactive ask/stop flow.
+- `test_keras.py`: `KerasCallback` tests for train lifecycle reporting.
+- `test_lightning.py`: `LightningCallback` tests for fit lifecycle reporting.
 - `conftest.py`: Shared pytest setup.
 
 ## Coverage Summary
 
 ### Basic Callback Coverage
 
-- Initialization checks (token, connectivity, API validation)
+- `SimpleCallback` initialization and auto-connect behavior
 - `notifier` decorator behavior (tuple/single/None returns)
 - Execution time and message generation
-- `notify(*args, **kwargs)` formatting and timestamp behavior
-- Error and edge scenarios
+- `notify(...)` / `async_notify(...)` formatting and timestamp behavior
+- Interactive `ask(...)` / `async_ask(...)` and listener lifecycle (`stop`, `async_stop`)
 
 ### Keras Callback Coverage
 
@@ -29,7 +29,7 @@ This folder contains the complete test suite for `slackker`. All test documentat
 
 ### Lightning Callback Coverage
 
-- Callback initialization and validation for `TrackLogs` and `monitor`
+- Callback initialization and validation for `track_logs` and `monitor`
 - `on_fit_start`, `on_train_epoch_end`, `on_fit_end`
 - Per-epoch metric extraction from `trainer.callback_metrics`
 - Best epoch selection for loss and accuracy monitors

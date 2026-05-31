@@ -1,14 +1,9 @@
-"""
-Comprehensive tests for slackker.callbacks.simple and slackker.callbacks.basic modules.
-Tests cover SimpleCallback and backward-compatible Update/SlackUpdate/TelegramUpdate shims.
-"""
+"""Comprehensive tests for `slackker.callbacks.simple` module."""
 
-import warnings
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from slackker.callbacks.basic import SlackUpdate, TelegramUpdate, Update
 from slackker.callbacks.simple import SimpleCallback
 from slackker.core.client import BaseClient
 
@@ -49,14 +44,6 @@ class MockClient(BaseClient):
 def _make_callback(verbose=0):
     client = MockClient(verbose=verbose)
     return SimpleCallback(client), client
-
-
-def _make_update(verbose=0):
-    """Legacy helper using deprecated Update."""
-    client = MockClient(verbose=verbose)
-    with warnings.catch_warnings(record=True):
-        warnings.simplefilter("always")
-        return Update(client), client
 
 
 # ── SimpleCallback tests ──────────────────────────────────────
@@ -229,146 +216,6 @@ class TestAsyncNotify:
         assert len(client.uploaded_files) == 1
 
 
-# ── Deprecated Update alias test ─────────────────────────────
-
-
-class TestUpdateDeprecation:
-    """Ensure Update emits DeprecationWarning and still works."""
-
-    def test_update_deprecation_warning(self):
-        client = MockClient()
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            obj = Update(client)
-            assert any(issubclass(x.category, DeprecationWarning) for x in w)
-            assert any("Update is deprecated" in str(x.message) for x in w)
-
-    def test_update_still_functions(self):
-        client = MockClient()
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = Update(client)
-
-        obj.notify("test_event", x=1)
-        assert any("test_event" in m for m in client.messages)
-
-
-# ── Backward-compat shim tests ───────────────────────────────
-
-
-class TestSlackUpdateShim:
-    """Test backward-compatible SlackUpdate."""
-
-    @patch("slackker.callbacks.basic.SlackClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MagicMock()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            obj = SlackUpdate(token="test", channel_id="C123", verbose=0)
-            assert len(w) == 1
-            assert issubclass(w[0].category, DeprecationWarning)
-            assert "SlackUpdate is deprecated" in str(w[0].message)
-
-    @patch("slackker.callbacks.basic.SlackClient")
-    def test_init_success(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = SlackUpdate(token="test", channel_id="C123", verbose=0)
-
-        assert hasattr(obj, "client")
-        assert obj.client is mock_client
-
-    def test_init_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = SlackUpdate(token=None, channel_id="C123")
-        assert not hasattr(obj, "client")
-
-
-class TestTelegramUpdateShim:
-    """Test backward-compatible TelegramUpdate."""
-
-    @patch("slackker.callbacks.basic.TelegramClient")
-    def test_init_deprecation_warning(self, mock_cls):
-        mock_client = MagicMock()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter("always")
-            obj = TelegramUpdate(token="test", verbose=0)
-            assert len(w) == 1
-            assert issubclass(w[0].category, DeprecationWarning)
-
-    @patch("slackker.callbacks.basic.TelegramClient")
-    def test_init_success(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = TelegramUpdate(token="test", verbose=0)
-
-        assert hasattr(obj, "client")
-
-    def test_init_no_token(self):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = TelegramUpdate(token=None)
-        assert not hasattr(obj, "client")
-
-
-class TestShimWorkflows:
-    """Integration-style tests using the shims with a mock client."""
-
-    @patch("slackker.callbacks.basic.SlackClient")
-    def test_slack_notifier_and_notify(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = SlackUpdate(token="xoxb-test", channel_id="C123", verbose=0)
-
-        @obj.notifier
-        def compute(x, y):
-            return x + y, x * y
-
-        s, p = compute(5, 3)
-        assert s == 8
-        assert p == 15
-
-        obj.notify(f"Sum: {s}", product=f"{p}")
-        assert len(mock_client.messages) == 2
-
-    @patch("slackker.callbacks.basic.TelegramClient")
-    def test_telegram_notifier_and_notify(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=True)
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = TelegramUpdate(token="123:ABC", verbose=0)
-
-        @obj.notifier
-        def func():
-            return "v1", "v2"
-
-        func()
-        obj.notify("arg1", detail="arg2", value="str")
-        assert len(mock_client.messages) == 2
-
-
 # ── Auto-connect tests ───────────────────────────────────────
 
 
@@ -381,7 +228,7 @@ class DisconnectedMockClient(MockClient):
         self._connected = False
 
     @property
-    def is_connected(self):
+    def is_connected(self):  # type: ignore
         return self._connected
 
     async def connect(self):
@@ -405,34 +252,6 @@ class TestAutoConnect:
         SimpleCallback(client)
         # MockClient has no connect_calls attr — just ensure no AttributeError
         assert client.is_connected
-
-
-class TestShimConnectFails:
-    """Cover the connect-failed error log branches in SlackUpdate and TelegramUpdate."""
-
-    @patch("slackker.callbacks.basic.SlackClient")
-    def test_slack_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = SlackUpdate(token="xoxb-test", channel_id="C123")
-
-        assert not hasattr(obj, "client")
-
-    @patch("slackker.callbacks.basic.TelegramClient")
-    def test_telegram_update_connect_fails_no_client_attr(self, mock_cls):
-        mock_client = MockClient()
-        mock_client.connect = AsyncMock(return_value=False)
-        mock_cls.return_value = mock_client
-
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always")
-            obj = TelegramUpdate(token="123:ABC")
-
-        assert not hasattr(obj, "client")
 
 
 if __name__ == "__main__":
