@@ -706,6 +706,7 @@ client = TelegramClient(
     token="123456:ABC-DEF...",
     verbose=1
 )
+
 slackker_cb = KerasCallback(
     client=client,
     model_name="ImageClassifierV1",
@@ -729,6 +730,7 @@ client = SlackClient(
     channel_id="A04AAB77ABC",
     verbose=1
 )
+
 slackker_cb = KerasCallback(
     client=client,
     model_name="ImageClassifierV1",
@@ -753,6 +755,7 @@ client = TeamsClient(
   chat_id="19:abc@thread.v2",
   verbose=1
 )
+
 slackker_cb = KerasCallback(
   client=client,
   model_name="ImageClassifierV1",
@@ -776,6 +779,7 @@ client = DiscordClient(
     channel_id="123456789012345678",
     verbose=1
 )
+
 slackker_cb = KerasCallback(
     client=client,
     model_name="ImageClassifierV1",
@@ -801,6 +805,30 @@ client = TelegramClient(
     token="123456:ABC-DEF...",
     verbose=1
 )
+
+class LightningModel(LightningModule):
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("train_loss", loss, on_epoch=True)
+        self.log("train_acc", accuracy, on_epoch=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("val_loss", loss, on_epoch=True)
+        self.log("val_acc", accuracy, on_epoch=True)
+        return loss
+
+model = LightningModel()
+
 slackker_cb = LightningCallback(
     client=client,
     model_name="LightningClassifier",
@@ -821,6 +849,30 @@ client = SlackClient(
     channel_id="A04AAB77ABC",
     verbose=1
 )
+
+class LightningModel(LightningModule):
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("train_loss", loss, on_epoch=True)
+        self.log("train_acc", accuracy, on_epoch=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("val_loss", loss, on_epoch=True)
+        self.log("val_acc", accuracy, on_epoch=True)
+        return loss
+
+model = LightningModel()
+
 slackker_cb = LightningCallback(
     client=client,
     model_name="LightningClassifier",
@@ -842,6 +894,30 @@ client = TeamsClient(
   chat_id="19:abc@thread.v2",
   verbose=1
 )
+
+class LightningModel(LightningModule):
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("train_loss", loss, on_epoch=True)
+        self.log("train_acc", accuracy, on_epoch=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("val_loss", loss, on_epoch=True)
+        self.log("val_acc", accuracy, on_epoch=True)
+        return loss
+
+model = LightningModel()
+
 slackker_cb = LightningCallback(
   client=client,
   model_name="LightningClassifier",
@@ -862,6 +938,30 @@ client = DiscordClient(
     channel_id="123456789012345678",
     verbose=1
 )
+
+class LightningModel(LightningModule):
+    def training_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("train_loss", loss, on_epoch=True)
+        self.log("train_acc", accuracy, on_epoch=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self.forward(x)
+        loss = F.cross_entropy(y_hat, y)
+        accuracy = (torch.max(y_hat, 1)[1] == y).float().mean()
+        # log with on_epoch=True so slackker can read them at epoch end
+        self.log("val_loss", loss, on_epoch=True)
+        self.log("val_acc", accuracy, on_epoch=True)
+        return loss
+
+model = LightningModel()
+
 slackker_cb = LightningCallback(
     client=client,
     model_name="LightningClassifier",
