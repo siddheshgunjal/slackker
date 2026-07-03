@@ -538,6 +538,8 @@ history = model.fit(
 | `model_name` | `str` | _required_ | Name used in messages and plot titles |
 | `export` | `str` | `"png"` | Plot format _(eps, jpeg, jpg, pdf, pgf, png, ps, raw, rgba, svg, svgz, tif, tiff)_ |
 | `send_plot` | `bool` | `False` | Send training/validation plots when training ends |
+| `track_logs` | `dict[str, str] \| None` | `None` | Maps attribute names to Keras `logs` keys. Defaults to `{"train_loss": "loss", "train_acc": "accuracy", "valid_loss": "val_loss", "valid_acc": "val_accuracy"}`. Customise for non-standard metric names. |
+| `monitor` | `str` | `"valid_loss"` | Attribute name from `track_logs` used to determine the best epoch. Loss-like metrics use `argmin`; others use `argmax`. |
 
 </details>
 
