@@ -1,4 +1,3 @@
-import sys
 from datetime import datetime
 
 import numpy as np
@@ -44,15 +43,14 @@ class LightningCallback(Callback):
             )
 
         if track_logs is None:
-            log.error("Provide at least 1 log type for sending update.")
-            sys.exit()
+            raise ValueError("Provide at least 1 log type for sending update.")
         if not isinstance(track_logs, list):
-            log.error("'track_logs' must be a list, e.g. ['train_loss', 'val_loss']")
-            sys.exit()
+            raise ValueError(
+                "'track_logs' must be a list, e.g. ['train_loss', 'val_loss']"
+            )
 
         if monitor is not None and monitor not in track_logs:
-            log.error(f"'monitor' value '{monitor}' not found in 'track_logs'")
-            sys.exit()
+            raise ValueError(f"'monitor' value '{monitor}' not found in 'track_logs'")
         elif monitor is None:
             log.warning("'monitor' not provided, will skip reporting Best Epoch")
 
