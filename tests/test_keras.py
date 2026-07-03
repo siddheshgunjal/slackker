@@ -65,11 +65,33 @@ class TestKerasCallbackInit:
         assert cb.n_epochs == 0
         assert cb.train_loss == []
         assert cb.train_acc == []
+        assert cb.track_logs == KerasCallback._DEFAULT_TRACK_LOGS
+        assert cb.monitor == "valid_loss"
 
     def test_init_rejects_bad_format(self):
         m = MockClient()
         with pytest.raises(ValueError, match="Unsupported export format"):
             KerasCallback(client=m, model_name="M", export="bmp")
+
+    def test_init_rejects_monitor_not_in_track_logs(self):
+        m = MockClient()
+        with pytest.raises(ValueError, match="'monitor' value 'f1' not found"):
+            KerasCallback(
+                client=m,
+                model_name="M",
+                monitor="f1",
+            )
+
+    def test_init_custom_track_logs(self):
+        m = MockClient()
+        cb = KerasCallback(
+            client=m,
+            model_name="M",
+            track_logs={"train_loss": "loss", "train_auc": "auc"},
+            monitor="train_auc",
+        )
+        assert cb.track_logs == {"train_loss": "loss", "train_auc": "auc"}
+        assert cb.monitor == "train_auc"
 
 
 # ── on_train_begin ────────────────────────────────────────────
@@ -95,7 +117,12 @@ class TestOnEpochEnd:
     )
     def test_tracks_metrics_and_reports(self, mock_check):
         cb, client = _make_callback()
-        logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
+        logs = {
+            "accuracy": 0.85,
+            "loss": 0.45,
+            "val_accuracy": 0.80,
+            "val_loss": 0.50,
+        }
         cb.on_epoch_end(epoch=0, logs=logs)
 
         assert cb.n_epochs == 1
@@ -111,7 +138,12 @@ class TestOnEpochEnd:
     )
     def test_skips_report_without_internet(self, mock_check):
         cb, client = _make_callback()
-        logs = {"accuracy": 0.85, "loss": 0.45, "val_accuracy": 0.80, "val_loss": 0.50}
+        logs = {
+            "accuracy": 0.85,
+            "loss": 0.45,
+            "val_accuracy": 0.80,
+            "val_loss": 0.50,
+        }
         cb.on_epoch_end(epoch=0, logs=logs)
 
         assert cb.n_epochs == 1
@@ -155,6 +187,8 @@ class TestOnTrainEnd:
 
         found_best = any("Best epoch was 2" in m for m in client.messages)
         assert found_best
+        # Detailed summary uses the attribute names from track_logs.
+        assert any("valid_loss = 0.3800" in m for m in client.messages)
 
     @patch(
         "slackker.callbacks.keras.plotting.generate_and_get_plots",
@@ -177,8 +211,25 @@ class TestOnTrainEnd:
         cb, client = _make_callback()
         cb.n_epochs = 0
         cb.on_train_end()
-        # No messages about best epoch when no data
         assert not any("Best epoch" in m for m in client.messages)
+
+    def test_monitor_acc_selects_highest_epoch(self):
+        """When monitor is an accuracy metric, best epoch = argmax."""
+        m = MockClient()
+        cb = KerasCallback(
+            client=m,
+            model_name="M",
+            monitor="valid_acc",
+        )
+        cb.train_loss = [0.6, 0.4, 0.3]
+        cb.train_acc = [0.7, 0.8, 0.9]
+        cb.valid_loss = [0.65, 0.50, 0.55]
+        cb.valid_acc = [0.65, 0.75, 0.70]
+        cb.n_epochs = 3
+
+        cb.on_train_end()
+
+        assert any("Best epoch was 1" in msg for msg in m.messages)
 
 
 # ── Log ordering ──────────────────────────────────────────────
@@ -190,14 +241,16 @@ class TestLogOrdering:
         new_callable=AsyncMock,
         return_value=True,
     )
-    def test_logs_stored_in_order(self, mock_check):
+    def test_logs_extracted_by_key_name(self, mock_check):
+        """Metrics are looked up by key name — dict ordering does not matter."""
         cb, _ = _make_callback()
         for i in range(3):
+            # Shuffle insertion order to prove key-based lookup is order-independent.
             logs = {
-                "accuracy": 0.5 + i * 0.1,
-                "loss": 0.9 - i * 0.1,
-                "val_accuracy": 0.4 + i * 0.1,
                 "val_loss": 1.0 - i * 0.1,
+                "loss": 0.9 - i * 0.1,
+                "accuracy": 0.5 + i * 0.1,
+                "val_accuracy": 0.4 + i * 0.1,
             }
             cb.on_epoch_end(epoch=i, logs=logs)
 
@@ -205,6 +258,43 @@ class TestLogOrdering:
         assert cb.train_loss == pytest.approx([0.9, 0.8, 0.7])
         assert cb.valid_acc == pytest.approx([0.4, 0.5, 0.6])
         assert cb.valid_loss == pytest.approx([1.0, 0.9, 0.8])
+
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    def test_custom_track_logs_extracts_only_mapped_keys(self, mock_check):
+        """When track_logs is customised, only mapped metrics are tracked."""
+        m = MockClient()
+        cb = KerasCallback(
+            client=m,
+            model_name="M",
+            track_logs={"train_loss": "loss", "val_auc": "val_auc"},
+            monitor="val_auc",
+        )
+        logs = {"loss": 0.5, "accuracy": 0.9, "val_loss": 0.6, "val_auc": 0.75}
+        cb.on_epoch_end(epoch=0, logs=logs)
+
+        assert cb.train_loss == [0.5]
+        # accuracy and val_loss are NOT in track_logs → default lists stay empty.
+        assert cb.train_acc == []
+        assert cb.valid_loss == []
+
+    @patch(
+        "slackker.callbacks.keras.network.check_connection_quick",
+        new_callable=AsyncMock,
+        return_value=True,
+    )
+    def test_incomplete_logs_tracks_available_metrics(self, mock_check):
+        """Only metrics whose keys appear in logs are tracked."""
+        cb, client = _make_callback()
+        cb.on_epoch_end(epoch=0, logs={"accuracy": 0.8, "loss": 0.2})
+        assert cb.n_epochs == 1
+        assert cb.train_acc == [0.8]
+        assert cb.train_loss == [0.2]
+        assert cb.valid_loss == []  # val_loss key not present
+        assert cb.valid_acc == []  # val_accuracy key not present
 
 
 # ── Complete workflow ─────────────────────────────────────────
@@ -278,6 +368,28 @@ class TestKerasCallbackMessageFormatting:
 
         assert len(client.messages) >= 2
         assert any("3 epochs" in m for m in client.messages)
+        # Best-epoch summary uses the attribute names from track_logs.
+        assert any("valid_loss = 0.4000" in m for m in client.messages)
+
+    @patch(
+        "slackker.callbacks.keras.plotting.generate_and_get_plots",
+        return_value=["loss.png"],
+    )
+    def test_train_end_message_contains_accuracy_percent(self, mock_plots):
+        cb, client = _make_callback(send_plot=True)
+        cb.train_loss = [0.60, 0.45, 0.35]
+        cb.train_acc = [0.70, 0.80, 0.85]
+        cb.valid_loss = [0.65, 0.50, 0.40]
+        cb.valid_acc = [0.65, 0.75, 0.82]
+        cb.n_epochs = 3
+
+        cb.on_train_end()
+
+        # Accuracy metrics are formatted as percentages in the summary.
+        assert any(
+            "valid_acc = 82.0000%" in m or "train_acc = 85.0000%" in m
+            for m in client.messages
+        )
 
 
 class TestKerasCallbackAdditionalBranches:
@@ -287,18 +399,6 @@ class TestKerasCallbackAdditionalBranches:
         m = MockClient()
         with pytest.raises(ValueError, match="Unsupported export format"):
             KerasCallback(client=m, model_name="M", export=None)  # type: ignore
-
-    @patch(
-        "slackker.callbacks.keras.network.check_connection_quick",
-        new_callable=AsyncMock,
-        return_value=True,
-    )
-    def test_on_epoch_end_incomplete_logs_skips_tracking(self, mock_check):
-        cb, client = _make_callback()
-        cb.on_epoch_end(epoch=0, logs={"accuracy": 0.8, "loss": 0.2})
-        # With < 4 log values, metrics are not tracked but epoch still counts
-        assert cb.n_epochs == 1
-        assert cb.train_loss == []
 
     @patch(
         "slackker.callbacks.keras.network.check_connection_quick",
@@ -318,22 +418,6 @@ class TestKerasCallbackAdditionalBranches:
         assert cb.n_epochs == 1
         assert cb.valid_loss == [0.50]
         assert len(client.messages) == 0
-
-    @patch(
-        "slackker.callbacks.keras.plotting.generate_and_get_plots",
-        return_value=["loss.png"],
-    )
-    def test_train_end_message_contains_accuracy_percent(self, mock_plots):
-        cb, client = _make_callback(send_plot=True)
-        cb.train_loss = [0.60, 0.45, 0.35]
-        cb.train_acc = [0.70, 0.80, 0.85]
-        cb.valid_loss = [0.65, 0.50, 0.40]
-        cb.valid_acc = [0.65, 0.75, 0.82]
-        cb.n_epochs = 3
-
-        cb.on_train_end()
-
-        assert any("Best Accuracy =" in m and "%" in m for m in client.messages)
 
 
 # ── Auto-connect tests ───────────────────────────────────────
