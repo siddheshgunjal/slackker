@@ -84,21 +84,24 @@ class TestLightningCallbackInit:
 
     def test_init_requires_track_logs(self):
         m = MockClient()
-        with pytest.raises(SystemExit):
+        with pytest.raises(ValueError, match="Provide at least 1 log type"):
             LightningCallback(
                 client=m, model_name="M", track_logs=None, monitor="val_loss"
             )
 
     def test_init_track_logs_must_be_list(self):
         m = MockClient()
-        with pytest.raises(SystemExit):
+        with pytest.raises(ValueError, match="'track_logs' must be a list"):
             LightningCallback(
-                client=m, model_name="M", track_logs="train_loss", monitor="train_loss"  # type: ignore
+                client=m,
+                model_name="M",
+                track_logs="train_loss",
+                monitor="train_loss",  # type: ignore
             )
 
     def test_init_monitor_must_be_in_track_logs(self):
         m = MockClient()
-        with pytest.raises(SystemExit):
+        with pytest.raises(ValueError, match="'monitor' value 'val_acc' not found"):
             LightningCallback(
                 client=m,
                 model_name="M",

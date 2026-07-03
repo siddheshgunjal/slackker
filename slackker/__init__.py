@@ -13,7 +13,7 @@ from slackker.mcp.handler import MCPHandler
 
 __author__ = "Siddhesh Gunjal"
 __email__ = "siddhu19@live.com"
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 
 # module level doc-string
 __doc__ = """
