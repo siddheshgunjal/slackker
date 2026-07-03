@@ -8,7 +8,40 @@ from slackker.utils import network, plotting
 
 
 class KerasCallback(Callback):
-    """Unified Keras training callback that works with any client backend."""
+    """Unified Keras training callback that works with any client backend.
+
+    Parameters
+    ----------
+    client : BaseClient
+        The messaging platform client to send notifications through.
+    model_name : str
+        Human-readable name for the model (used in messages and plot titles).
+    export : str
+        Image format for training plots. Defaults to ``"png"``.
+    send_plot : bool
+        If ``True``, upload training-curve plots at the end of training.
+        Defaults to ``False``.
+    track_logs : dict[str, str] | None
+        Mapping of attribute names to Keras ``logs`` dictionary keys.
+        The values are appended to lists stored on the callback instance
+        (e.g. ``self.train_loss``, ``self.val_acc``).
+
+        Defaults to the standard Keras convention::
+
+            {
+                "train_loss":  "loss",
+                "train_acc":   "accuracy",
+                "valid_loss":  "val_loss",
+                "valid_acc":   "val_accuracy",
+            }
+
+        Pass a custom mapping when your model uses non-standard metric
+        names (e.g. ``{"train_loss": "loss", "train_auc": "auc"}``).
+    monitor : str
+        Attribute name (from *track_logs*) used to determine the best
+        epoch.  Lower is better when the name contains ``"loss"``;
+        otherwise higher is better.  Defaults to ``"valid_loss"``.
+    """
 
     SUPPORTED_FORMATS = (
         "eps",
@@ -26,17 +59,35 @@ class KerasCallback(Callback):
         "tiff",
     )
 
+    _DEFAULT_TRACK_LOGS: dict[str, str] = {
+        "train_loss": "loss",
+        "train_acc": "accuracy",
+        "valid_loss": "val_loss",
+        "valid_acc": "val_accuracy",
+    }
+
     def __init__(
         self,
         client: BaseClient,
         model_name: str,
         export: str = "png",
         send_plot: bool = False,
+        track_logs: dict[str, str] | None = None,
+        monitor: str = "valid_loss",
     ):
         super().__init__()
         if export not in self.SUPPORTED_FORMATS:
             raise ValueError(
                 f"Unsupported export format '{export}'. Supported: {self.SUPPORTED_FORMATS}"
+            )
+
+        self.track_logs = track_logs or dict(self._DEFAULT_TRACK_LOGS)
+        self.monitor = monitor
+
+        if monitor not in self.track_logs:
+            raise ValueError(
+                f"'monitor' value '{monitor}' not found in 'track_logs' keys. "
+                f"Available keys: {list(self.track_logs)}"
             )
 
         self.client = client
@@ -47,10 +98,11 @@ class KerasCallback(Callback):
         if not client.is_connected:
             _run_sync(client.connect())
 
-        self.train_acc = []
-        self.valid_acc = []
-        self.train_loss = []
-        self.valid_loss = []
+        # Metric lists — populated from logs using self.track_logs mapping
+        self.train_acc: list[float] = []
+        self.valid_acc: list[float] = []
+        self.train_loss: list[float] = []
+        self.valid_loss: list[float] = []
         self.n_epochs = 0
 
     def on_train_begin(self, logs=None):
@@ -60,13 +112,13 @@ class KerasCallback(Callback):
 
     def on_epoch_end(self, epoch, logs=None):
         logs = logs or {}
-        log_values = list(logs.values())
 
-        if len(log_values) >= 4:
-            self.train_acc.append(log_values[0])
-            self.train_loss.append(log_values[1])
-            self.valid_acc.append(log_values[2])
-            self.valid_loss.append(log_values[3])
+        # Extract metrics by key name (not positional index).
+        for attr_name, log_key in self.track_logs.items():
+            if log_key in logs:
+                metric_list: list[float] = getattr(self, attr_name, None)
+                if metric_list is not None:
+                    metric_list.append(float(logs[log_key]))
 
         message = f"Epoch: {self.n_epochs}"
         if self.train_loss:
@@ -83,19 +135,31 @@ class KerasCallback(Callback):
         self.n_epochs += 1
 
     def on_train_end(self, logs=None):
-        if self.valid_loss:
-            best_epoch = int(np.argmin(self.valid_loss))
-            val_loss = self.valid_loss[best_epoch]
-            train_loss = self.train_loss[best_epoch]
-            val_acc = self.valid_acc[best_epoch] if self.valid_acc else 0
-            train_acc = self.train_acc[best_epoch] if self.train_acc else 0
+        monitor_values: list[float] = getattr(self, self.monitor, None) or []
+
+        if monitor_values:
+            # Lower is better for loss-like metrics, higher otherwise.
+            if "loss" in self.monitor.lower():
+                best_epoch = int(np.argmin(monitor_values))
+            else:
+                best_epoch = int(np.argmax(monitor_values))
 
             self.client.send_message_sync(
                 f"Trained for {self.n_epochs} epochs. Best epoch was {best_epoch}."
             )
-            self.client.send_message_sync(
-                f"Best validation loss = {val_loss:.4f}, Training Loss = {train_loss:.4f}, Best Accuracy = {100 * val_acc:.4f}%"
-            )
+
+            # Build a detailed best-epoch summary from all tracked metrics.
+            parts: list[str] = []
+            for attr_name in self.track_logs:
+                values: list[float] = getattr(self, attr_name, None) or []
+                if len(values) > best_epoch:
+                    val = values[best_epoch]
+                    if "acc" in attr_name.lower():
+                        parts.append(f"{attr_name} = {100 * val:.4f}%")
+                    else:
+                        parts.append(f"{attr_name} = {val:.4f}")
+            if parts:
+                self.client.send_message_sync(", ".join(parts))
 
         training_logs = {
             "train_loss": self.train_loss,
