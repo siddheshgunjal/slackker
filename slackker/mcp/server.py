@@ -31,15 +31,31 @@ class SlackkerMCPApp:
 
 
 def _load_fastmcp_class():
-    """Import the FastMCP class lazily."""
-    try:
-        module = importlib.import_module("mcp.server.fastmcp")
-        FastMCP = getattr(module, "FastMCP")
-    except Exception as exc:  # pragma: no cover - import path depends on optional extra
-        raise RuntimeError(
-            "MCP SDK is not installed. Install with: pip install 'slackker[mcp]'"
-        ) from exc
-    return FastMCP
+    """Import the FastMCP server class lazily.
+
+    mcp 1.x exposes ``FastMCP`` from ``mcp.server.fastmcp``; mcp 2.x renamed it
+    to ``MCPServer`` and moved it to ``mcp.server.mcpserver``. Both classes
+    share the constructor, ``tool()``, ``resource()``, and ``run()`` APIs used
+    here.
+    """
+    import_paths = (
+        ("mcp.server.fastmcp", "FastMCP"),
+        ("mcp.server.mcpserver", "MCPServer"),
+    )
+
+    for module_name, class_name in import_paths:
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError:
+            continue
+
+        fastmcp_cls = getattr(module, class_name, None)
+        if fastmcp_cls is not None:
+            return fastmcp_cls
+
+    raise RuntimeError(
+        "MCP SDK is not installed or too old. Install with: pip install 'slackker[mcp]'"
+    )
 
 
 def register_tools(mcp: Any, handler: MCPHandler, client: BaseClient) -> dict[str, Any]:
