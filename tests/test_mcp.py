@@ -1047,10 +1047,8 @@ class TestMCPServerRuntime:
     reason="mcp SDK not installed",
 )
 def test_create_app_with_real_fastmcp_when_installed():
-    """Light integration smoke test using real FastMCP when optional dep is present."""
-    import importlib
-
-    FastMCP = getattr(importlib.import_module("mcp.server.fastmcp"), "FastMCP")
+    """Light integration smoke test using the real SDK server class when present."""
+    FastMCPServer = _load_fastmcp_class()
 
     config = MCPConfig.from_mapping(
         {
@@ -1060,6 +1058,6 @@ def test_create_app_with_real_fastmcp_when_installed():
         }
     )
 
-    app = create_app(config=config, client=MockClient(), fastmcp_cls=FastMCP)
+    app = create_app(config=config, client=MockClient(), fastmcp_cls=FastMCPServer)
     assert app.mcp is not None
     assert "notify" in app.tools
